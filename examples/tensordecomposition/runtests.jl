@@ -13,13 +13,11 @@ map!(x -> x / tnsr_max, tucker_orig.core, tucker_orig.core)
 map!(x -> x / tnsr_max, tnsr_orig, tnsr_orig)
 
 # tnsr = add_noise(tnsr_orig, 0.6, true)
-
 tnsr = tnsr_orig
 
-# Solve the problem
-sizes = [(2,3,4), (1,3,4), (3,3,4), (2,2,4), (2,4,4), (2,3,3), (2,3,5)]
+sizes = [size_core_orig, (1,3,4), (3,3,4), (2,2,4), (2,4,4), (2,3,3), (2,3,5)]
 sizes = [size_core_orig]
-ndimensons = length(sizes[1])
+ndimensons = length(size_core_orig)
 nruns = length(sizes)
 residues = Array{Float64}(nruns)
 correlations_factors = Array{Float64}(nruns, ndimensons)
