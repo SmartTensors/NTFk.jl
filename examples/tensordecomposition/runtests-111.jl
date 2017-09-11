@@ -3,10 +3,7 @@ import Combinatorics
 include("helpers.jl")
 
 srand(1)
-size_core_orig = (2, 3, 4)
-size_tnst = (50, 100, 150)
-# size_tnst = (5, 10, 15)
-tucker_orig = rand_tucker(size_core_orig, size_tnst, factors_nonneg=true, core_nonneg=true)
+tucker_orig = rand_tucker((1, 1, 1), (5, 10, 15), factors_nonneg=true, core_nonneg=true)
 tnsr_orig = TensorDecompositions.compose(tucker_orig)
 tnsr_max = maximum(tnsr_orig)
 map!(x -> x / tnsr_max, tucker_orig.core, tucker_orig.core)
@@ -17,14 +14,12 @@ map!(x -> x / tnsr_max, tnsr_orig, tnsr_orig)
 tnsr = tnsr_orig
 
 # Solve the problem
-sizes = [(2,3,4), (1,3,4), (3,3,4), (2,2,4), (2,4,4), (2,3,3), (2,3,5)]
-sizes = [size_core_orig]
+sizes = [(1,1,1)]
 ndimensons = length(sizes[1])
 nruns = length(sizes)
 residues = Array{Float64}(nruns)
 correlations_factors = Array{Float64}(nruns, ndimensons)
 correlations = Array{Float64}(nruns, ndimensons)
-i = 1
 tnsr_est = 0
 tucker_spnn = 0
 for i in 1:nruns
@@ -39,7 +34,6 @@ for i in 1:nruns
 	correlations[i,2] = minimum(map((j)->minimum(map((k)->cor(tnsr_est[k,:,j], tnsr_orig[k,:,j]), 1:size_tnst[1])), 1:size_tnst[3]))
 	correlations[i,3] = minimum(map((j)->minimum(map((k)->cor(tnsr_est[k,j,:], tnsr_orig[k,j,:]), 1:size_tnst[1])), 1:size_tnst[2]))
 end
-
 
 info("Relative error of decompositions:")
 i = 1
