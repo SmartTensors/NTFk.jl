@@ -3,7 +3,9 @@ import Combinatorics
 include("helpers.jl")
 
 srand(1)
-tucker_orig = rand_tucker((1, 1, 1), (5, 10, 15), factors_nonneg=true, core_nonneg=true)
+size_core_orig = (1, 1, 1)
+size_tnst = (5, 10, 15)
+tucker_orig = rand_tucker(size_core_orig, size_tnst, factors_nonneg=true, core_nonneg=true)
 tnsr_orig = TensorDecompositions.compose(tucker_orig)
 tnsr_max = maximum(tnsr_orig)
 map!(x -> x / tnsr_max, tucker_orig.core, tucker_orig.core)
@@ -36,8 +38,6 @@ for i in 1:nruns
 end
 
 info("Relative error of decompositions:")
-i = 1
-for s in sizes
-	println("$s: residual $(residues[i]) correlations $(correlations[i,:]) correlations_factors $(correlations_factors[i,:])")
-	i += 1
+for i in 1:nruns
+	println("$(sizes[i]): residual $(residues[i]) correlations $(correlations[i,:]) correlations_factors $(correlations_factors[i,:])")
 end

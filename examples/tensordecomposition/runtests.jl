@@ -24,7 +24,6 @@ nruns = length(sizes)
 residues = Array{Float64}(nruns)
 correlations_factors = Array{Float64}(nruns, ndimensons)
 correlations = Array{Float64}(nruns, ndimensons)
-i = 1
 tnsr_est = 0
 tucker_spnn = 0
 for i in 1:nruns
@@ -40,10 +39,7 @@ for i in 1:nruns
 	correlations[i,3] = minimum(map((j)->minimum(map((k)->cor(tnsr_est[k,j,:], tnsr_orig[k,j,:]), 1:size_tnst[1])), 1:size_tnst[2]))
 end
 
-
 info("Relative error of decompositions:")
-i = 1
-for s in sizes
-	println("$s: residual $(residues[i]) correlations $(correlations[i,:]) correlations_factors $(correlations_factors[i,:])")
-	i += 1
+for i in 1:nruns
+	println("$(sizes[i]): residual $(residues[i]) correlations $(correlations[i,:]) correlations_factors $(correlations_factors[i,:])")
 end
