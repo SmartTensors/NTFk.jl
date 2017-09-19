@@ -1,5 +1,6 @@
 import TensorDecompositions
 import Combinatorics
+include("../src/display.jl")
 
 size_tnst = (2, 10, 5)
 tnsr_orig = Array{Float64}(size_tnst)
