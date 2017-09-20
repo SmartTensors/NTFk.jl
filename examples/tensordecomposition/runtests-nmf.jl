@@ -2,20 +2,21 @@ import TensorDecompositions
 import Combinatorics
 include("../../src/display.jl")
 
-size_tnst = (2, 10, 5)
+srand(2015)
+a = rand(20)
+b = rand(20)
+W = [a b]
+H = [.1 1 0 0 .1; 0 0 .1 .5 .2]
+X = W * H
+size_tnst = (20, 5, 2)
 tnsr_orig = Array{Float64}(size_tnst)
-tnsr_orig[:,:,1] = [ones(2,2) zeros(2,8)]
-tnsr_orig[:,:,2] = [zeros(2,2) ones(2,2) zeros(2,6)]
-tnsr_orig[:,:,3] = [zeros(2,4) ones(2,2) zeros(2,4)]
-tnsr_orig[:,:,4] = [zeros(2,6) ones(2,2) zeros(2,2)]
-tnsr_orig[:,:,5] = [zeros(2,8) ones(2,2)]
-tnsr_orig .*= 100
+tnsr_orig[:,:,1] = X
+tnsr_orig[:,:,2] = X * 2
 
 # tnsr = add_noise(tnsr_orig, 0.6, true)
 tnsr = tnsr_orig
 
-sizes = [(1,4,4), (1,4,4), (1,4,4), (1,4,4), (1,5,4), (1,5,4), (1,5,4), (1,5,4), (1,5,4)]
-# sizes = [(1,2,2), (1,2,2), (1,2,2), (1,2,2), (1,2,3), (1,2,3), (1,2,3), (1,2,3), (1,2,3)]
+sizes = [(20,2,1)]
 ndimensons = length(sizes[1])
 nruns = length(sizes)
 residues = Array{Float64}(nruns)
@@ -24,7 +25,7 @@ correlations = Array{Float64}(nruns, ndimensons)
 tnsr_esta = Array{Array{Float64,3}}(nruns)
 tucker_spnn = Array{TensorDecompositions.Tucker{Float64,3}}(nruns)
 for i in 1:nruns
-	@time tucker_spnn[i] = TensorDecompositions.spnntucker(tnsr, sizes[i], tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, max_iter=1000, verbose=false, lambdas=fill(0.1, length(sizes[i]) + 1))
+	@time tucker_spnn[i] = TensorDecompositions.spnntucker(tnsr, sizes[i], tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, max_iter=100000, verbose=false, lambdas=fill(0.1, length(sizes[i]) + 1))
 	tnsr_est = TensorDecompositions.compose(tucker_spnn[i])
 	tnsr_esta[i] = tnsr_est
 	residues[i] = TensorDecompositions.rel_residue(tucker_spnn[i])

@@ -25,7 +25,7 @@ correlations = Array{Float64}(nruns, ndimensons)
 tnsr_est = 0
 tucker_spnn = 0
 for i in 1:nruns
-	@time tucker_spnn = TensorDecompositions.spnntucker(tnsr, sizes[i], tol=1e-15, ini_decomp=:hosvd, core_nonneg=true, max_iter=1000, verbose=true, lambdas=fill(0.1, 4))
+	@time tucker_spnn = TensorDecompositions.spnntucker(tnsr, sizes[i], tol=1e-15, ini_decomp=:hosvd, core_nonneg=true, max_iter=1000, verbose=true, lambdas=fill(0.1, length(sizes[i]) + 1)))
 	tnsr_est = TensorDecompositions.compose(tucker_spnn)
 	residues[i] = TensorDecompositions.rel_residue(tucker_spnn)
 	@show sizes[i]
