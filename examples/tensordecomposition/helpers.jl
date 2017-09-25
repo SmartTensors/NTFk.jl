@@ -26,7 +26,7 @@ function rand_candecomp{N}(r::Int64, dims::NTuple{N, Int}; lambdas_nonneg::Bool=
 end
 
 rand_kruskal3{N}(r::Int64, dims::NTuple{N, Int}, nonnegative::Bool) =
-	compose(rand_candecomp(r, dims, lambdas_nonneg=nonnegative, factors_nonneg=nonnegative))
+	TensorDecompositions.compose(rand_candecomp(r, dims, lambdas_nonneg=nonnegative, factors_nonneg=nonnegative))
 
 function add_noise{T, N}(tnsr::Array{T,N}, sn_ratio = 0.6, nonnegative::Bool = false)
 	tnsr_noise = randn(size(tnsr)...)
