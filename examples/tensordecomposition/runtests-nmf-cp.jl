@@ -51,7 +51,6 @@ for i in 1:nruns
 end
 
 plotcmptensor(T_orig, T_esta[ibest], 3)
-
 @show cor(W[:,1], cpf[ibest].factors[1][:,1])
 @show cor(W[:,2], cpf[ibest].factors[1][:,2])
 @show cor(H[1,:], cpf[ibest].factors[2][:,1])
