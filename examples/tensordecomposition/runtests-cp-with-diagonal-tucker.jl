@@ -1,14 +1,11 @@
 import TensorDecompositions
-import Combinatorics
-dntfdir = splitdir(Base.source_path())[1]
-include(joinpath(dntfdir, "helpers.jl"))
-include(joinpath(dntfdir, "..", "..", "src", "display.jl"))
+import dNTF
 
 srand(1)
 size_core_orig = (3, 3, 3)
 tsize = (5, 10, 15)
 # tsize = (5, 10, 15)
-tucker_orig = diagonal_tucker(size_core_orig, tsize, factors_nonneg=true, core_nonneg=true)
+tucker_orig = dNTF.diagonal_tucker(size_core_orig, tsize, factors_nonneg=true, core_nonneg=true)
 T_orig = TensorDecompositions.compose(tucker_orig)
 T_max = maximum(T_orig)
 map!(x -> x / T_max, tucker_orig.core, tucker_orig.core)

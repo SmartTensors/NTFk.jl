@@ -1,8 +1,5 @@
 import TensorDecompositions
-import Combinatorics
-dntfdir = splitdir(Base.source_path())[1]
-include(joinpath(dntfdir, "helpers.jl"))
-include(joinpath(dntfdir, "..", "..", "src", "display.jl"))
+import dNTF
 
 srand(2015)
 a = rand(20)
@@ -50,7 +47,7 @@ for i in 1:nruns
 	println("$(tranks[i]): residual $(residues[i]) tensor correlations $(correlations[i,:]) factor correlations $(correlations_factors[i,:])")
 end
 
-plotcmptensor(T_orig, T_esta[ibest], 3)
+dNTF.plotcmptensor(T_orig, T_esta[ibest], 3)
 @show cor(W[:,1], cpf[ibest].factors[1][:,1])
 @show cor(W[:,2], cpf[ibest].factors[1][:,2])
 @show cor(H[1,:], cpf[ibest].factors[2][:,1])

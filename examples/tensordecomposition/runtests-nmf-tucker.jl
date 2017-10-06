@@ -1,8 +1,5 @@
 import TensorDecompositions
-import Combinatorics
-dntfdir = splitdir(Base.source_path())[1]
-include(joinpath(dntfdir, "helpers.jl"))
-include(joinpath(dntfdir, "..", "..", "src", "display.jl"))
+import dNTF
 
 srand(2015)
 a = rand(20)
@@ -51,7 +48,7 @@ for i in 1:nruns
 end
 
 if ibest == 2 || ibest = 3 # these should be the best results; otherwise the comparison fails
-	plotcmptensor(T_orig, T_esta[ibest], 3)
+	dNTF.plotcmptensor(T_orig, T_esta[ibest], 3)
 	@show cor(W[:,1], tucker_spnn[ibest].factors[1][:,1])
 	@show cor(W[:,2], tucker_spnn[ibest].factors[1][:,2])
 	@show cor(H[1,:], tucker_spnn[ibest].factors[2][:,1])
@@ -61,7 +58,7 @@ end
 
 if ibest != 3 # theoretically this should be the best result!!!
 	ibest = 3
-	plotcmptensor(T_orig, T_esta[ibest], 3)
+	dNTF.plotcmptensor(T_orig, T_esta[ibest], 3)
 	@show cor(W[:,1], tucker_spnn[ibest].factors[1][:,1])
 	@show cor(W[:,2], tucker_spnn[ibest].factors[1][:,2])
 	@show cor(H[1,:], tucker_spnn[ibest].factors[2][:,1])

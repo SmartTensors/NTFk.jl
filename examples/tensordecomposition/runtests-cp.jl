@@ -1,8 +1,5 @@
 import TensorDecompositions
-import Combinatorics
-dntfdir = splitdir(Base.source_path())[1]
-include(joinpath(dntfdir, "helpers.jl"))
-include(joinpath(dntfdir, "..", "..", "src", "display.jl"))
+import dNTF
 
 srand(1)
 trank = 2

@@ -1,8 +1,5 @@
 import TensorDecompositions
-import Combinatorics
-dntfdir = splitdir(Base.source_path())[1]
-include(joinpath(dntfdir, "helpers.jl"))
-include(joinpath(dntfdir, "..", "..", "src", "display.jl"))
+import dNTF
 
 tsize = (2, 10, 5)
 T_orig = Array{Float64}(tsize)
@@ -46,4 +43,4 @@ for i in 1:nruns
 	println("$i - $(sizes[i]): residual $(residues[i]) tensor correlations $(correlations[i,:])")
 end
 
-plotcmptensor(T_orig, T_esta[ibest], 3)
+dNTF.plotcmptensor(T_orig, T_esta[ibest], 3)
