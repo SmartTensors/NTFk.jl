@@ -1,4 +1,5 @@
 import Gadfly
+import Colors
 import Compose
 
 function plotmatrix(X::Matrix; minvalue=minimum(X), maxvalue=maximum(X), label="")
