@@ -48,7 +48,7 @@ function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X
 			p2 = plotmatrix(X2[i,:,:], minvalue=minvalue, maxvalue=maxvalue, label=label)
 			p = Gadfly.hstack(p1, p2)
 			println(label)
-			Compose.draw(Compose.PNG(24Compose.cm, 6Compose.cm),p); println()
+			Compose.draw(Compose.PNG(24Compose.cm, 6Compose.cm), p); println()
 		end
 	elseif dim == 2
 		for i = 1:n
@@ -57,7 +57,7 @@ function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X
 			p2 = plotmatrix(X2[:,i,:], minvalue=minvalue, maxvalue=maxvalue, label=label)
 			p = Gadfly.hstack(p1, p2)
 			println(label)
-			Compose.draw(Compose.PNG(24Compose.cm, 6Compose.cm),p); println()
+			Compose.draw(Compose.PNG(24Compose.cm, 6Compose.cm), p); println()
 		end
 	elseif dim == 3
 		for i = 1:q
@@ -66,7 +66,7 @@ function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X
 			p2 = plotmatrix(X2[:,:,i], minvalue=minvalue, maxvalue=maxvalue, label=label)
 			p = Gadfly.hstack(p1, p2)
 			println(label)
-			Compose.draw(Compose.PNG(24Compose.cm, 6Compose.cm),p); println()
+			Compose.draw(Compose.PNG(24Compose.cm, 6Compose.cm), p); println()
 		end
 	end
 

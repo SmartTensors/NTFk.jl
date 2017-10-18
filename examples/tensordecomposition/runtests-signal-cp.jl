@@ -22,6 +22,7 @@ correlations = Array{Float64}(nruns, ndimensons)
 T_esta = Array{Array{Float64,3}}(nruns)
 cpf = Array{TensorDecompositions.CANDECOMP{Float64,3}}(nruns)
 for i in 1:nruns
+	info("CP rank: $(tranks[i])")
 	factors_initial_guess = tuple([randn(dim, tranks[i]) for dim in tsize]...)
 	@time cpf[i] = TensorDecompositions.candecomp(T, tranks[i], factors_initial_guess, compute_error=true, method=:ALS)
 	T_est = TensorDecompositions.compose(cpf[i])
