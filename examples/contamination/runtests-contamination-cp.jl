@@ -26,9 +26,10 @@ for i in 1:nruns
 	correlations[i,1] = minimum(map((j)->minimum(map((k)->cor(T_est[:,k,j], T_orig[:,k,j]), 1:tsize[2])), 1:tsize[3]))
 	correlations[i,2] = minimum(map((j)->minimum(map((k)->cor(T_est[k,:,j], T_orig[k,:,j]), 1:tsize[1])), 1:tsize[3]))
 	correlations[i,3] = minimum(map((j)->minimum(map((k)->cor(T_est[k,j,:], T_orig[k,j,:]), 1:tsize[1])), 1:tsize[2]))
+	println("$i - $(tranks[i]): residual $(residues[i]) tensor correlations $(correlations[i,:]) ")
 end
 
-info("Relative error of decompositions:")
+info("Decompositions:")
 ibest = 1
 best = Inf
 for i in 1:nruns
@@ -36,7 +37,7 @@ for i in 1:nruns
 		best = residues[i]
 		ibest = i
 	end
-	println("$i - $(tranks[i]): residual $(residues[i]) tensor correlations $(correlations[i,:])")
+	println("$i - $(tranks[i]): residual $(residues[i]) tensor correlations $(correlations[i,:]) ")
 end
 
 dNTF.plotcmptensor(T_orig, T_esta[ibest], 3)

@@ -1,6 +1,7 @@
 julia 0.6
 TensorOperations
 TensorDecompositions
+TensorToolbox
 Combinatorics
 Gadfly
 Compose
