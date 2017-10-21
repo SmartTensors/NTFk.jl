@@ -13,7 +13,7 @@ T_orig .*= 100
 # T = add_noise(T_orig, 0.6, true)
 T = T_orig
 
-tranks = [1, 2]
+tranks = [1, 2, 3, 4, 5]
 ndimensons = length(size(T))
 nruns = length(tranks)
 residues = Array{Float64}(nruns)

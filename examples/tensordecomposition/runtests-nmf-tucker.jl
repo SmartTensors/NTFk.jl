@@ -27,7 +27,7 @@ T_esta = Array{Array{Float64,3}}(nruns)
 tucker_spnn = Array{TensorDecompositions.Tucker{Float64,3}}(nruns)
 for i in 1:nruns
 	info("Core size: $(sizes[i])")
-	@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i], tol=1e-7, ini_decomp=:hosvd, core_nonneg=true, max_iter=100000, verbose=false, lambdas=fill(1e-6, length(sizes[i]) + 1))
+	@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i], tol=1e-7, ini_decomp=:hosvd, core_nonneg=true, verbose=false)
 	T_est = TensorDecompositions.compose(tucker_spnn[i])
 	T_esta[i] = T_est
 	residues[i] = TensorDecompositions.rel_residue(tucker_spnn[i])
@@ -47,13 +47,15 @@ for i in 1:nruns
 	println("$i - $(sizes[i]): residual $(residues[i]) correlations $(correlations[i,:])")
 end
 
-if ibest == 2 || ibest = 3 # these should be the best results; otherwise the comparison fails
+if ibest == 2 || ibest == 3 # these should be the best results; otherwise the comparison fails
 	dNTF.plotcmptensor(T_orig, T_esta[ibest], 3)
 	@show cor(W[:,1], tucker_spnn[ibest].factors[1][:,1])
 	@show cor(W[:,2], tucker_spnn[ibest].factors[1][:,2])
 	@show cor(H[1,:], tucker_spnn[ibest].factors[2][:,1])
 	@show cor(H[2,:], tucker_spnn[ibest].factors[2][:,2])
 	@show cor(Q, tucker_spnn[ibest].factors[3][:,1])
+else
+	warn("something is not correct; the best results should be #3 (or #2)")
 end
 
 if ibest != 3 # theoretically this should be the best result!!!
@@ -64,4 +66,29 @@ if ibest != 3 # theoretically this should be the best result!!!
 	@show cor(H[1,:], tucker_spnn[ibest].factors[2][:,1])
 	@show cor(H[2,:], tucker_spnn[ibest].factors[2][:,2])
 	@show cor(Q, tucker_spnn[ibest].factors[3][:,1])
+	p = Gadfly.plot(
+		Gadfly.Guide.title("Signal 1"),
+		Gadfly.layer(x=1:length(W[:,1]), y=W[:,1], Gadfly.Geom.line, Gadfly.Theme(default_color=parse(Colors.Colorant, "blue"))),
+		Gadfly.layer(x=1:length(W[:,1]), y=tucker_spnn[ibest].factors[1][:,1], Gadfly.Geom.line, Gadfly.Theme(default_color=parse(Colors.Colorant, "red"))))
+	display(p); println()
+	p = Gadfly.plot(
+		Gadfly.Guide.title("Signal 2"),
+		Gadfly.layer(x=1:length(W[:,2]), y=W[:,2], Gadfly.Geom.line, Gadfly.Theme(default_color=parse(Colors.Colorant, "blue"))),
+		Gadfly.layer(x=1:length(W[:,2]), y=tucker_spnn[ibest].factors[1][:,2], Gadfly.Geom.line, Gadfly.Theme(default_color=parse(Colors.Colorant, "red"))))
+	display(p); println()
+	p = Gadfly.plot(
+		Gadfly.Guide.title("Mixer 1"),
+		Gadfly.layer(x=1:length(H[1,:]), y=H[1,:], Gadfly.Geom.line, Gadfly.Theme(default_color=parse(Colors.Colorant, "blue"))),
+		Gadfly.layer(x=1:length(H[1,:]), y=tucker_spnn[ibest].factors[2][:,1], Gadfly.Geom.line, Gadfly.Theme(default_color=parse(Colors.Colorant, "red"))))
+	display(p); println()
+	p = Gadfly.plot(
+		Gadfly.Guide.title("Mixer 2"),
+		Gadfly.layer(x=1:length(H[2,:]), y=H[2,:], Gadfly.Geom.line, Gadfly.Theme(default_color=parse(Colors.Colorant, "blue"))),
+		Gadfly.layer(x=1:length(H[2,:]), y=tucker_spnn[ibest].factors[2][:,2], Gadfly.Geom.line, Gadfly.Theme(default_color=parse(Colors.Colorant, "red"))))
+	display(p); println()
+	p = Gadfly.plot(
+		Gadfly.Guide.title("Time change"),
+		Gadfly.layer(x=1:length(Q), y=Q, Gadfly.Geom.line, Gadfly.Theme(default_color=parse(Colors.Colorant, "blue"))),
+		Gadfly.layer(x=1:length(Q), y=tucker_spnn[ibest].factors[3][:,1], Gadfly.Geom.line, Gadfly.Theme(default_color=parse(Colors.Colorant, "red"))))
+	display(p); println()
 end

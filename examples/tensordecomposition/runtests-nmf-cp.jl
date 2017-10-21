@@ -17,7 +17,7 @@ T_orig[:,:,3] = X * 3
 # T = add_noise(T_orig, 0.6, true)
 T = T_orig
 
-tranks = [1, 2]
+tranks = [1, 2, 3, 4]
 ndimensons = length(size(T))
 nruns = length(tranks)
 residues = Array{Float64}(nruns)
@@ -27,13 +27,14 @@ T_esta = Array{Array{Float64,3}}(nruns)
 cpf = Array{TensorDecompositions.CANDECOMP{Float64,3}}(nruns)
 for i in 1:nruns
 	factors_initial_guess = tuple([randn(dim, tranks[i]) for dim in tsize]...)
-	@time cpf[i] = TensorDecompositions.candecomp(T, tranks[i], factors_initial_guess, compute_error=true, method=:ALS)
+	@time cpf[i] = TensorDecompositions.candecomp(T, tranks[i], factors_initial_guess, compute_error=true, method=:ALS, maxiter=1000)
 	T_est = TensorDecompositions.compose(cpf[i])
 	T_esta[i] = T_est
 	residues[i] = TensorDecompositions.rel_residue(cpf[i])
 	correlations[i,1] = minimum(map((j)->minimum(map((k)->cor(T_est[:,k,j], T_orig[:,k,j]), 1:tsize[2])), 1:tsize[3]))
 	correlations[i,2] = minimum(map((j)->minimum(map((k)->cor(T_est[k,:,j], T_orig[k,:,j]), 1:tsize[1])), 1:tsize[3]))
 	correlations[i,3] = minimum(map((j)->minimum(map((k)->cor(T_est[k,j,:], T_orig[k,j,:]), 1:tsize[1])), 1:tsize[2]))
+	println("$(tranks[i]): residual $(residues[i]) tensor correlations $(correlations[i,:]) factor correlations $(correlations_factors[i,:])")
 end
 
 info("Relative error of decompositions:")
