@@ -1,6 +1,8 @@
 import dNTF
 import TensorDecompositions
+import TensorToolbox
 import JLD
+import
 
 T_orig = JLD.load("tensor.jld", "T")
 tsize = size(T_orig)
@@ -19,17 +21,29 @@ tucker_spnn = Array{TensorDecompositions.Tucker{Float64,3}}(nruns)
 T_est = nothing
 for i in 1:nruns
 	info("Core size: $(sizes[i])")
-	@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i], tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, max_iter=100000, verbose=false, lambdas=fill(0.1, length(sizes[i]) + 1))
+	@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i], tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambdas=fill(0.1, length(sizes[i]) + 1))
 	T_est = TensorDecompositions.compose(tucker_spnn[i])
 	T_esta[i] = T_est
 	residues[i] = TensorDecompositions.rel_residue(tucker_spnn[i])
 	correlations[i,1] = minimum(map((j)->minimum(map((k)->cor(T_est[:,k,j], T_orig[:,k,j]), 1:tsize[2])), 1:tsize[3]))
 	correlations[i,2] = minimum(map((j)->minimum(map((k)->cor(T_est[k,:,j], T_orig[k,:,j]), 1:tsize[1])), 1:tsize[3]))
 	correlations[i,3] = minimum(map((j)->minimum(map((k)->cor(T_est[k,j,:], T_orig[k,j,:]), 1:tsize[1])), 1:tsize[2]))
+	println("$i - $(sizes[i]): residual $(residues[i]) tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core))")
+end
+
+ibest = 1
+best = Inf
+for i in 1:nruns
+	if residues[i] < best
+		best = residues[i]
+		ibest = i
+	end
 end
 
 csize = TensorToolbox.mrank(tucker_spnn[ibest].core)
+dNTF.atensor(tucker_spnn[ibest].core)
 ndimensons = length(csize)
+info("Estimated true core size: $(csize)")
 
 sizes = [csize]
 for i = 1:ndimensons
@@ -45,13 +59,14 @@ tucker_spnn = Array{TensorDecompositions.Tucker{Float64,3}}(nruns)
 T_est = nothing
 for i in 1:nruns
 	info("Core size: $(sizes[i])")
-	@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i], tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, max_iter=100000, verbose=false, lambdas=fill(0.1, length(sizes[i]) + 1))
+	@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i], tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambdas=fill(0.1, length(sizes[i]) + 1))
 	T_est = TensorDecompositions.compose(tucker_spnn[i])
 	T_esta[i] = T_est
 	residues[i] = TensorDecompositions.rel_residue(tucker_spnn[i])
 	correlations[i,1] = minimum(map((j)->minimum(map((k)->cor(T_est[:,k,j], T_orig[:,k,j]), 1:tsize[2])), 1:tsize[3]))
 	correlations[i,2] = minimum(map((j)->minimum(map((k)->cor(T_est[k,:,j], T_orig[k,:,j]), 1:tsize[1])), 1:tsize[3]))
 	correlations[i,3] = minimum(map((j)->minimum(map((k)->cor(T_est[k,j,:], T_orig[k,j,:]), 1:tsize[1])), 1:tsize[2]))
+	println("$i - $(sizes[i]): residual $(residues[i]) tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core))")
 end
 
 info("Decompositions:")
