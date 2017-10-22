@@ -3,13 +3,7 @@ clear
 close all
 rng(2017)
 tsize = [2, 10, 5]
-T_orig = zeros(tsize)
-T_orig(:,:,1) = [ones(2,2) zeros(2,8)]
-T_orig(:,:,2) = [zeros(2,2) ones(2,2) zeros(2,6)]
-T_orig(:,:,3) = [zeros(2,4) ones(2,2) zeros(2,4)]
-T_orig(:,:,4) = [zeros(2,6) ones(2,2) zeros(2,2)]
-T_orig(:,:,5) = [zeros(2,8) ones(2,2)]
-T_orig = T_orig * 100
+T = h5read('dNTF/contamination/tensor.jld', '/T')
 
 %%% CP decomposition
 CP_dec = sptensor(T_orig);
