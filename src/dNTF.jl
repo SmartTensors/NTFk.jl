@@ -2,7 +2,8 @@ module dNTF
 
 import TensorDecompositions
 import TensorOperations
-import Combinatorics
+import TensorToolbox
+import JLD
 
 const dntfdir = splitdir(Base.source_path())[1]
 
