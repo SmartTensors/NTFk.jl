@@ -2,64 +2,21 @@ import Gadfly
 import Colors
 import Compose
 
-function analysis(T::Array)
-	tsize = size(T)
-
-	sizes = [tsize .- 1]
+function analysis(T::Array, sizes::Vector{Tuple}=[size(T)])
 	ndimensons = length(sizes[1])
 	nruns = length(sizes)
 	residues = Array{Float64}(nruns)
 	correlations = Array{Float64}(nruns, ndimensons)
 	T_esta = Array{Array{Float64,3}}(nruns)
 	tucker_spnn = Array{TensorDecompositions.Tucker{Float64,3}}(nruns)
-	T_est = nothing
 	for i in 1:nruns
 		info("Core size: $(sizes[i])")
 		@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i], tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambdas=fill(0.1, length(sizes[i]) + 1))
-		T_est = TensorDecompositions.compose(tucker_spnn[i])
-		T_esta[i] = T_est
+		T_esta[i] = TensorDecompositions.compose(tucker_spnn[i])
 		residues[i] = TensorDecompositions.rel_residue(tucker_spnn[i])
-		correlations[i,1] = minimum(map((j)->minimum(map((k)->cor(T_est[:,k,j], T[:,k,j]), 1:tsize[2])), 1:tsize[3]))
-		correlations[i,2] = minimum(map((j)->minimum(map((k)->cor(T_est[k,:,j], T[k,:,j]), 1:tsize[1])), 1:tsize[3]))
-		correlations[i,3] = minimum(map((j)->minimum(map((k)->cor(T_est[k,j,:], T[k,j,:]), 1:tsize[1])), 1:tsize[2]))
-		println("$i - $(sizes[i]): residual $(residues[i]) tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core))")
-	end
-
-	ibest = 1
-	best = Inf
-	for i in 1:nruns
-		if residues[i] < best
-			best = residues[i]
-			ibest = i
-		end
-	end
-
-	csize = TensorToolbox.mrank(tucker_spnn[ibest].core)
-	dNTF.atensor(tucker_spnn[ibest].core)
-	ndimensons = length(csize)
-	info("Estimated true core size: $(csize)")
-
-	sizes = [csize]
-	for i = 1:ndimensons
-		push!(sizes, ntuple(k->(k == i ? csize[i] + 1 : csize[k]), ndimensons))
-		push!(sizes, ntuple(k->(k == i ? csize[i] - 1 : csize[k]), ndimensons))
-	end
-
-	nruns = length(sizes)
-	residues = Array{Float64}(nruns)
-	correlations = Array{Float64}(nruns, ndimensons)
-	T_esta = Array{Array{Float64,3}}(nruns)
-	tucker_spnn = Array{TensorDecompositions.Tucker{Float64,3}}(nruns)
-	T_est = nothing
-	for i in 1:nruns
-		info("Core size: $(sizes[i])")
-		@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i], tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambdas=fill(0.1, length(sizes[i]) + 1))
-		T_est = TensorDecompositions.compose(tucker_spnn[i])
-		T_esta[i] = T_est
-		residues[i] = TensorDecompositions.rel_residue(tucker_spnn[i])
-		correlations[i,1] = minimum(map((j)->minimum(map((k)->cor(T_est[:,k,j], T[:,k,j]), 1:tsize[2])), 1:tsize[3]))
-		correlations[i,2] = minimum(map((j)->minimum(map((k)->cor(T_est[k,:,j], T[k,:,j]), 1:tsize[1])), 1:tsize[3]))
-		correlations[i,3] = minimum(map((j)->minimum(map((k)->cor(T_est[k,j,:], T[k,j,:]), 1:tsize[1])), 1:tsize[2]))
+		correlations[i,1] = minimum(map((j)->minimum(map((k)->cor(T_esta[i][:,k,j], T[:,k,j]), 1:tsize[2])), 1:tsize[3]))
+		correlations[i,2] = minimum(map((j)->minimum(map((k)->cor(T_esta[i][k,:,j], T[k,:,j]), 1:tsize[1])), 1:tsize[3]))
+		correlations[i,3] = minimum(map((j)->minimum(map((k)->cor(T_esta[i][k,j,:], T[k,j,:]), 1:tsize[1])), 1:tsize[2]))
 		println("$i - $(sizes[i]): residual $(residues[i]) tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core))")
 	end
 
@@ -74,7 +31,41 @@ function analysis(T::Array)
 		println("$i - $(sizes[i]): residual $(residues[i]) tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core))")
 	end
 
-	dNTF.plotcmptensor(T, T_esta[ibest], 3)
+	csize = TensorToolbox.mrank(tucker_spnn[ibest].core)
+	# dNTF.atensor(tucker_spnn[ibest].core)
+	ndimensons = length(csize)
+	info("Estimated true core size: $(csize)")
+
+	# dNTF.plotcmptensor(T, T_esta[ibest], 3)
+
+	return tucker_spnn, csize
+end
+
+function getsizes(tsize::Tuple, csize::Tuple)
+	ndimensons = length(tsize)
+	@assert ndimensons == length(csize)
+	sizes = [csize]
+	for i = 1:ndimensons
+		nt = ntuple(k->(k == i ? max(tsize[i], csize[i] + 1) : csize[k]), ndimensons)
+		addsize = true
+		for j = 1:length(sizes)
+			if sizes(j) == nt
+				addsize = false
+				break
+			end
+		end
+		addsize && push!(sizes, nt)
+		nt = ntuple(k->(k == i ? min(1, csize[i] - 1) : csize[k]), ndimensons)
+		addsize = true
+		for j = 1:length(sizes)
+			if sizes(j) == nt
+				addsize = false
+				break
+			end
+		end
+		addsize && push!(sizes, nt)
+	end
+	return sizes
 end
 
 function atensor(X::Array)
