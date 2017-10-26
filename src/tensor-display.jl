@@ -6,6 +6,11 @@ function plotmatrix(X::Matrix; minvalue=minimum(X), maxvalue=maximum(X), label="
 	Gadfly.spy(X, Gadfly.Guide.xticks(label=false), Gadfly.Guide.yticks(label=false), Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Guide.colorkey(label), Gadfly.Scale.ContinuousColorScale(Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"), parse(Colors.Colorant, "red")), minvalue=minvalue, maxvalue=maxvalue))
 end
 
+function plottensor(T::TensorDecompositions.Tucker, dim::Integer=1; kw...)
+	X = TensorDecompositions.compose(T)
+	plottensor(X, dim; kw...)
+end
+
 function plottensor(X::Array, dim::Integer=1; minvalue=minimum(X), maxvalue=maximum(X), filename::String="", movie::Bool=false, title="", hsize=24Compose.inch, vsize=6Compose.inch)
 	sizes = size(X)
 	ndimensons = length(sizes)
@@ -56,7 +61,7 @@ function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X
 		p2 = plotmatrix(X2[nt...], minvalue=minvalue, maxvalue=maxvalue, title="Estimated")
 		p = Compose.hstack(p1, p2)
 		println(framename)
-		display(p); println()
+		Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println()
 		if movie && filename != ""
 			filename = setnewfilename(filename, i)
 			Gadfly.draw(Gadfly.PNG(filename, hsize, vsize), p)

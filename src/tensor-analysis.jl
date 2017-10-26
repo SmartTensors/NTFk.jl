@@ -12,7 +12,7 @@ function analysis(T::Array, sizes::Vector=[size(T)])
 	tucker_spnn = Array{TensorDecompositions.Tucker{Float64,3}}(nruns)
 	for i in 1:nruns
 		info("Core size: $(sizes[i])")
-		@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i], tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambdas=fill(0.1, length(sizes[i]) + 1))
+		@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i], tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000)
 		T_esta[i] = TensorDecompositions.compose(tucker_spnn[i])
 		residues[i] = TensorDecompositions.rel_residue(tucker_spnn[i])
 		correlations[i,1] = minimum(map((j)->minimum(map((k)->cor(T_esta[i][:,k,j], T[:,k,j]), 1:tsize[2])), 1:tsize[3]))
