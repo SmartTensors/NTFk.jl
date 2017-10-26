@@ -2,7 +2,8 @@ import Gadfly
 import Colors
 import Compose
 
-function analysis(T::Array, sizes::Vector{Tuple}=[size(T)])
+function analysis(T::Array, sizes::Vector=[size(T)])
+	tsize = size(T)
 	ndimensons = length(sizes[1])
 	nruns = length(sizes)
 	residues = Array{Float64}(nruns)
@@ -41,24 +42,24 @@ function analysis(T::Array, sizes::Vector{Tuple}=[size(T)])
 	return tucker_spnn, csize
 end
 
-function getsizes(tsize::Tuple, csize::Tuple)
+function getsizes(csize::Tuple, tsize::Tuple=csize .+ 1)
 	ndimensons = length(tsize)
 	@assert ndimensons == length(csize)
 	sizes = [csize]
 	for i = 1:ndimensons
-		nt = ntuple(k->(k == i ? max(tsize[i], csize[i] + 1) : csize[k]), ndimensons)
+		nt = ntuple(k->(k == i ? min(tsize[i], csize[i] + 1) : csize[k]), ndimensons)
 		addsize = true
 		for j = 1:length(sizes)
-			if sizes(j) == nt
+			if sizes[j] == nt
 				addsize = false
 				break
 			end
 		end
 		addsize && push!(sizes, nt)
-		nt = ntuple(k->(k == i ? min(1, csize[i] - 1) : csize[k]), ndimensons)
+		nt = ntuple(k->(k == i ? max(1, csize[i] - 1) : csize[k]), ndimensons)
 		addsize = true
 		for j = 1:length(sizes)
-			if sizes(j) == nt
+			if sizes[j] == nt
 				addsize = false
 				break
 			end
