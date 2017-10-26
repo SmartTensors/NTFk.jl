@@ -54,7 +54,7 @@ function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X
 		nt = ntuple(k->(k == dim ? i : :), ndimensons)
 		p1 = plotmatrix(X1[nt...], minvalue=minvalue, maxvalue=maxvalue, title="True")
 		p2 = plotmatrix(X2[nt...], minvalue=minvalue, maxvalue=maxvalue, title="Estimated")
-		p = Gadfly.hstack(p1, p2)
+		p = Compose.hstack(p1, p2)
 		println(framename)
 		display(p); println()
 		if movie && filename != ""
@@ -64,26 +64,36 @@ function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X
 	end
 end
 
-function setnewfilename(filename::String, frame::Integer=0)
+function setnewfilename(filename::String, frame::Integer=0; keyword::String="frame")
 	dir = dirname(filename)
 	fn = splitdir(filename)[end]
-	root, ext = split(fn, ".")
+	fs = split(fn, ".")
+	if length(fs) == 1
+		root = fs[1]
+		ext = ""
+	else
+		root = join(fs[1:end-1], ".")
+		ext = fs[end]
+	end
 	if ext == ""
 		ext = "png"
+		fn = fn * "." * ext
 	end
-	if !contains(fn, "frame")
-		fn = root * "-frame0000." * ext
+	if !contains(fn, keyword)
+		fn = root * "-$(keyword)0000." * ext
 	end
-	if ismatch(r"-frame[0-9]*\..*$", fn)
-		rm = match(r"-frame([0-9]*)\.(.*)$", fn)
+	if ismatch(Regex(string("-", keyword, "[0-9]*\..*\$")), fn)
+		rm = match(Regex(string("-", keyword, "([0-9]*)\.(.*)\$")), fn)
 		if frame == 0
 			v = parse(Int, rm.captures[1]) + 1
 		else
 			v = frame
 		end
+		@show rm.captures[1]
+		@show length(rm.captures[1])
 		l = length(rm.captures[1])
 		f = "%0" * string(l) * "d"
-		filename = "$(fn[1:rm.offset-1])-frame$(sprintf(f, v)).$(rm.captures[2])"
+		filename = "$(fn[1:rm.offset-1])-$(keyword)$(sprintf(f, v)).$(rm.captures[2])"
 		return joinpath(dir, filename)
 	else
 		warn("setnewfilename failed!")
