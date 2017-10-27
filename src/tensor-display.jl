@@ -35,7 +35,12 @@ function plottensor(X::Array, dim::Integer=1; minvalue=minimum(X), maxvalue=maxi
 		end
 	end
 	if movie
-		run(`ffmpeg -i $moviedir/$prefix-frame%06d.png -vcodec libx264 -pix_fmt yuv420p -f mp4 -y $moviedir/$prefix.mp4`)
+		c = `ffmpeg -i $moviedir/$prefix-frame%06d.png -vcodec libx264 -pix_fmt yuv420p -f mp4 -y $moviedir/$prefix.mp4`
+		if quiet
+			run(pipeline(c, stdout=DevNull, stderr=DevNull))
+		else
+			run(c)
+		end
 		cleanup && run(`find $moviedir -d 1 -name $prefix-frame*.png -delete`)
 	end
 end
@@ -72,7 +77,12 @@ function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X
 		end
 	end
 	if movie
-		run(`ffmpeg -i $moviedir/$prefix-frame%06d.png -vcodec libx264 -pix_fmt yuv420p -f mp4 -y $moviedir/$prefix.mp4`)
+		c = `ffmpeg -i $moviedir/$prefix-frame%06d.png -vcodec libx264 -pix_fmt yuv420p -f mp4 -y $moviedir/$prefix.mp4`
+		if quiet
+			run(pipeline(c, stdout=DevNull, stderr=DevNull))
+		else
+			run(c)
+		end
 		cleanup && run(`find $moviedir -d 1 -name $prefix-frame*.png -delete`)
 	end
 end
@@ -105,7 +115,12 @@ function plotlefttensor(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalu
 		end
 	end
 	if movie
-		run(`ffmpeg -i $moviedir/$prefix-frame%06d.png -vcodec libx264 -pix_fmt yuv420p -f mp4 -y $moviedir/$prefix.mp4`)
+		c = `ffmpeg -i $moviedir/$prefix-frame%06d.png -vcodec libx264 -pix_fmt yuv420p -f mp4 -y $moviedir/$prefix.mp4`
+		if quiet
+			run(pipeline(c, stdout=DevNull, stderr=DevNull))
+		else
+			run(c)
+		end
 		cleanup && run(`find $moviedir -d 1 -name $prefix-frame*.png -delete`)
 	end
 end
