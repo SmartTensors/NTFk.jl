@@ -1,6 +1,7 @@
 import TensorDecompositions
 
-function analysis(T::Array, sizes::Vector=[size(T)]; tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambdas=fill(0.1, length(sizes[i]) + 1))
+function analysis(T::Array, sizes::Vector=[size(T)]; seed::Number=0, tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambda::Number=0.1, lambdas=fill(lambda, length(size(T)) + 1))
+	seed > 0 && srand(seed)
 	tsize = size(T)
 	ndimensons = length(sizes[1])
 	nruns = length(sizes)
@@ -10,7 +11,7 @@ function analysis(T::Array, sizes::Vector=[size(T)]; tol=1e-16, ini_decomp=:hosv
 	tucker_spnn = Array{TensorDecompositions.Tucker{Float64,3}}(nruns)
 	for i in 1:nruns
 		info("Core size: $(sizes[i])")
-		@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i]; tol=tol, ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=50000, lambdas=lambdas)
+		@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i]; tol=tol, ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=max_iter, lambdas=lambdas)
 		T_esta[i] = TensorDecompositions.compose(tucker_spnn[i])
 		residues[i] = TensorDecompositions.rel_residue(tucker_spnn[i])
 		correlations[i,1] = minimum(map((j)->minimum(map((k)->cor(T_esta[i][:,k,j], T[:,k,j]), 1:tsize[2])), 1:tsize[3]))
