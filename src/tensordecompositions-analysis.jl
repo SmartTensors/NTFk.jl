@@ -7,44 +7,63 @@ function analysis(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
-	F = JLD.load("$(datadir)/$(case)F.jld", "X")
-	G = JLD.load("$(datadir)/$(case)G.jld", "X")
-	C = F - max.(F - G, 0)
+	f = "$(datadir)/$(case)F.jld"
+	if isfile(f)
+		F = JLD.load(f, "X")
+	else
+		warn("File $f is missing")
+		return
+	end
+	f = "$(datadir)/$(case)G.jld"
+	if isfile(f)
+		G = JLD.load(f, "X")
+	else
+		warn("File $f is missing")
+		return
+	end
+	# A = max.(F .- G, 0)
+	# B = max.(G .- F, 0)
+	C = max.(F .- max.(F .- G, 0), 0)
+	cC = analysis("$(case)C", C; timeindex=timeindex, xindex=xindex, yindex=yindex, datadir=datadir, resultdir=resultdir, moviedir=resultdir, seed=seed, max_iter=max_iter, tol=tol)
+	return cC
+end
+
+function analysis(case::String, X::Array; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, datadir::String=".", resultdir::String=".", moviedir::String=".", seed::Number=0, max_iter=1000, tol=1e-8)
 	info("Making problem movie for $(case) ...")
-	dNTF.plottensor(C[timeindex, xindex, yindex]; movie=true, moviedir=moviedir, prefix="$(case)", quiet=true)
+	dNTF.plottensor(X[timeindex, xindex, yindex]; movie=true, moviedir=moviedir, prefix="$(case)", quiet=true)
 
 	trank = 10
 	info("Solving sparse problem for $(case) ...")
-	t, csize = dNTF.analysis(C[timeindex, xindex, yindex], [(trank, 81, 81)]; seed=seed, tol=tol, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=max_iter, lambda=0.1)
+	t, csize = dNTF.analysis(X[timeindex, xindex, yindex], [(trank, 81, 81)]; seed=seed, tol=tol, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=max_iter, lambda=0.1)
 	JLD.save("$(resultdir)/$(case)-$(csize[1])_$(csize[2])_$(csize[3]).jld", "t", t)
 	info("Making sparse problem comparison movie for $(case) ...")
-	dNTF.plotcmptensor(C[timeindex, xindex, yindex], t[1]; movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])", quiet=true)
+	dNTF.plotcmptensor(X[timeindex, xindex, yindex], t[1]; movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])", quiet=true)
 	nt = TensorDecompositions.compose(t[1])
 	info("Making sparse problem leftover movie for $(case) ...")
-	dNTF.plotlefttensor(C[timeindex, xindex, yindex], nt, C[timeindex, xindex, yindex] .- nt; movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-left", quiet=true)
+	dNTF.plotlefttensor(X[timeindex, xindex, yindex], nt, X[timeindex, xindex, yindex] .- nt; movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-left", quiet=true)
 	trank = csize[1]
 	for i = 1:trank
 		ntt = deepcopy(t[1])
 		ntt.core[1:end .!= i,:,:] = 0
 		info("Making sparse problem T$i movie for $(case) ...")
-		dNTF.plotcmptensor(C[timeindex, xindex, yindex], ntt; movie=true, moviedir=moviedir, prefix="$(case)-$(trank)_$(csize[2])_$(csize[3])-t$i", rtitle="Estimated T$i", quiet=true)
+		dNTF.plotcmptensor(X[timeindex, xindex, yindex], ntt; movie=true, moviedir=moviedir, prefix="$(case)-$(trank)_$(csize[2])_$(csize[3])-t$i", quiet=true)
 	end
 	# t = JLD.load("$(resultdir)/$(case)-$(c[1])_$(csize[2])_$(csize[3]).jld", "t")
 
 	trank = 3
 	info("Solving dense problem for $(case) ...")
-	t, _ = dNTF.analysis(C[timeindex, xindex, yindex], [(trank, 81, 81)]; seed=seed, tol=tol, ini_decomp=nothing, core_nonneg=true, verbose=false, max_iter=max_iter, lambda=0.000000001)
+	t, _ = dNTF.analysis(X[timeindex, xindex, yindex], [(trank, 81, 81)]; seed=seed, tol=tol, ini_decomp=nothing, core_nonneg=true, verbose=false, max_iter=max_iter, lambda=0.000000001)
 	JLD.save("$(resultdir)/$(case)-$(trank)_81_81.jld", "t", t)
 	info("Making dense problem comparison movie for $(case) ...")
 	nt = TensorDecompositions.compose(t[1])
-	dNTF.plotcmptensor(C[timeindex, xindex, yindex], nt; movie=true, moviedir=moviedir, prefix="$(case)-$(trank)_81_81", quiet=true)
+	dNTF.plotcmptensor(X[timeindex, xindex, yindex], nt; movie=true, moviedir=moviedir, prefix="$(case)-$(trank)_81_81", quiet=true)
 	info("Making dense problem leftover movie for $(case) ...")
-	dNTF.plotlefttensor(C[timeindex, xindex, yindex], nt, C[timeindex, xindex, yindex] .- nt; movie=true, moviedir=moviedir, prefix="$(case)-$(trank)_81_81-left", quiet=true)
+	dNTF.plotlefttensor(X[timeindex, xindex, yindex], nt, X[timeindex, xindex, yindex] .- nt; movie=true, moviedir=moviedir, prefix="$(case)-$(trank)_81_81-left", quiet=true)
 	for i = 1:trank
 		ntt = deepcopy(t[1])
 		ntt.core[1:end .!= i,:,:] = 0
 		info("Making dense problem movie T$i for $(case) ...")
-		dNTF.plotcmptensor(C[timeindex, xindex, yindex], ntt; movie=true, moviedir=moviedir, prefix="$(case)-$(trank)_81_81-t$i", rtitle="Estimated T$i", quiet=true)
+		dNTF.plotcmptensor(X[timeindex, xindex, yindex], ntt; movie=true, moviedir=moviedir, prefix="$(case)-$(trank)_81_81-t$i", quiet=true)
 	end
 	return csize
 end

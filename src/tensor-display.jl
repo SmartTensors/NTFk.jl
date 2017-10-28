@@ -11,7 +11,7 @@ function plottensor(T::TensorDecompositions.Tucker, dim::Integer=1; kw...)
 	plottensor(X, dim; kw...)
 end
 
-function plottensor(X::Array, dim::Integer=1; minvalue=minimum(X), maxvalue=maximum(X), prefix::String="", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true)
+function plottensor(X::Array, dim::Integer=1; minvalue=minimum(X), maxvalue=maximum(X), prefix::String="", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, timestep::Number=0.001)
 	sizes = size(X)
 	if !isdir(moviedir)
 		mkdir(moviedir)
@@ -29,10 +29,15 @@ function plottensor(X::Array, dim::Integer=1; minvalue=minimum(X), maxvalue=maxi
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : :), ndimensons)
-		p = plotmatrix(X[nt...], minvalue=minvalue, maxvalue=maxvalue, title=title)
+		g = plotmatrix(X[nt...], minvalue=minvalue, maxvalue=maxvalue, title=title)
+		f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0.001Compose.h),
+			(Compose.context(), Compose.fill("gray"), Compose.fontsize(10Compose.pt), Compose.text(0.01, -50000.0, sprintf("%6.4f", i * timestep), Compose.hleft, Compose.vtop)),
+			(Compose.context(), Compose.fill("tomato"), Compose.rectangle(0.5, -50000.0, i/sizes[dim]*0.48, 15000.0)),
+			(Compose.context(), Compose.fill("gray"), Compose.rectangle(0.5, -50000.0, 0.48, 15000.0)))
+		p = Compose.vstack(g, f)
 		!quiet && println(framename)
-		!quiet && (display(p); println())
-		if movie && prefix != ""
+		!quiet && (Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
+		if prefix != ""
 			filename = setnewfilename(prefix, i)
 			Gadfly.draw(Gadfly.PNG(filename, hsize, vsize), p)
 		end
@@ -44,7 +49,7 @@ function plottensor(X::Array, dim::Integer=1; minvalue=minimum(X), maxvalue=maxi
 		else
 			run(c)
 		end
-		cleanup && run(`find $moviedir -d 1 -name $prefix-frame*.png -delete`)
+		cleanup && run(`find $moviedir -d 1 -name $prefix-"frame*".png -delete`)
 	end
 end
 
@@ -53,7 +58,7 @@ function plotcmptensor(X1::Array, T2::TensorDecompositions.Tucker, dim::Integer=
 	plotcmptensor(X1, X2, dim; kw...)
 end
 
-function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), prefix::String="", movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="True", rtitle::String="Estimated", quiet::Bool=false, cleanup::Bool=true)
+function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), prefix::String="", movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timestep::Number=0.001)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -72,12 +77,17 @@ function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : :), ndimensons)
-		p1 = plotmatrix(X1[nt...], minvalue=minvalue, maxvalue=maxvalue, title=ltitle)
-		p2 = plotmatrix(X2[nt...], minvalue=minvalue, maxvalue=maxvalue, title=rtitle)
-		p = Compose.hstack(p1, p2)
+		g1 = plotmatrix(X1[nt...], minvalue=minvalue, maxvalue=maxvalue, title=ltitle)
+		g2 = plotmatrix(X2[nt...], minvalue=minvalue, maxvalue=maxvalue, title=rtitle)
+		g = Compose.hstack(g1, g2)
+		f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0.001Compose.h),
+			(Compose.context(), Compose.fill("gray"), Compose.fontsize(10Compose.pt), Compose.text(0.01, -50000.0, sprintf("%6.4f", i * timestep), Compose.hleft, Compose.vtop)),
+			(Compose.context(), Compose.fill("tomato"), Compose.rectangle(0.5, -50000.0, i/sizes[dim]*0.48, 15000.0)),
+			(Compose.context(), Compose.fill("gray"), Compose.rectangle(0.5, -50000.0, 0.48, 15000.0)))
+		p = Compose.vstack(g, f)
 		!quiet && println(framename)
 		!quiet && (Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
-		if movie && prefix != ""
+		if prefix != ""
 			filename = setnewfilename(prefix, i)
 			Gadfly.draw(Gadfly.PNG(filename, hsize, vsize), p)
 		end
@@ -89,11 +99,11 @@ function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X
 		else
 			run(c)
 		end
-		cleanup && run(`find $moviedir -d 1 -name $prefix-frame*.png -delete`)
+		cleanup && run(`find $moviedir -d 1 -name $prefix-"frame*.png" -delete`)
 	end
 end
 
-function plotlefttensor(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalue=minimum([X1 X2 X3]), maxvalue=maximum([X1 X2 X3]), prefix::String="", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="True", ctitle::String="Estimated", rtitle::String="Leftover", quiet::Bool=false, cleanup::Bool=true)
+function plotlefttensor(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalue=minimum([X1 X2 X3]), maxvalue=maximum([X1 X2 X3]), prefix::String="", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timestep::Number=0.001)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -112,13 +122,18 @@ function plotlefttensor(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalu
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : :), ndimensons)
-		p1 = plotmatrix(X1[nt...], minvalue=minvalue, maxvalue=maxvalue, title=ltitle)
-		p2 = plotmatrix(X2[nt...], minvalue=minvalue, maxvalue=maxvalue, title=ctitle)
-		p3 = plotmatrix(X3[nt...], minvalue=minvalue, maxvalue=maxvalue, title=rtitle)
-		p = Compose.hstack(p1, p2, p3)
+		g1 = plotmatrix(X1[nt...], minvalue=minvalue, maxvalue=maxvalue, title=ltitle)
+		g2 = plotmatrix(X2[nt...], minvalue=minvalue, maxvalue=maxvalue, title=ctitle)
+		g3 = plotmatrix(X3[nt...], minvalue=minvalue, maxvalue=maxvalue, title=rtitle)
+		g = Compose.hstack(g1, g2, g3)
+		f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0.001Compose.h),
+			(Compose.context(), Compose.fill("gray"), Compose.fontsize(10Compose.pt), Compose.text(0.01, -25000.0, sprintf("%6.4f", i * timestep), Compose.hleft, Compose.vtop)),
+			(Compose.context(), Compose.fill("tomato"), Compose.rectangle(0.75, -25000.0, i/sizes[dim]*0.2, 15000.0)),
+			(Compose.context(), Compose.fill("gray"), Compose.rectangle(0.75, -25000.0, 0.2, 15000.0)))
+		p = Compose.vstack(g, f)
 		!quiet && println(framename)
 		!quiet && (Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
-		if movie && prefix != ""
+		if prefix != ""
 			filename = setnewfilename(prefix, i)
 			Gadfly.draw(Gadfly.PNG(filename, hsize, vsize), p)
 		end
@@ -130,7 +145,7 @@ function plotlefttensor(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalu
 		else
 			run(c)
 		end
-		cleanup && run(`find $moviedir -d 1 -name $prefix-frame*.png -delete`)
+		cleanup && run(`find $moviedir -d 1 -name $prefix-"frame*.png" -delete`)
 	end
 end
 
