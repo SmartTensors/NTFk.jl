@@ -12,14 +12,14 @@ function analysis(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81
 		F = JLD.load(f, "X")
 	else
 		warn("File $f is missing")
-		return
+		return (0,0,0)
 	end
 	f = "$(datadir)/$(case)G.jld"
 	if isfile(f)
 		G = JLD.load(f, "X")
 	else
 		warn("File $f is missing")
-		return
+		return (0,0,0)
 	end
 	# A = max.(F .- G, 0)
 	# B = max.(G .- F, 0)
