@@ -49,7 +49,7 @@ function plottensor(X::Array, dim::Integer=1; minvalue=minimum(X), maxvalue=maxi
 		else
 			run(c)
 		end
-		cleanup && run(`find $moviedir -d 1 -name $prefix-"frame*".png -delete`)
+		cleanup && run(`find $moviedir -name $prefix-"frame*".png -delete`)
 	end
 end
 
@@ -99,7 +99,7 @@ function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X
 		else
 			run(c)
 		end
-		cleanup && run(`find $moviedir -d 1 -name $prefix-"frame*.png" -delete`)
+		cleanup && run(`find $moviedir -name $prefix-"frame*.png" -delete`)
 	end
 end
 
@@ -145,7 +145,7 @@ function plotlefttensor(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalu
 		else
 			run(c)
 		end
-		cleanup && run(`find $moviedir -d 1 -name $prefix-"frame*.png" -delete`)
+		cleanup && run(`find $moviedir -name $prefix-"frame*.png" -delete`)
 	end
 end
 
