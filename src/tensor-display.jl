@@ -39,7 +39,7 @@ function plottensor(X::Array, dim::Integer=1; minvalue=minimum(X), maxvalue=maxi
 		!quiet && (Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
 		if prefix != ""
 			filename = setnewfilename(prefix, i)
-			Gadfly.draw(Gadfly.PNG(filename, hsize, vsize), p)
+			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize), p)
 		end
 	end
 	if movie
@@ -89,7 +89,7 @@ function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X
 		!quiet && (Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
 		if prefix != ""
 			filename = setnewfilename(prefix, i)
-			Gadfly.draw(Gadfly.PNG(filename, hsize, vsize), p)
+			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize), p)
 		end
 	end
 	if movie
@@ -135,7 +135,7 @@ function plotlefttensor(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalu
 		!quiet && (Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
 		if prefix != ""
 			filename = setnewfilename(prefix, i)
-			Gadfly.draw(Gadfly.PNG(filename, hsize, vsize), p)
+			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize), p)
 		end
 	end
 	if movie
