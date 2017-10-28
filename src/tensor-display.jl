@@ -13,6 +13,9 @@ end
 
 function plottensor(X::Array, dim::Integer=1; minvalue=minimum(X), maxvalue=maximum(X), prefix::String="", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true)
 	sizes = size(X)
+	if !isdir(moviedir)
+		mkdir(moviedir)
+	end
 	ndimensons = length(sizes)
 	if dim > ndimensons || dim < 1
 		warn("Dimension should be >=1 or <=$(length(sizes))")
@@ -51,6 +54,9 @@ function plotcmptensor(X1::Array, T2::TensorDecompositions.Tucker, dim::Integer=
 end
 
 function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), prefix::String="", movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="True", rtitle::String="Estimated", quiet::Bool=false, cleanup::Bool=true)
+	if !isdir(moviedir)
+		mkdir(moviedir)
+	end
 	sizes = size(X1)
 	@assert sizes == size(X2)
 	ndimensons = length(sizes)
@@ -88,6 +94,9 @@ function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X
 end
 
 function plotlefttensor(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalue=minimum([X1 X2 X3]), maxvalue=maximum([X1 X2 X3]), prefix::String="", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="True", ctitle::String="Estimated", rtitle::String="Leftover", quiet::Bool=false, cleanup::Bool=true)
+	if !isdir(moviedir)
+		mkdir(moviedir)
+	end
 	sizes = size(X1)
 	@assert sizes == size(X2)
 	ndimensons = length(sizes)
