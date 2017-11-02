@@ -42,12 +42,12 @@ function analysis(case::String, X::Array; timeindex=1:5:1000, xindex=1:1:81, yin
 	info("Making sparse problem leftover movie for $(case) ...")
 	dNTF.plotlefttensor(X[timeindex, xindex, yindex], nt, X[timeindex, xindex, yindex] .- nt; movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-left", quiet=true)
 	trank = csize[1]
-	for i = 1:trank
-		ntt = deepcopy(t[1])
-		ntt.core[1:end .!= i,:,:] = 0
-		info("Making sparse problem T$i movie for $(case) ...")
-		dNTF.plotcmptensor(X[timeindex, xindex, yindex], ntt; movie=true, moviedir=moviedir, prefix="$(case)-$(trank)_$(csize[2])_$(csize[3])-t$i", quiet=true)
-	end
+	info("Making sparse problem component T movie for $(case) ...")
+	dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 1; csize=csize, movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])", quiet=true)
+	info("Making sparse problem component X movie for $(case) ...")
+	dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2; csize=csize, movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-x", quiet=true)
+	info("Making sparse problem component Y movie for $(case) ...")
+	dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3; csize=csize, movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-y", quiet=true)
 	# t = JLD.load("$(resultdir)/$(case)-$(c[1])_$(csize[2])_$(csize[3]).jld", "t")
 
 	trank = 3

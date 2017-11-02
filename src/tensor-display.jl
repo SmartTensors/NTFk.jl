@@ -1,6 +1,7 @@
 import Gadfly
 import Colors
 import Compose
+import TensorToolbox
 
 function plotmatrix(X::Matrix; minvalue=minimum(X), maxvalue=maximum(X), label="", title="", xlabel="", ylabel="")
 	Gadfly.spy(X, Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing), Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Guide.colorkey(label), Gadfly.Scale.ContinuousColorScale(Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"), parse(Colors.Colorant, "red")), minvalue=minvalue, maxvalue=maxvalue), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt))
@@ -11,7 +12,7 @@ function plottensor(T::TensorDecompositions.Tucker, dim::Integer=1; kw...)
 	plottensor(X, dim; kw...)
 end
 
-function plottensor(X::Array, dim::Integer=1; minvalue=minimum(X), maxvalue=maximum(X), prefix::String="", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, timestep::Number=0.001)
+function plottensor(X::Array, dim::Integer=1; minvalue=minimum(X), maxvalue=maximum(X), prefix::String="", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, timestep::Number=0.001, progressbar::Bool=true)
 	sizes = size(X)
 	if !isdir(moviedir)
 		mkdir(moviedir)
@@ -30,10 +31,14 @@ function plottensor(X::Array, dim::Integer=1; minvalue=minimum(X), maxvalue=maxi
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : :), ndimensons)
 		g = plotmatrix(X[nt...], minvalue=minvalue, maxvalue=maxvalue, title=title)
-		f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0.001Compose.h),
+		if progressbar
+			f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0.001Compose.h),
 			(Compose.context(), Compose.fill("gray"), Compose.fontsize(10Compose.pt), Compose.text(0.01, -50000.0, sprintf("%6.4f", i * timestep), Compose.hleft, Compose.vtop)),
 			(Compose.context(), Compose.fill("tomato"), Compose.rectangle(0.5, -50000.0, i/sizes[dim]*0.48, 15000.0)),
 			(Compose.context(), Compose.fill("gray"), Compose.rectangle(0.5, -50000.0, 0.48, 15000.0)))
+		else
+			f = Compose.compose(Compose.context())
+		end
 		p = Compose.vstack(g, f)
 		!quiet && println(framename)
 		!quiet && (Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
@@ -53,12 +58,43 @@ function plottensor(X::Array, dim::Integer=1; minvalue=minimum(X), maxvalue=maxi
 	end
 end
 
+function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1; csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String=".", kw...)
+	ndimensons = length(size(X1))
+	@assert dim >= 1 && dim <= ndimensons
+	@assert ndimensons == length(csize)
+	if ndimensons <= 3
+		dimname = ("T", "X", "Y")
+	else
+		dimname = ntuple(i->("C$i"), ndimensons)
+	end
+	crank = csize[dim]
+	pt = Vector{Int64}(0)
+	push!(pt, dim)
+	for i = ndimensons:-1:1
+		if i != dim
+			push!(pt, i)
+		end
+	end
+	for i = 1:crank
+		info("Making component $(dimname[dim])-$i movie ...")
+		ntt = deepcopy(t2)
+		for j = 1:crank
+			if i !== j
+				nt = ntuple(k->(k == dim ? j : :), ndimensons)
+				ntt.core[nt...] .= 0
+			end
+		end
+		X2 = TensorDecompositions.compose(ntt)
+		dNTF.plotcmptensor(permutedims(X1, pt), permutedims(X2, pt); progressbar=false, title="$(dimname[dim])-$i", prefix=prefix * string(i),  kw...)
+	end
+end
+
 function plotcmptensor(X1::Array, T2::TensorDecompositions.Tucker, dim::Integer=1; kw...)
 	X2 = TensorDecompositions.compose(T2)
 	plotcmptensor(X1, X2, dim; kw...)
 end
 
-function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), prefix::String="", movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timestep::Number=0.001)
+function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), prefix::String="", movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timestep::Number=0.001, progressbar::Bool=true)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -80,11 +116,20 @@ function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X
 		g1 = plotmatrix(X1[nt...], minvalue=minvalue, maxvalue=maxvalue, title=ltitle)
 		g2 = plotmatrix(X2[nt...], minvalue=minvalue, maxvalue=maxvalue, title=rtitle)
 		g = Compose.hstack(g1, g2)
-		f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0.001Compose.h),
-			(Compose.context(), Compose.fill("gray"), Compose.fontsize(10Compose.pt), Compose.text(0.01, -50000.0, sprintf("%6.4f", i * timestep), Compose.hleft, Compose.vtop)),
-			(Compose.context(), Compose.fill("tomato"), Compose.rectangle(0.5, -50000.0, i/sizes[dim]*0.48, 15000.0)),
-			(Compose.context(), Compose.fill("gray"), Compose.rectangle(0.5, -50000.0, 0.48, 15000.0)))
-		p = Compose.vstack(g, f)
+		if title != ""
+			t = Compose.compose(Compose.context(0, 0, 1Compose.w, 0.0001Compose.h),
+			                (Compose.context(), Compose.fill("gray"), Compose.fontsize(20Compose.pt), Compose.text(0.5Compose.w, 0, title * " : " * sprintf("%06d", i), Compose.hcenter, Compose.vtop)))
+			g = Compose.vstack(t, g)
+		end
+		if progressbar
+			f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0.001Compose.h),
+				(Compose.context(), Compose.fill("gray"), Compose.fontsize(10Compose.pt), Compose.text(0.01, -50000.0, sprintf("%6.4f", i * timestep), Compose.hleft, Compose.vtop)),
+				(Compose.context(), Compose.fill("tomato"), Compose.rectangle(0.5, -50000.0, i/sizes[dim]*0.48, 15000.0)),
+				(Compose.context(), Compose.fill("gray"), Compose.rectangle(0.5, -50000.0, 0.48, 15000.0)))
+			p = Compose.vstack(g, f)
+		else
+			p = g
+		end
 		!quiet && println(framename)
 		!quiet && (Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
 		if prefix != ""
