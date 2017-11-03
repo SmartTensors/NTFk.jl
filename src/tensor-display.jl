@@ -2,12 +2,13 @@ import Gadfly
 import Colors
 import Compose
 import TensorToolbox
+import TensorDecompositions
 
 function plotmatrix(X::Matrix; minvalue=minimum(X), maxvalue=maximum(X), label="", title="", xlabel="", ylabel="")
 	Gadfly.spy(X, Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing), Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Guide.colorkey(label), Gadfly.Scale.ContinuousColorScale(Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"), parse(Colors.Colorant, "red")), minvalue=minvalue, maxvalue=maxvalue), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt))
 end
 
-function plottensor(T::TensorDecompositions.Tucker, dim::Integer=1; kw...)
+function plottensor(T::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
 	X = TensorDecompositions.compose(T)
 	plottensor(X, dim; kw...)
 end
@@ -58,20 +59,50 @@ function plottensor(X::Array, dim::Integer=1; minvalue=minimum(X), maxvalue=maxi
 	end
 end
 
-function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1; csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String=".", kw...)
-	ndimensons = length(size(X1))
-	@assert dim >= 1 && dim <= ndimensons
-	@assert ndimensons == length(csize)
+function zerotensorcomponents(t::TensorDecompositions.Tucker, d::Int)
+	t.core[nt...] .= 0
+end
+
+function zerotensorcomponents(t::TensorDecompositions.CANDECOMP, d::Int)
+	t.lambdas[nt...] .= 0
+end
+
+function namedimension(ndimensons::Int)
 	if ndimensons <= 3
 		dimname = ("T", "X", "Y")
 	else
 		dimname = ntuple(i->("C$i"), ndimensons)
 	end
+end
+
+function plottensorcomponents(X1::Array, t2::TensorDecompositions.CANDECOMP; prefix::String="", kw...)
+	ndimensons = length(size(X1))
+	crank = length(t2.lambdas)
+	for i = 1:crank
+		info("Making component $i movie ...")
+		ntt = deepcopy(t2)
+		ntt.lambdas[1:end .!== i] = 0
+		X2 = TensorDecompositions.compose(ntt)
+		dNTF.plotcmptensor(X1, X2; progressbar=false, prefix=prefix * string(i),  kw...)
+	end
+end
+
+function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1; csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String="", kw...)
+	ndimensons = length(size(X1))
+	@assert dim >= 1 && dim <= ndimensons
+	@assert ndimensons == length(csize)
+	dimname = namedimension(ndimensons)
 	crank = csize[dim]
 	pt = Vector{Int64}(0)
-	push!(pt, dim)
-	for i = ndimensons:-1:1
-		if i != dim
+	if dim > 1
+		push!(pt, dim)
+		for i = ndimensons:-1:1
+			if i != dim
+				push!(pt, i)
+			end
+		end
+	else
+		for i = 1:ndimensons
 			push!(pt, i)
 		end
 	end
@@ -89,7 +120,7 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::I
 	end
 end
 
-function plotcmptensor(X1::Array, T2::TensorDecompositions.Tucker, dim::Integer=1; kw...)
+function plotcmptensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
 	X2 = TensorDecompositions.compose(T2)
 	plotcmptensor(X1, X2, dim; kw...)
 end
