@@ -1,4 +1,5 @@
 import MATLAB
+import TensorDecompositions
 
 function manalysis(T::Array, crank::Number; seed::Number=1, functionname::String="cp_als")
 	@MATLAB.mput T crank seed

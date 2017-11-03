@@ -48,6 +48,7 @@ macro tryimport(s::Symbol)
     return :($(esc(q)))
 end
 
+import CanDecomp
 import TensorDecompositions
 import TensorOperations
 import TensorToolbox
@@ -56,6 +57,7 @@ import JLD
 
 const dntfdir = splitdir(Base.source_path())[1]
 
+include("dntf-analysis.jl")
 include("tensordecompositions-helpers.jl")
 include("tensordecompositions-memory.jl")
 include("tensordecompositions-analysis.jl")
