@@ -20,8 +20,7 @@ nt = TensorDecompositions.compose(t[1])
 dNTF.plotcmptensor(T, nt; progressbar=false)
 
 info("TensorDecompositions Tucker with regularization")
-trank = 2
-t, csize = dNTF.analysis(T, [(3, 50, 100)]; tol=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=true, max_iter=1000, lambda=0.1)
+t, csize = dNTF.analysis(T, [(3, 50, 100)]; tol=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=true, max_iter=1000, lambda=0.000001)
 nt = TensorDecompositions.compose(t[1])
 dNTF.plotcmptensor(T, nt; progressbar=false)
 
