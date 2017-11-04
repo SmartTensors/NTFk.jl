@@ -9,12 +9,12 @@ function janalysis(T::Array, crank::Number; seed::Number=1)
 	for i = 1:ndimension
 		factors[i] = zeros(crank, sizes[i])
 	end
-	CanDecomp.candecomp!(StaticArrays.SVector(factors...), deepcopy(T); regularization=1e-3, max_cd_iters=1)
+	CanDecomp.candecomp!(StaticArrays.SVector(factors...), deepcopy(T); regularization=0., max_cd_iters=1, tol=0.1, max_iter=3)
 	TT = TensorDecompositions.CANDECOMP((factors...), ones(ndimension))
 	return TT
 end
 
 function janalysis(T::Array, crank::Vector; seed::Number=1)
-	TT = TensorDecompositions.Tucker((R["u"][1:end]...), R["core"]["data"])
-	return TT
+	# TT = TensorDecompositions.Tucker((R["u"][1:end]...), R["core"]["data"])
+	# return TT
 end
