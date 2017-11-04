@@ -68,10 +68,11 @@ function analysis(case::String, X::Array; timeindex=1:5:1000, xindex=1:1:81, yin
 	return csize
 end
 
-function analysis(T::Array, sizes::Vector=[size(T)]; seed::Number=0, tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambda::Number=0.1, lambdas=fill(lambda, length(size(T)) + 1))
+function analysis(T::Array, sizes::Vector{Tuple}=[size(T)]; seed::Number=0, tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambda::Number=0.1, lambdas=fill(lambda, length(size(T)) + 1))
+	info("TensorDecompositions Tucker analysis ...")
 	seed > 0 && srand(seed)
 	tsize = size(T)
-	ndimensons = length(sizes[1])
+	ndimensons = length(tsize)
 	nruns = length(sizes)
 	residues = Array{Float64}(nruns)
 	correlations = Array{Float64}(nruns, ndimensons)
@@ -87,7 +88,6 @@ function analysis(T::Array, sizes::Vector=[size(T)]; seed::Number=0, tol=1e-16, 
 		correlations[i,3] = minimum(map((j)->minimum(map((k)->cor(T_esta[i][k,j,:], T[k,j,:]), 1:tsize[1])), 1:tsize[2]))
 		println("$i - $(sizes[i]): residual $(residues[i]) tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core))")
 	end
-
 	info("Decompositions:")
 	ibest = 1
 	best = Inf
@@ -99,12 +99,48 @@ function analysis(T::Array, sizes::Vector=[size(T)]; seed::Number=0, tol=1e-16, 
 		println("$i - $(sizes[i]): residual $(residues[i]) tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core))")
 	end
 
-	csize = TensorToolbox.mrank(tucker_spnn[ibest].core)
 	# dNTF.atensor(tucker_spnn[ibest].core)
-	ndimensons = length(csize)
+	csize = TensorToolbox.mrank(tucker_spnn[ibest].core)
 	info("Estimated true core size: $(csize)")
-
 	return tucker_spnn, csize
+end
+
+function analysis(T::Array, tranks::Vector{Int64}; seed::Number=-1, tol=1e-16, verbose=false, max_iter=50000, method=:ALS)
+	info("TensorDecompositions CanDecomp analysis ...")
+	seed >= 0 && srand(seed)
+	tsize = size(T)
+	ndimensons = length(tsize)
+	nruns = length(tranks)
+	residues = Array{Float64}(nruns)
+	correlations = Array{Float64}(nruns, ndimensons)
+	T_esta = Array{Array{Float64,3}}(nruns)
+	cpf = Array{TensorDecompositions.CANDECOMP{Float64,3}}(nruns)
+	for i in 1:nruns
+		info("CP core rank: $(tranks[i])")
+		factors_initial_guess = tuple([randn(dim, tranks[i]) for dim in tsize]...)
+		@time cpf[i] = TensorDecompositions.candecomp(T, tranks[i], factors_initial_guess, verbose=verbose, compute_error=true, maxiter=max_iter, method=method)
+		T_esta[i] = TensorDecompositions.compose(cpf[i])
+		residues[i] = TensorDecompositions.rel_residue(cpf[i])
+		correlations[i,1] = minimum(map((j)->minimum(map((k)->cor(T_esta[i][:,k,j], T[:,k,j]), 1:tsize[2])), 1:tsize[3]))
+		correlations[i,2] = minimum(map((j)->minimum(map((k)->cor(T_esta[i][k,:,j], T[k,:,j]), 1:tsize[1])), 1:tsize[3]))
+		correlations[i,3] = minimum(map((j)->minimum(map((k)->cor(T_esta[i][k,j,:], T[k,j,:]), 1:tsize[1])), 1:tsize[2]))
+		println("$i - $(tranks[i]): residual $(residues[i]) tensor correlations $(correlations[i,:])")
+	end
+
+	info("Decompositions:")
+	ibest = 1
+	best = Inf
+	for i in 1:nruns
+		if residues[i] < best
+			best = residues[i]
+			ibest = i
+		end
+		println("$i - $(tranks[i]): residual $(residues[i]) tensor correlations $(correlations[i,:])")
+	end
+
+	csize = length(cpf[ibest].lambdas)
+	info("Estimated true core size: $(csize)")
+	return cpf, csize
 end
 
 function getsizes(csize::Tuple, tsize::Tuple=csize .+ 1)

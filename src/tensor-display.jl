@@ -37,10 +37,10 @@ function plottensor(X::Array, dim::Integer=1; minvalue=minimum(X), maxvalue=maxi
 			(Compose.context(), Compose.fill("gray"), Compose.fontsize(10Compose.pt), Compose.text(0.01, -50000.0, sprintf("%6.4f", i * timestep), Compose.hleft, Compose.vtop)),
 			(Compose.context(), Compose.fill("tomato"), Compose.rectangle(0.5, -50000.0, i/sizes[dim]*0.48, 15000.0)),
 			(Compose.context(), Compose.fill("gray"), Compose.rectangle(0.5, -50000.0, 0.48, 15000.0)))
+			p = Compose.vstack(g, f)
 		else
-			f = Compose.compose(Compose.context())
+			p = g
 		end
-		p = Compose.vstack(g, f)
 		!quiet && println(framename)
 		!quiet && (Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
 		if prefix != ""
