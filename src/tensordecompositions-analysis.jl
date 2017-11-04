@@ -68,7 +68,7 @@ function analysis(case::String, X::Array; timeindex=1:5:1000, xindex=1:1:81, yin
 	return csize
 end
 
-function analysis(T::Array, sizes::Vector{Tuple}=[size(T)]; seed::Number=0, tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambda::Number=0.1, lambdas=fill(lambda, length(size(T)) + 1))
+function analysis(T::Array, sizes::Vector{Tuple{Int64,Int64,Int64}}=[size(T)]; seed::Number=0, tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambda::Number=0.1, lambdas=fill(lambda, length(size(T)) + 1))
 	info("TensorDecompositions Tucker analysis ...")
 	seed > 0 && srand(seed)
 	tsize = size(T)
