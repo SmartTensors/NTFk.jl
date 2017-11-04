@@ -104,8 +104,6 @@ function analysis(T::Array, sizes::Vector=[size(T)]; seed::Number=0, tol=1e-16, 
 	ndimensons = length(csize)
 	info("Estimated true core size: $(csize)")
 
-	# dNTF.plotcmptensor(T, T_esta[ibest], 3)
-
 	return tucker_spnn, csize
 end
 
