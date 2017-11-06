@@ -1,6 +1,6 @@
 import TensorDecompositions
 
-function analysis(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, datadir::String=".", resultdir::String=".", moviedir::String=".", seed::Number=0, max_iter=1000, tol=1e-8)
+function analysis(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, datadir::String=".", resultdir::String=".", moviedir::String=".", suffix::String="", seed::Number=0, max_iter=1000, tol=1e-8)
 	if !isdir(resultdir)
 		mkdir(resultdir)
 	end
@@ -24,7 +24,7 @@ function analysis(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81
 	# A = max.(F .- G, 0)
 	# B = max.(G .- F, 0)
 	C = max.(F .- max.(F .- G, 0), 0)
-	cC = analysis("$(case)C", C; timeindex=timeindex, xindex=xindex, yindex=yindex, datadir=datadir, resultdir=resultdir, moviedir=moviedir, seed=seed, max_iter=max_iter, tol=tol)
+	cC = analysis("$(case)C" * suffix, C; timeindex=timeindex, xindex=xindex, yindex=yindex, datadir=datadir, resultdir=resultdir, moviedir=moviedir, seed=seed, max_iter=max_iter, tol=tol)
 	return cC
 end
 
