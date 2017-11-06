@@ -87,17 +87,17 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.CANDECOMP; pre
 	end
 end
 
-function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1; csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String="", kw...)
+function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String="", kw...)
 	ndimensons = length(size(X1))
 	@assert dim >= 1 && dim <= ndimensons
 	@assert ndimensons == length(csize)
 	dimname = namedimension(ndimensons)
 	crank = csize[dim]
 	pt = Vector{Int64}(0)
-	if dim > 1
-		push!(pt, dim)
+	if pdim > 1
+		push!(pt, pdim)
 		for i = ndimensons:-1:1
-			if i != dim
+			if i != pdim
 				push!(pt, i)
 			end
 		end
@@ -116,7 +116,8 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::I
 			end
 		end
 		X2 = TensorDecompositions.compose(ntt)
-		dNTF.plotcmptensor(permutedims(X1, pt), permutedims(X2, pt); progressbar=false, title="$(dimname[dim])-$i", prefix=prefix * string(i),  kw...)
+		title = pdim > 1 ? "$(dimname[dim])-$i" : ""
+		dNTF.plotcmptensor(permutedims(X1, pt), permutedims(X2, pt); progressbar=false, title=title, prefix=prefix * string(i),  kw...)
 	end
 end
 

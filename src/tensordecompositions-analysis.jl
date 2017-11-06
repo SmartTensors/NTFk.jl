@@ -28,7 +28,7 @@ function analysis(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81
 	return cC
 end
 
-function analysis(case::String, X::Array; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, datadir::String=".", resultdir::String=".", moviedir::String=".", spacemovies::Bool=false, seed::Number=0, max_iter=1000, tol=1e-8)
+function analysis(case::String, X::Array; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, datadir::String=".", resultdir::String=".", moviedir::String=".", seed::Number=0, max_iter=1000, tol=1e-8)
 	info("Making problem movie for $(case) ...")
 	dNTF.plottensor(X[timeindex, xindex, yindex]; movie=true, moviedir=moviedir, prefix="$(case)", quiet=true)
 
@@ -44,12 +44,12 @@ function analysis(case::String, X::Array; timeindex=1:5:1000, xindex=1:1:81, yin
 	trank = csize[1]
 	info("Making sparse problem component T movie for $(case) ...")
 	dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 1; csize=csize, movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])", quiet=true)
-	if spacemovies
-		info("Making sparse problem component X movie for $(case) ...")
-		dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2; csize=csize, movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-x", quiet=true)
-		info("Making sparse problem component Y movie for $(case) ...")
-		dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3; csize=csize, movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-y", quiet=true)
-	end
+	info("Making sparse problem component X movie for $(case) ...")
+	dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2; csize=csize, movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-x", quiet=true)
+	dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2, 1; csize=csize, movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-xt", quiet=true)
+	info("Making sparse problem component Y movie for $(case) ...")
+	dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3; csize=csize, movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-y", quiet=true)
+	dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3, 1; csize=csize, movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-yt", quiet=true)
 	# t = JLD.load("$(resultdir)/$(case)-$(c[1])_$(csize[2])_$(csize[3]).jld", "t")
 
 	trank = 3
