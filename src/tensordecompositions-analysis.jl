@@ -24,7 +24,7 @@ function analysis(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81
 	# A = max.(F .- G, 0)
 	# B = max.(G .- F, 0)
 	C = max.(F .- max.(F .- G, 0), 0)
-	cC = analysis("$(case)C" * suffix, C; timeindex=timeindex, xindex=xindex, yindex=yindex, datadir=datadir, resultdir=resultdir, moviedir=moviedir, seed=seed, max_iter=max_iter, tol=tol)
+	cC = analysis("$(case)C" * suffix, C; timeindex=timeindex, xindex=xindex, yindex=yindex, trank1=trank1, trank2=trank2, datadir=datadir, resultdir=resultdir, moviedir=moviedir, seed=seed, max_iter=max_iter, tol=tol)
 	return cC
 end
 
