@@ -75,19 +75,23 @@ function namedimension(ndimensons::Int)
 	end
 end
 
-function plottensorcomponents(X1::Array, t2::TensorDecompositions.CANDECOMP; prefix::String="", kw...)
+function plottensorcomponents(X1::Array, t2::TensorDecompositions.CANDECOMP; prefix::String="", filter=(), kw...)
 	ndimensons = length(size(X1))
 	crank = length(t2.lambdas)
 	for i = 1:crank
 		info("Making component $i movie ...")
 		ntt = deepcopy(t2)
 		ntt.lambdas[1:end .!== i] = 0
-		X2 = TensorDecompositions.compose(ntt)
-		dNTF.plotcmptensor(X1, X2; progressbar=false, prefix=prefix * string(i),  kw...)
+		if length(filter) == 0
+			X2 = TensorDecompositions.compose(ntt)
+		else
+			X2 = TensorDecompositions.compose(ntt)[filter...]
+		end
+		dNTF.plotcmptensor(X1, X2; progressbar=false, prefix=prefix * string(i), kw...)
 	end
 end
 
-function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String="", kw...)
+function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String="", filter=(), kw...)
 	ndimensons = length(size(X1))
 	@assert dim >= 1 && dim <= ndimensons
 	@assert ndimensons == length(csize)
@@ -115,7 +119,11 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::I
 				ntt.core[nt...] .= 0
 			end
 		end
-		X2 = TensorDecompositions.compose(ntt)
+		if length(filter) == 0
+			X2 = TensorDecompositions.compose(ntt)
+		else
+			X2 = TensorDecompositions.compose(ntt)[filter...]
+		end
 		title = pdim > 1 ? "$(dimname[dim])-$i" : ""
 		dNTF.plotcmptensor(permutedims(X1, pt), permutedims(X2, pt); progressbar=false, title=title, prefix=prefix * string(i),  kw...)
 	end

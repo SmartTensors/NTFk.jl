@@ -1,5 +1,26 @@
 import TensorDecompositions
 
+function loadcase(case::String; datadir::String=".")
+	f = "$(datadir)/$(case)F.jld"
+	if isfile(f)
+		F = JLD.load(f, "X")
+	else
+		warn("File $f is missing")
+		return nothing
+	end
+	f = "$(datadir)/$(case)G.jld"
+	if isfile(f)
+		G = JLD.load(f, "X")
+	else
+		warn("File $f is missing")
+		return nothing
+	end
+	# A = max.(F .- G, 0)
+	# B = max.(G .- F, 0)
+	C = max.(F .- max.(F .- G, 0), 0)
+	return C
+end
+
 function analysis(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank1=10, trank2=3, datadir::String=".", resultdir::String=".", moviedir::String=".", suffix::String="", seed::Number=0, max_iter=1000, tol=1e-8)
 	if !isdir(resultdir)
 		mkdir(resultdir)
@@ -7,65 +28,49 @@ function analysis(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
-	f = "$(datadir)/$(case)F.jld"
-	if isfile(f)
-		F = JLD.load(f, "X")
-	else
-		warn("File $f is missing")
+	C = loadcase(case; datadir=datadir)
+	if C == nothing
 		return (0,0,0)
 	end
-	f = "$(datadir)/$(case)G.jld"
-	if isfile(f)
-		G = JLD.load(f, "X")
-	else
-		warn("File $f is missing")
-		return (0,0,0)
-	end
-	# A = max.(F .- G, 0)
-	# B = max.(G .- F, 0)
-	C = max.(F .- max.(F .- G, 0), 0)
-	cC = analysis("$(case)C" * suffix, C; timeindex=timeindex, xindex=xindex, yindex=yindex, trank1=trank1, trank2=trank2, datadir=datadir, resultdir=resultdir, moviedir=moviedir, seed=seed, max_iter=max_iter, tol=tol)
+	cC = analysis("$(case)C" * suffix, C; timeindex=timeindex, xindex=xindex, yindex=yindex, trank=trank1, datadir=datadir, resultdir=resultdir, moviedir=moviedir, lambda=0.1, problemname="sparse", skipxymakemovies=false, seed=seed, max_iter=max_iter, tol=tol)
+	_ = analysis("$(case)C" * suffix, C; timeindex=timeindex, xindex=xindex, yindex=yindex, trank=trank2, datadir=datadir, resultdir=resultdir, moviedir=moviedir, lambda=0.000000001, problemname="dense", seed=seed, max_iter=max_iter, tol=tol)
 	return cC
 end
 
-function analysis(case::String, X::Array; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank1=10, trank2=3, datadir::String=".", resultdir::String=".", moviedir::String=".", seed::Number=0, max_iter=1000, tol=1e-8)
-	info("Making problem movie for $(case) ...")
-	dNTF.plottensor(X[timeindex, xindex, yindex]; movie=true, moviedir=moviedir, prefix="$(case)", quiet=true)
+function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", problemname::String="sparse", makemovie::Bool=true, skipxymakemovies::Bool=true, quiet::Bool=true, seed::Number=0, max_iter=1000, tol=1e-8, lambda::Number=0.1)
+	if length(csize) == 0
+		info("Making problem movie for $(case) ...")
+		dNTF.plottensor(X[timeindex, xindex, yindex]; movie=makemovie, moviedir=moviedir, prefix="$(case)", quiet=quiet)
 
-	trank = trank1
-	info("Solving sparse problem for $(case) ...")
-	t, csize = dNTF.analysis(X[timeindex, xindex, yindex], [(trank, 81, 81)]; seed=seed, tol=tol, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=max_iter, lambda=0.1)
-	JLD.save("$(resultdir)/$(case)-$(csize[1])_$(csize[2])_$(csize[3]).jld", "t", t)
-	info("Making sparse problem comparison movie for $(case) ...")
-	dNTF.plotcmptensor(X[timeindex, xindex, yindex], t[1]; movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])", quiet=true)
-	nt = TensorDecompositions.compose(t[1])
-	info("Making sparse problem leftover movie for $(case) ...")
-	dNTF.plotlefttensor(X[timeindex, xindex, yindex], nt, X[timeindex, xindex, yindex] .- nt; movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-left", quiet=true)
-	trank = csize[1]
-	info("Making sparse problem component T movie for $(case) ...")
-	dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 1; csize=csize, movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])", quiet=true)
-	info("Making sparse problem component X movie for $(case) ...")
-	dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2; csize=csize, movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-x", quiet=true)
-	dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2, 1; csize=csize, movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-xt", quiet=true)
-	info("Making sparse problem component Y movie for $(case) ...")
-	dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3; csize=csize, movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-y", quiet=true)
-	dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3, 1; csize=csize, movie=true, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-yt", quiet=true)
-	# t = JLD.load("$(resultdir)/$(case)-$(c[1])_$(csize[2])_$(csize[3]).jld", "t")
-
-	trank = trank2
-	info("Solving dense problem for $(case) ...")
-	t, _ = dNTF.analysis(X[timeindex, xindex, yindex], [(trank, 81, 81)]; seed=seed, tol=tol, ini_decomp=nothing, core_nonneg=true, verbose=false, max_iter=max_iter, lambda=0.000000001)
-	JLD.save("$(resultdir)/$(case)-$(trank)_81_81.jld", "t", t)
-	info("Making dense problem comparison movie for $(case) ...")
-	nt = TensorDecompositions.compose(t[1])
-	dNTF.plotcmptensor(X[timeindex, xindex, yindex], nt; movie=true, moviedir=moviedir, prefix="$(case)-$(trank)_81_81", quiet=true)
-	info("Making dense problem leftover movie for $(case) ...")
-	dNTF.plotlefttensor(X[timeindex, xindex, yindex], nt, X[timeindex, xindex, yindex] .- nt; movie=true, moviedir=moviedir, prefix="$(case)-$(trank)_81_81-left", quiet=true)
-	for i = 1:trank
-		ntt = deepcopy(t[1])
-		ntt.core[1:end .!= i,:,:] = 0
-		info("Making dense problem movie T$i for $(case) ...")
-		dNTF.plotcmptensor(X[timeindex, xindex, yindex], ntt; movie=true, moviedir=moviedir, prefix="$(case)-$(trank)_81_81-t$i", quiet=true)
+		xrank = length(collect(xindex))
+		yrank = length(collect(yindex))
+		trank = trank1
+		info("Solving $(problemname) problem for $(case) ...")
+		t, csize = dNTF.analysis(X[timeindex, xindex, yindex], [(trank, xrank, yrank)]; seed=seed, tol=tol, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=max_iter, lambda=lambda)
+		JLD.save("$(resultdir)/$(case)-$(csize[1])_$(csize[2])_$(csize[3]).jld", "t", t)
+	else
+		filename = "$(resultdir)/$(case)-$(csize[1])_$(csize[2])_$(csize[3]).jld"
+		if isfile(filename)
+			t = JLD.load(filename, "t")
+		else
+			warn("File $(filename) does not exist!")
+			return csize
+		end
+	end
+	info("Making $(problemname) problem comparison movie for $(case) ...")
+	nt = TensorDecompositions.compose(t[1])[timeindex, xindex, yindex]
+	dNTF.plotcmptensor(X[timeindex, xindex, yindex], nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])", quiet=quiet)
+	info("Making $(problemname) problem leftover movie for $(case) ...")
+	dNTF.plotlefttensor(X[timeindex, xindex, yindex], nt, X[timeindex, xindex, yindex] .- nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-left", quiet=quiet)
+	info("Making $(problemname) problem component T movie for $(case) ...")
+	dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 1; filter=(timeindex, xindex, yindex), csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])", quiet=quiet)
+	if !skipxymakemovies
+		info("Making $(problemname) problem component X movie for $(case) ...")
+		dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2; filter=(timeindex, xindex, yindex), csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-x", quiet=quiet)
+		dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2, 1; filter=(timeindex, xindex, yindex), csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-xt", quiet=quiet)
+		info("Making $(problemname) problem component Y movie for $(case) ...")
+		dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3; filter=(timeindex, xindex, yindex), csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-y", quiet=quiet)
+		dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3, 1; filter=(timeindex, xindex, yindex), csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-yt", quiet=quiet)
 	end
 	return csize
 end
