@@ -63,7 +63,7 @@ function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, x
 	info("Making $(problemname) problem leftover movie for $(case) ...")
 	dNTF.plotlefttensor(X[timeindex, xindex, yindex], nt, X[timeindex, xindex, yindex] .- nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-left", quiet=quiet)
 	info("Making $(problemname) problem component T movie for $(case) ...")
-	dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 1; filter=(timeindex, xindex, yindex), csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])", quiet=quiet)
+	dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 1; filter=(timeindex, xindex, yindex), csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-t", quiet=quiet)
 	if !skipxymakemovies
 		info("Making $(problemname) problem component X movie for $(case) ...")
 		dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2; filter=(timeindex, xindex, yindex), csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-x", quiet=quiet)
