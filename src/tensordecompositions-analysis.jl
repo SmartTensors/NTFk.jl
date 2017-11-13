@@ -44,7 +44,7 @@ function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, x
 
 		xrank = length(collect(xindex))
 		yrank = length(collect(yindex))
-		trank = trank1
+		trank = trank
 		info("Solving $(problemname) problem for $(case) ...")
 		t, csize = dNTF.analysis(X[timeindex, xindex, yindex], [(trank, xrank, yrank)]; seed=seed, tol=tol, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=max_iter, lambda=lambda)
 		JLD.save("$(resultdir)/$(case)-$(csize[1])_$(csize[2])_$(csize[3]).jld", "t", t)
