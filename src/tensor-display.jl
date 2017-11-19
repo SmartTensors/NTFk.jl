@@ -129,6 +129,44 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::I
 	end
 end
 
+function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String="", filter=(), kw...)
+	ndimensons = length(size(X1))
+	@assert dim >= 1 && dim <= ndimensons
+	@assert ndimensons == length(csize)
+	dimname = namedimension(ndimensons)
+	crank = csize[dim]
+	pt = Vector{Int64}(0)
+	if pdim > 1
+		push!(pt, pdim)
+		for i = ndimensons:-1:1
+			if i != pdim
+				push!(pt, i)
+			end
+		end
+	else
+		for i = 1:ndimensons
+			push!(pt, i)
+		end
+	end
+	X2= Vector{Any}(crank)
+	for i = 1:crank
+		info("Making component $(dimname[dim])-$i movie ...")
+		ntt = deepcopy(t2)
+		for j = 1:crank
+			if i !== j
+				nt = ntuple(k->(k == dim ? j : :), ndimensons)
+				ntt.core[nt...] .= 0
+			end
+		end
+		if length(filter) == 0
+			X2[i] = TensorDecompositions.compose(ntt)
+		else
+			X2[i] = TensorDecompositions.compose(ntt)[filter...]
+		end
+	end
+	dNTF.plotlefttensor(permutedims(X1, pt), permutedims(X2[1], pt), permutedims(X2[2], pt); progressbar=false, prefix=prefix, kw...)
+end
+
 function plotcmptensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
 	X2 = TensorDecompositions.compose(T2)
 	plotcmptensor(X1, X2, dim; kw...)
@@ -188,7 +226,7 @@ function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X
 	end
 end
 
-function plotlefttensor(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalue=minimum([X1 X2 X3]), maxvalue=maximum([X1 X2 X3]), prefix::String="", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timestep::Number=0.001)
+function plotlefttensor(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalue=minimum([X1 X2 X3]), maxvalue=maximum([X1 X2 X3]), prefix::String="", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timestep::Number=0.001, progressbar::Bool=true)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -211,11 +249,15 @@ function plotlefttensor(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalu
 		g2 = plotmatrix(X2[nt...], minvalue=minvalue, maxvalue=maxvalue, title=ctitle)
 		g3 = plotmatrix(X3[nt...], minvalue=minvalue, maxvalue=maxvalue, title=rtitle)
 		g = Compose.hstack(g1, g2, g3)
-		f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0.001Compose.h),
-			(Compose.context(), Compose.fill("gray"), Compose.fontsize(10Compose.pt), Compose.text(0.01, -25000.0, sprintf("%6.4f", i * timestep), Compose.hleft, Compose.vtop)),
-			(Compose.context(), Compose.fill("tomato"), Compose.rectangle(0.75, -25000.0, i/sizes[dim]*0.2, 15000.0)),
-			(Compose.context(), Compose.fill("gray"), Compose.rectangle(0.75, -25000.0, 0.2, 15000.0)))
-		p = Compose.vstack(g, f)
+		if progressbar
+			f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0.001Compose.h),
+				(Compose.context(), Compose.fill("gray"), Compose.fontsize(10Compose.pt), Compose.text(0.01, -25000.0, sprintf("%6.4f", i * timestep), Compose.hleft, Compose.vtop)),
+				(Compose.context(), Compose.fill("tomato"), Compose.rectangle(0.75, -25000.0, i/sizes[dim]*0.2, 15000.0)),
+				(Compose.context(), Compose.fill("gray"), Compose.rectangle(0.75, -25000.0, 0.2, 15000.0)))
+			p = Compose.vstack(g, f)
+		else
+			p = g
+		end
 		!quiet && println(framename)
 		!quiet && (Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
 		if prefix != ""
