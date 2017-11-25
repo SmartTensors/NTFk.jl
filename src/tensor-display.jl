@@ -164,7 +164,45 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 			X2[i] = TensorDecompositions.compose(ntt)[filter...]
 		end
 	end
-	dNTF.plotlefttensor(permutedims(X1, pt), permutedims(X2[1], pt), permutedims(X2[2], pt); progressbar=false, prefix=prefix, kw...)
+	dNTF.plotlefttensor(permutedims(X1, pt), permutedims(X2[1], pt), permutedims(X2[2], pt); prefix=prefix, kw...)
+end
+
+function plot3tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String="", filter=(), kw...)
+	ndimensons = length(size(X1))
+	@assert dim >= 1 && dim <= ndimensons
+	@assert ndimensons == length(csize)
+	dimname = namedimension(ndimensons)
+	crank = csize[dim]
+	pt = Vector{Int64}(0)
+	if pdim > 1
+		push!(pt, pdim)
+		for i = ndimensons:-1:1
+			if i != pdim
+				push!(pt, i)
+			end
+		end
+	else
+		for i = 1:ndimensons
+			push!(pt, i)
+		end
+	end
+	X2= Vector{Any}(crank)
+	for i = 1:crank
+		info("Making component $(dimname[dim])-$i movie ...")
+		ntt = deepcopy(t2)
+		for j = 1:crank
+			if i !== j
+				nt = ntuple(k->(k == dim ? j : :), ndimensons)
+				ntt.core[nt...] .= 0
+			end
+		end
+		if length(filter) == 0
+			X2[i] = TensorDecompositions.compose(ntt)
+		else
+			X2[i] = TensorDecompositions.compose(ntt)[filter...]
+		end
+	end
+	dNTF.plotlefttensor(permutedims(X2[1], pt), permutedims(X2[2], pt), permutedims(X2[3], pt); prefix=prefix, kw...)
 end
 
 function plotcmptensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
