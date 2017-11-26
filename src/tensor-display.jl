@@ -5,6 +5,7 @@ import TensorToolbox
 import TensorDecompositions
 
 function plotmatrix(X::Matrix; minvalue=minimum(X), maxvalue=maximum(X), label="", title="", xlabel="", ylabel="")
+	X = min.(max.(X, minvalue), maxvalue)
 	Gadfly.spy(X, Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing), Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Guide.colorkey(label), Gadfly.Scale.ContinuousColorScale(Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"), parse(Colors.Colorant, "red")), minvalue=minvalue, maxvalue=maxvalue), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt))
 end
 
@@ -167,7 +168,7 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 	dNTF.plotlefttensor(permutedims(X1, pt), permutedims(X2[1], pt), permutedims(X2[2], pt); prefix=prefix, kw...)
 end
 
-function plot3tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String="", filter=(), kw...)
+function plot3tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String="", filter=(), order=[1,2,3], kw...)
 	ndimensons = length(size(X1))
 	@assert dim >= 1 && dim <= ndimensons
 	@assert ndimensons == length(csize)
@@ -202,7 +203,7 @@ function plot3tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 			X2[i] = TensorDecompositions.compose(ntt)[filter...]
 		end
 	end
-	dNTF.plotlefttensor(permutedims(X2[1], pt), permutedims(X2[2], pt), permutedims(X2[3], pt); prefix=prefix, kw...)
+	dNTF.plotlefttensor(permutedims(X2[order[1]], pt), permutedims(X2[order[2]], pt), permutedims(X2[order[3]], pt); prefix=prefix, kw...)
 end
 
 function plotcmptensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
