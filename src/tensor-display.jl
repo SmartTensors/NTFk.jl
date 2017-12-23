@@ -15,14 +15,15 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	@assert dim >= 1 && dim <= ndimensons
 	pl = Vector{Any}(crank)
 	nx, ny = size(t.factors[dim])
+	xvalues = vec(collect(1/nx:1/nx:1))
 	componentnames = map(i->"T$i", 1:crank)
 	p = t.factors[dim] ./ maximum(t.factors[dim])
 	imax = sortperm(map(i->indmax(p[:, i]), 1:crank))
 	for i = 1:crank
 		if loopcolors
-			pl[i] = Gadfly.layer(x=1:nx, y=abs.(p[:,imax[i]]), Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=parse(Colors.Colorant, colors[(i-1)%ncolors+1])))
+			pl[i] = Gadfly.layer(x=xvalues, y=abs.(p[:,imax[i]]), Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=parse(Colors.Colorant, colors[(i-1)%ncolors+1])))
 		else
-			pl[i] = Gadfly.layer(x=1:nx, y=abs.(p[:,imax[i]]), Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=parse(Colors.Colorant, colors[i])))
+			pl[i] = Gadfly.layer(x=xvalues, y=abs.(p[:,imax[i]]), Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=parse(Colors.Colorant, colors[i])))
 		end
 	end
 	if loopcolors
