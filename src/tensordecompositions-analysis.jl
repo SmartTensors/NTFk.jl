@@ -21,7 +21,26 @@ function loadcase(case::String; datadir::String=".")
 	return C
 end
 
-function analysis(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank1=10, trank2=3, datadir::String=".", resultdir::String=".", moviedir::String=".", suffix::String="", seed::Number=0, max_iter=1000, tol=1e-8)
+function analysistime(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", figuredir::String=".", suffix::String="", seed::Number=0, max_iter=1000, tol=1e-8, ini_decomp=nothing)
+	if !isdir(resultdir)
+		mkdir(resultdir)
+	end
+	if !isdir(moviedir)
+		mkdir(moviedir)
+	end
+	if !isdir(figuredir)
+		mkdir(figuredir)
+	end
+	C = loadcase(case; datadir=datadir)
+	if C == nothing
+		return (0,0,0)
+	end
+	csize = analysis("$(case)C" * suffix, C; timeindex=timeindex, xindex=xindex, yindex=yindex, trank=trank, datadir=datadir, resultdir=resultdir, moviedir=moviedir, figuredir=figuredir, lambda=0.1, problemname="sparse", skipxymakemovies=true, seed=seed, max_iter=max_iter, tol=tol, ini_decomp=ini_decomp)
+	_ = analysis("$(case)C" * suffix, C; timeindex=timeindex, xindex=xindex, yindex=yindex, trank=csize[1], datadir=datadir, resultdir=resultdir, moviedir=moviedir, figuredir=figuredir, lambda=0.000000001, problemname="dense", seed=seed, max_iter=max_iter, tol=tol, ini_decomp=ini_decomp)
+	return csize
+end
+
+function analysis(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank1=10, trank2=3, datadir::String=".", resultdir::String=".", moviedir::String=".", suffix::String="", seed::Number=0, max_iter=1000, tol=1e-8, ini_decomp=nothing)
 	if !isdir(resultdir)
 		mkdir(resultdir)
 	end
@@ -32,12 +51,12 @@ function analysis(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81
 	if C == nothing
 		return (0,0,0)
 	end
-	cC = analysis("$(case)C" * suffix, C; timeindex=timeindex, xindex=xindex, yindex=yindex, trank=trank1, datadir=datadir, resultdir=resultdir, moviedir=moviedir, lambda=0.1, problemname="sparse", skipxymakemovies=false, seed=seed, max_iter=max_iter, tol=tol)
-	_ = analysis("$(case)C" * suffix, C; timeindex=timeindex, xindex=xindex, yindex=yindex, trank=trank2, datadir=datadir, resultdir=resultdir, moviedir=moviedir, lambda=0.000000001, problemname="dense", seed=seed, max_iter=max_iter, tol=tol)
-	return cC
+	csize = analysis("$(case)C" * suffix, C; timeindex=timeindex, xindex=xindex, yindex=yindex, trank=trank1, datadir=datadir, resultdir=resultdir, moviedir=moviedir, lambda=0.1, problemname="sparse", skipxymakemovies=true, seed=seed, max_iter=max_iter, tol=tol, ini_decomp=ini_decomp)
+	_ = analysis("$(case)C" * suffix, C; timeindex=timeindex, xindex=xindex, yindex=yindex, trank=trank2, datadir=datadir, resultdir=resultdir, moviedir=moviedir, lambda=0.000000001, problemname="dense", seed=seed, max_iter=max_iter, tol=tol, ini_decomp=ini_decomp)
+	return csize
 end
 
-function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", problemname::String="sparse", makemovie::Bool=true, skipxymakemovies::Bool=true, quiet::Bool=true, seed::Number=0, max_iter=1000, tol=1e-8, lambda::Number=0.1)
+function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", figuredir::String=".", problemname::String="sparse", makemovie::Bool=true, skipxymakemovies::Bool=true, quiet::Bool=true, seed::Number=0, max_iter=1000, tol=1e-8, ini_decomp=nothing, lambda::Number=0.1)
 	if length(csize) == 0
 		info("Making problem movie for $(case) ...")
 		dNTF.plottensor(X[timeindex, xindex, yindex]; movie=makemovie, moviedir=moviedir, prefix="$(case)", quiet=quiet)
@@ -46,7 +65,7 @@ function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, x
 		yrank = length(collect(yindex))
 		trank = trank
 		info("Solving $(problemname) problem for $(case) ...")
-		t, csize = dNTF.analysis(X[timeindex, xindex, yindex], [(trank, xrank, yrank)]; seed=seed, tol=tol, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=max_iter, lambda=lambda)
+		t, csize = dNTF.analysis(X[timeindex, xindex, yindex], [(trank, xrank, yrank)]; seed=seed, tol=tol, ini_decomp=ini_decomp, core_nonneg=true, verbose=false, max_iter=max_iter, lambda=lambda)
 		JLD.save("$(resultdir)/$(case)-$(csize[1])_$(csize[2])_$(csize[3]).jld", "t", t)
 	else
 		filename = "$(resultdir)/$(case)-$(csize[1])_$(csize[2])_$(csize[3]).jld"
@@ -58,24 +77,26 @@ function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, x
 		end
 	end
 	info("Making $(problemname) problem comparison movie for $(case) ...")
-	nt = TensorDecompositions.compose(t[1])[timeindex, xindex, yindex]
+	nt = TensorDecompositions.compose(t[1])
 	dNTF.plotcmptensor(X[timeindex, xindex, yindex], nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])", quiet=quiet)
 	info("Making $(problemname) problem leftover movie for $(case) ...")
 	dNTF.plotlefttensor(X[timeindex, xindex, yindex], nt, X[timeindex, xindex, yindex] .- nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-left", quiet=quiet)
 	info("Making $(problemname) problem component T movie for $(case) ...")
-	dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 1; filter=(timeindex, xindex, yindex), csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-t", quiet=quiet)
+	dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-t", quiet=quiet)
+	info("Making $(problemname) 2D component plot for $(case) ...")
+	dNTF.plot2dtensorcomponents(t[1]; quiet=quiet, filename="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-t2d.png", figuredir=figuredir)
 	if !skipxymakemovies
 		info("Making $(problemname) problem component X movie for $(case) ...")
-		dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2; filter=(timeindex, xindex, yindex), csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-x", quiet=quiet)
-		dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2, 1; filter=(timeindex, xindex, yindex), csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-xt", quiet=quiet)
+		dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-x", quiet=quiet)
+		dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2, 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-xt", quiet=quiet)
 		info("Making $(problemname) problem component Y movie for $(case) ...")
-		dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3; filter=(timeindex, xindex, yindex), csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-y", quiet=quiet)
-		dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3, 1; filter=(timeindex, xindex, yindex), csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-yt", quiet=quiet)
+		dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-y", quiet=quiet)
+		dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3, 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-yt", quiet=quiet)
 	end
 	return csize
 end
 
-function analysis(T::Array, sizes=[size(T)]; seed::Number=0, tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambda::Number=0.1, lambdas=fill(lambda, length(size(T)) + 1))
+function analysis(T::Array, sizes=[size(T)]; seed::Number=0, tol=1e-16, ini_decomp=nothing, core_nonneg=true, verbose=false, max_iter=50000, lambda::Number=0.1, lambdas=fill(lambda, length(size(T)) + 1))
 	info("TensorDecompositions Tucker analysis ...")
 	seed > 0 && srand(seed)
 	tsize = size(T)

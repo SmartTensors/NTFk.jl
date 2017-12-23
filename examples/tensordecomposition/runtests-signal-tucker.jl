@@ -23,7 +23,7 @@ T_esta = Array{Array{Float64,3}}(nruns)
 tucker_spnn = Array{TensorDecompositions.Tucker{Float64,3}}(nruns)
 for i in 1:nruns
 	info("Core size: $(sizes[i])")
-	@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i], tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, max_iter=100000, verbose=false, lambdas=fill(0.1, length(sizes[i]) + 1))
+	@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i]; tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, max_iter=100000, verbose=false, lambdas=fill(0.1, length(sizes[i]) + 1))
 	T_est = TensorDecompositions.compose(tucker_spnn[i])
 	T_esta[i] = T_est
 	residues[i] = TensorDecompositions.rel_residue(tucker_spnn[i])

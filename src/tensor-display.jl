@@ -4,9 +4,41 @@ import Compose
 import TensorToolbox
 import TensorDecompositions
 
+colors = ["red", "blue", "green", "orange", "magenta", "cyan", "brown", "yellow"]
+ncolors = length(colors)
+
+function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="")
+	csize = TensorToolbox.mrank(t.core)
+	crank = csize[dim]
+	loopcolors = crank > ncolors ? true : false
+	ndimensons = length(csize)
+	@assert dim >= 1 && dim <= ndimensons
+	pl = Vector{Any}(crank)
+	nx, ny = size(t.factors[dim])
+	componentnames = map(i->"T$i", 1:crank)
+	p = t.factors[dim] ./ maximum(t.factors[dim])
+	imax = sortperm(map(i->indmax(p[:, i]), 1:crank))
+	for i = 1:crank
+		if loopcolors
+			pl[i] = Gadfly.layer(x=1:nx, y=abs.(p[:,imax[i]]), Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=parse(Colors.Colorant, colors[(i-1)%ncolors+1])))
+		else
+			pl[i] = Gadfly.layer(x=1:nx, y=abs.(p[:,imax[i]]), Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=parse(Colors.Colorant, colors[i])))
+		end
+	end
+	if loopcolors
+		ff = Gadfly.plot(pl...)
+	else
+		ff = Gadfly.plot(pl..., Gadfly.Guide.manual_color_key("", componentnames, colors[1:crank]))
+	end
+	!quiet && (display(ff); println())
+	if filename != ""
+		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize), ff)
+	end
+end
+
 function plotmatrix(X::Matrix; minvalue=minimum(X), maxvalue=maximum(X), label="", title="", xlabel="", ylabel="")
-	X = min.(max.(X, minvalue), maxvalue)
-	Gadfly.spy(X, Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing), Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Guide.colorkey(label), Gadfly.Scale.ContinuousColorScale(Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"), parse(Colors.Colorant, "red")), minvalue=minvalue, maxvalue=maxvalue), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt))
+	Xp = min.(max.(X, minvalue), maxvalue)
+	Gadfly.spy(Xp, Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing), Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Guide.colorkey(label), Gadfly.Scale.ContinuousColorScale(Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"), parse(Colors.Colorant, "red")), minvalue=minvalue, maxvalue=maxvalue), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt))
 end
 
 function plottensor(T::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
@@ -42,8 +74,7 @@ function plottensor(X::Array, dim::Integer=1; minvalue=minimum(X), maxvalue=maxi
 		else
 			p = g
 		end
-		!quiet && println(framename)
-		!quiet && (Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
+		!quiet && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
 		if prefix != ""
 			filename = setnewfilename(prefix, i)
 			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize), p)
