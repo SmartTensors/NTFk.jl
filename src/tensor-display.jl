@@ -7,18 +7,36 @@ import TensorDecompositions
 colors = ["red", "blue", "green", "orange", "magenta", "cyan", "brown", "yellow"]
 ncolors = length(colors)
 
-function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="")
+searchdir(key::Regex, path::String = ".") = filter(x->ismatch(key, x), readdir(path))
+searchdir(key::String, path::String = ".") = filter(x->contains(x, key), readdir(path))
+
+function getcsize(keyword::String; resultsdir::String=".")
+	files = searchdir(keyword, resultsdir)
+	csize = Array{Int64}(length(files), 3)
+	for (i, f) in enumerate(files)
+		m = match(Regex(string("$(keyword)-([0-9]+)_([0-9]+)_([0-9]+).jld")), f)
+		if m != nothing
+			c = parse.(Int64, m.captures)
+			csize[i,1] = c[1]
+			csize[i,2] = c[2]
+			csize[i,3] = c[3]
+		end
+	end
+	return csize
+end
+
+function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="")
 	csize = TensorToolbox.mrank(t.core)
 	crank = csize[dim]
 	loopcolors = crank > ncolors ? true : false
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
-	pl = Vector{Any}(crank)
 	nx, ny = size(t.factors[dim])
 	xvalues = vec(collect(1/nx:1/nx:1))
 	componentnames = map(i->"T$i", 1:crank)
 	p = t.factors[dim] ./ maximum(t.factors[dim])
 	imax = sortperm(map(i->indmax(p[:, i]), 1:crank))
+	pl = Vector{Any}(crank)
 	for i = 1:crank
 		if loopcolors
 			pl[i] = Gadfly.layer(x=xvalues, y=abs.(p[:,imax[i]]), Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=parse(Colors.Colorant, colors[(i-1)%ncolors+1])))
@@ -29,7 +47,7 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	if loopcolors
 		ff = Gadfly.plot(pl...)
 	else
-		ff = Gadfly.plot(pl..., Gadfly.Guide.manual_color_key("", componentnames, colors[1:crank]))
+		ff = Gadfly.plot(pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), Gadfly.Guide.manual_color_key("", componentnames, colors[1:crank]))
 	end
 	!quiet && (display(ff); println())
 	if filename != ""
