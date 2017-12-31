@@ -3,6 +3,7 @@ import Colors
 import Compose
 import TensorToolbox
 import TensorDecompositions
+import Distributions
 
 colors = ["red", "blue", "green", "orange", "magenta", "cyan", "brown", "yellow"]
 ncolors = length(colors)
@@ -42,6 +43,74 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 		pl[i] = Gadfly.layer(x=xvalues, y=abs.(p[:,imax[i]]), Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
 	end
 	tc = loopcolors ? [] : [Gadfly.Guide.manual_color_key("", componentnames, colors[1:crank])]
+	ff = Gadfly.plot(pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), tc...)
+	!quiet && (display(ff); println())
+	if filename != ""
+		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize), ff)
+	end
+end
+
+function plot2dmaxtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="")
+	csize = TensorToolbox.mrank(t.core)
+	crank = csize[dim]
+	loopcolors = crank > ncolors ? true : false
+	ndimensons = length(csize)
+	@assert dim >= 1 && dim <= ndimensons
+	nx, ny = size(t.factors[dim])
+	xvalues = vec(collect(1/nx:1/nx:1))
+	componentnames = map(i->"T$i", 1:crank)
+	p = t.factors[dim] ./ maximum(t.factors[dim])
+	imax = sortperm(map(i->indmax(p[:, i]), 1:crank))
+	pl = Vector{Any}(crank)
+	for (i, o) = enumerate(imax)
+		ntt = deepcopy(t)
+		for j = 1:crank
+			if o !== j
+				nt = ntuple(k->(k == dim ? j : :), ndimensons)
+				ntt.core[nt...] .= 0
+			end
+		end
+		X2 = TensorDecompositions.compose(ntt)
+		tm = maximum(X2, (2,3))
+		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
+		pl[i] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
+	end
+	tc = loopcolors ? [] : [Gadfly.Guide.manual_color_key("", componentnames, colors[1:crank])]
+	ff = Gadfly.plot(pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), tc...)
+	!quiet && (display(ff); println())
+	if filename != ""
+		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize), ff)
+	end
+end
+
+function plot2dmaxtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="")
+	csize = TensorToolbox.mrank(t.core)
+	crank = csize[dim]
+	loopcolors = crank > ncolors ? true : false
+	ndimensons = length(csize)
+	@assert dim >= 1 && dim <= ndimensons
+	nx, ny = size(t.factors[dim])
+	xvalues = vec(collect(1/nx:1/nx:1))
+	componentnames = map(i->"T$i", 1:crank)
+	p = t.factors[dim] ./ maximum(t.factors[dim])
+	imax = sortperm(map(i->indmax(p[:, i]), 1:crank))
+	pl = Vector{Any}(crank+1)
+	for (i, o) = enumerate(imax)
+		ntt = deepcopy(t)
+		for j = 1:crank
+			if o !== j
+				nt = ntuple(k->(k == dim ? j : :), ndimensons)
+				ntt.core[nt...] .= 0
+			end
+		end
+		X2 = TensorDecompositions.compose(ntt)
+		tm = maximum(X2, (2,3))
+		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
+		pl[i] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
+	end
+	tm = map(i->Distributions.kurtosis(vec(X[i,:,:])), 1:1000)
+	pl[crank+1] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=parse(Colors.Colorant, "gray")))
+	tc = loopcolors ? [] : [Gadfly.Guide.manual_color_key("", [componentnames; "Kurtosis"], [colors[1:crank]; "gray"])]
 	ff = Gadfly.plot(pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), tc...)
 	!quiet && (display(ff); println())
 	if filename != ""

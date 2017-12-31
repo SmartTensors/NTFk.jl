@@ -32,6 +32,24 @@ function loadresults(case::String, csize::Tuple=(); resultdir::String=".")
 	end
 end
 
+function analysistime1(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", figuredir::String=".", suffix::String="", seed::Number=0, max_iter=1000, tol=1e-8)
+	if !isdir(resultdir)
+		mkdir(resultdir)
+	end
+	if !isdir(moviedir)
+		mkdir(moviedir)
+	end
+	if !isdir(figuredir)
+		mkdir(figuredir)
+	end
+	C = loadcase(case; datadir=datadir)
+	if C == nothing
+		return (0,0,0)
+	end
+	csize = analysis("$(case)C" * suffix, C; timeindex=timeindex, xindex=xindex, yindex=yindex, trank=trank, datadir=datadir, resultdir=resultdir, moviedir=moviedir, figuredir=figuredir, skipmakemovies=true, lambda=0.1, problemname="sparse", seed=seed, max_iter=max_iter, tol=tol)
+	return csize
+end
+
 function analysistime(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", figuredir::String=".", suffix::String="", seed::Number=0, max_iter=1000, tol=1e-8)
 	if !isdir(resultdir)
 		mkdir(resultdir)
@@ -67,11 +85,12 @@ function analysis(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81
 	return csize
 end
 
-function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", figuredir::String=".", problemname::String="sparse", makemovie::Bool=true, skipmakemovies::Bool=false, skipxymakemovies::Bool=true, quiet::Bool=true, seed::Number=0, max_iter=1000, tol=1e-8, ini_decomp=nothing, lambda::Number=0.1)
+function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", figuredir::String=".", problemname::String="sparse", makemovie::Bool=true, skipmakemovies::Bool=false, skipmakedatamovie::Bool=false, skipmaketimemovies::Bool=false, skipxymakemovies::Bool=true, quiet::Bool=true, seed::Number=0, max_iter=1000, tol=1e-8, ini_decomp=nothing, lambda::Number=0.1)
 	if length(csize) == 0
-		info("Making problem movie for $(case) ...")
-		dNTF.plottensor(X[timeindex, xindex, yindex]; movie=makemovie, moviedir=moviedir, prefix="$(case)", quiet=quiet)
-
+		if !skipmakemovies && !skipmakedatamovie
+			info("Making problem movie for $(case) ...")
+			dNTF.plottensor(X[timeindex, xindex, yindex]; movie=makemovie, moviedir=moviedir, prefix="$(case)", quiet=quiet)
+		end
 		xrank = length(collect(xindex))
 		yrank = length(collect(yindex))
 		trank = trank
@@ -85,23 +104,25 @@ function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, x
 		end
 	end
 	if !skipmakemovies
-		info("Making $(problemname) problem comparison movie for $(case) ...")
-		nt = TensorDecompositions.compose(t[1])
-		dNTF.plotcmptensor(X[timeindex, xindex, yindex], nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])", quiet=quiet)
-		info("Making $(problemname) problem leftover movie for $(case) ...")
-		dNTF.plotlefttensor(X[timeindex, xindex, yindex], nt, X[timeindex, xindex, yindex] .- nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-left", quiet=quiet)
-		info("Making $(problemname) problem component T movie for $(case) ...")
-		dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-t", quiet=quiet)
-	end
-	info("Making $(problemname) 2D component plot for $(case) ...")
-	dNTF.plot2dtensorcomponents(t[1]; quiet=quiet, filename="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-t2d.png", figuredir=figuredir)
-	if !skipmakemovies && !skipxymakemovies
-		info("Making $(problemname) problem component X movie for $(case) ...")
-		dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-x", quiet=quiet)
-		dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2, 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-xt", quiet=quiet)
-		info("Making $(problemname) problem component Y movie for $(case) ...")
-		dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-y", quiet=quiet)
-		dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3, 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-yt", quiet=quiet)
+		if !skipmaketimemovies
+			info("Making $(problemname) problem comparison movie for $(case) ...")
+			nt = TensorDecompositions.compose(t[1])
+			dNTF.plotcmptensor(X[timeindex, xindex, yindex], nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])", quiet=quiet)
+			info("Making $(problemname) problem leftover movie for $(case) ...")
+			dNTF.plotlefttensor(X[timeindex, xindex, yindex], nt, X[timeindex, xindex, yindex] .- nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-left", quiet=quiet)
+			info("Making $(problemname) problem component T movie for $(case) ...")
+			dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-t", quiet=quiet)
+		end
+		info("Making $(problemname) 2D component plot for $(case) ...")
+		dNTF.plot2dtensorcomponents(t[1]; quiet=quiet, filename="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-t2d.png", figuredir=figuredir)
+		if !skipmaketimemovies && !skipxymakemovies
+			info("Making $(problemname) problem component X movie for $(case) ...")
+			dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-x", quiet=quiet)
+			dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2, 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-xt", quiet=quiet)
+			info("Making $(problemname) problem component Y movie for $(case) ...")
+			dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-y", quiet=quiet)
+			dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3, 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-yt", quiet=quiet)
+		end
 	end
 	return csize
 end
