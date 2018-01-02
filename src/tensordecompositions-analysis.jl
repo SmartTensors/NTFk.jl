@@ -32,7 +32,7 @@ function loadresults(case::String, csize::Tuple=(); resultdir::String=".")
 	end
 end
 
-function analysistime1(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", figuredir::String=".", suffix::String="", seed::Number=0, max_iter=1000, tol=1e-8)
+function analysistime1(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", figuredir::String=".", suffix::String="", seed::Number=0, max_iter=1000, tol=1e-8, ini_decomp=nothing, lambda::Number=0.1)
 	if !isdir(resultdir)
 		mkdir(resultdir)
 	end
@@ -46,7 +46,7 @@ function analysistime1(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1
 	if C == nothing
 		return (0,0,0)
 	end
-	csize = analysis("$(case)C" * suffix, C; timeindex=timeindex, xindex=xindex, yindex=yindex, trank=trank, datadir=datadir, resultdir=resultdir, moviedir=moviedir, figuredir=figuredir, skipmakemovies=true, lambda=0.1, problemname="sparse", seed=seed, max_iter=max_iter, tol=tol)
+	csize = analysis("$(case)C" * suffix, C; timeindex=timeindex, xindex=xindex, yindex=yindex, trank=trank, datadir=datadir, resultdir=resultdir, moviedir=moviedir, figuredir=figuredir, skipmakemovies=true, lambda=0.1, problemname="sparse", seed=seed, max_iter=max_iter, tol=tol, ini_decomp=ini_decomp, lambda=lambda)
 	return csize
 end
 
