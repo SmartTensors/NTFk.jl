@@ -219,7 +219,7 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.CANDECOMP; pre
 		else
 			X2 = TensorDecompositions.compose(ntt)[filter...]
 		end
-		dNTF.plotcmptensor(X1, X2; progressbar=false, prefix=prefix * string(i), kw...)
+		dNTF.plot2tensors(X1, X2; progressbar=false, prefix=prefix * string(i), kw...)
 	end
 end
 
@@ -257,7 +257,7 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::I
 			X2 = TensorDecompositions.compose(ntt)[filter...]
 		end
 		title = pdim > 1 ? "$(dimname[dim])-$i" : ""
-		dNTF.plotcmptensor(permutedims(X1, pt), permutedims(X2, pt); progressbar=false, title=title, prefix=prefix * string(i),  kw...)
+		dNTF.plot2tensors(permutedims(X1, pt), permutedims(X2, pt); progressbar=false, title=title, prefix=prefix * string(i),  kw...)
 	end
 end
 
@@ -306,7 +306,7 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		end
 		order = sortperm(imax)
 	end
-	dNTF.plot2tensor(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt); prefix=prefix, kw...)
+	dNTF.plot2tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt); prefix=prefix, kw...)
 end
 
 function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String="", filter=(), order=[], kw...)
@@ -355,7 +355,7 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 		end
 		order = sortperm(imax)
 	end
-	dNTF.plot3tensor(permutedims(X1, pt), permutedims(X2[order[1]], pt), permutedims(X2[order[2]], pt); prefix=prefix, kw...)
+	dNTF.plot3tensors(permutedims(X1, pt), permutedims(X2[order[1]], pt), permutedims(X2[order[2]], pt); prefix=prefix, kw...)
 end
 
 function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), order=[], kw...)
@@ -403,15 +403,15 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		end
 		order = sortperm(imax)
 	end
-	dNTF.plot3tensor(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt); prefix=prefix, kw...)
+	dNTF.plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt); prefix=prefix, kw...)
 end
 
-function plot2tensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
+function plot2tensors(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
 	X2 = TensorDecompositions.compose(T2)
 	plotcmptensor(X1, X2, dim; kw...)
 end
 
-function plot2tensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), prefix::String="", movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timestep::Number=0.001, progressbar::Bool=true)
+function plot2tensors(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), prefix::String="", movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timestep::Number=0.001, progressbar::Bool=true)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -465,9 +465,9 @@ function plot2tensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X1 
 	end
 end
 
-plotcmptensor = plot2tensor
+plotcmptensor = plot2tensors
 
-function plot3tensor(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalue=minimum([X1 X2 X3]), maxvalue=maximum([X1 X2 X3]), prefix::String="", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timestep::Number=0.001, progressbar::Bool=true)
+function plot3tensors(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalue=minimum([X1 X2 X3]), maxvalue=maximum([X1 X2 X3]), prefix::String="", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timestep::Number=0.001, progressbar::Bool=true)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -517,7 +517,7 @@ function plot3tensor(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalue=m
 	end
 end
 
-plotlefttensor = plot3tensor
+plotlefttensor = plot3tensors
 
 function setnewfilename(filename::String, frame::Integer=0; keyword::String="frame")
 	dir = dirname(filename)
