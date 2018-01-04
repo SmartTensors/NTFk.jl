@@ -36,11 +36,17 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	xvalues = vec(collect(1/nx:1/nx:1))
 	componentnames = map(i->"T$i", 1:crank)
 	p = t.factors[dim] ./ maximum(t.factors[dim])
-	imax = sortperm(map(i->indmax(p[:, i]), 1:crank))
+	imax = map(i->indmax(p[:, i]), 1:crank)
+	for i = 1:crank
+		if p[imax[i], i] == 0
+			warn("Maximum of component $i is equal to zero!")
+		end
+	end
+	order = sortperm(imax)
 	pl = Vector{Any}(crank)
 	for i = 1:crank
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
-		pl[i] = Gadfly.layer(x=xvalues, y=abs.(p[:,imax[i]]), Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
+		pl[i] = Gadfly.layer(x=xvalues, y=abs.(p[:, order[i]]), Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
 	end
 	tc = loopcolors ? [] : [Gadfly.Guide.manual_color_key("", componentnames, colors[1:crank])]
 	ff = Gadfly.plot(pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), tc...)
@@ -60,9 +66,15 @@ function plot2dmaxtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	xvalues = vec(collect(1/nx:1/nx:1))
 	componentnames = map(i->"T$i", 1:crank)
 	p = t.factors[dim] ./ maximum(t.factors[dim])
-	imax = sortperm(map(i->indmax(p[:, i]), 1:crank))
+	imax = map(i->indmax(p[:, i]), 1:crank)
+	for i = 1:crank
+		if p[imax[i], i] == 0
+			warn("Maximum of component $i is equal to zero!")
+		end
+	end
+	order = sortperm(imax)
 	pl = Vector{Any}(crank)
-	for (i, o) = enumerate(imax)
+	for (i, o) = enumerate(order)
 		ntt = deepcopy(t)
 		for j = 1:crank
 			if o !== j
@@ -93,9 +105,15 @@ function plot2dmaxtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	xvalues = vec(collect(1/nx:1/nx:1))
 	componentnames = map(i->"T$i", 1:crank)
 	p = t.factors[dim] ./ maximum(t.factors[dim])
-	imax = sortperm(map(i->indmax(p[:, i]), 1:crank))
+	imax = map(i->indmax(p[:, i]), 1:crank)
+	for i = 1:crank
+		if p[imax[i], i] == 0
+			warn("Maximum of component $i is equal to zero!")
+		end
+	end
+	order = sortperm(imax)
 	pl = Vector{Any}(crank+1)
-	for (i, o) = enumerate(imax)
+	for (i, o) = enumerate(order)
 		ntt = deepcopy(t)
 		for j = 1:crank
 			if o !== j
@@ -243,12 +261,12 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::I
 	end
 end
 
-function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String="", filter=(), kw...)
-	ndimensons = length(size(X1))
+function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), order=[], kw...)
+	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
-	@assert ndimensons == length(csize)
 	dimname = namedimension(ndimensons)
 	crank = csize[dim]
+	@assert crank > 1
 	pt = Vector{Int64}(0)
 	if pdim > 1
 		push!(pt, pdim)
@@ -262,7 +280,56 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 			push!(pt, i)
 		end
 	end
-	X2= Vector{Any}(crank)
+	X = Vector{Any}(crank)
+	for i = 1:crank
+		info("Making component $(dimname[dim])-$i movie ...")
+		ntt = deepcopy(t)
+		for j = 1:crank
+			if i !== j
+				nt = ntuple(k->(k == dim ? j : :), ndimensons)
+				ntt.core[nt...] .= 0
+			end
+		end
+		if length(filter) == 0
+			X[i] = TensorDecompositions.compose(ntt)
+		else
+			X[i] = TensorDecompositions.compose(ntt)[filter...]
+		end
+	end
+	if sizeof(order) == 0
+		p = t.factors[dim]
+		imax = map(i->indmax(p[:, i]), 1:crank)
+		for i = 1:crank
+			if p[imax[i], i] == 0
+				warn("Maximum of component $i is equal to zero!")
+			end
+		end
+		order = sortperm(imax)
+	end
+	dNTF.plot2tensor(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt); prefix=prefix, kw...)
+end
+
+function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String="", filter=(), order=[], kw...)
+	ndimensons = length(size(X1))
+	@assert dim >= 1 && dim <= ndimensons
+	@assert ndimensons == length(csize)
+	dimname = namedimension(ndimensons)
+	crank = csize[dim]
+	@assert crank > 1
+	pt = Vector{Int64}(0)
+	if pdim > 1
+		push!(pt, pdim)
+		for i = ndimensons:-1:1
+			if i != pdim
+				push!(pt, i)
+			end
+		end
+	else
+		for i = 1:ndimensons
+			push!(pt, i)
+		end
+	end
+	X2 = Vector{Any}(crank)
 	for i = 1:crank
 		info("Making component $(dimname[dim])-$i movie ...")
 		ntt = deepcopy(t2)
@@ -278,15 +345,25 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 			X2[i] = TensorDecompositions.compose(ntt)[filter...]
 		end
 	end
-	dNTF.plotlefttensor(permutedims(X1, pt), permutedims(X2[1], pt), permutedims(X2[2], pt); prefix=prefix, kw...)
+	if sizeof(order) == 0
+		p = t2.factors[dim]
+		imax = map(i->indmax(p[:, i]), 1:crank)
+		for i = 1:crank
+			if p[imax[i], i] == 0
+				warn("Maximum of component $i is equal to zero!")
+			end
+		end
+		order = sortperm(imax)
+	end
+	dNTF.plot3tensor(permutedims(X1, pt), permutedims(X2[order[1]], pt), permutedims(X2[order[2]], pt); prefix=prefix, kw...)
 end
 
-function plot3tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String="", filter=(), order=[1,2,3], kw...)
-	ndimensons = length(size(X1))
+function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), order=[], kw...)
+	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
-	@assert ndimensons == length(csize)
 	dimname = namedimension(ndimensons)
 	crank = csize[dim]
+	@assert crank > 2
 	pt = Vector{Int64}(0)
 	if pdim > 1
 		push!(pt, pdim)
@@ -300,10 +377,10 @@ function plot3tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 			push!(pt, i)
 		end
 	end
-	X2= Vector{Any}(crank)
+	X = Vector{Any}(crank)
 	for i = 1:crank
 		info("Making component $(dimname[dim])-$i movie ...")
-		ntt = deepcopy(t2)
+		ntt = deepcopy(t)
 		for j = 1:crank
 			if i !== j
 				nt = ntuple(k->(k == dim ? j : :), ndimensons)
@@ -311,20 +388,30 @@ function plot3tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 			end
 		end
 		if length(filter) == 0
-			X2[i] = TensorDecompositions.compose(ntt)
+			X[i] = TensorDecompositions.compose(ntt)
 		else
-			X2[i] = TensorDecompositions.compose(ntt)[filter...]
+			X[i] = TensorDecompositions.compose(ntt)[filter...]
 		end
 	end
-	dNTF.plotlefttensor(permutedims(X2[order[1]], pt), permutedims(X2[order[2]], pt), permutedims(X2[order[3]], pt); prefix=prefix, kw...)
+	if sizeof(order) == 0
+		p = t.factors[dim]
+		imax = map(i->indmax(p[:, i]), 1:crank)
+		for i = 1:crank
+			if p[imax[i], i] == 0
+				warn("Maximum of component $i is equal to zero!")
+			end
+		end
+		order = sortperm(imax)
+	end
+	dNTF.plot3tensor(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt); prefix=prefix, kw...)
 end
 
-function plotcmptensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
+function plot2tensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
 	X2 = TensorDecompositions.compose(T2)
 	plotcmptensor(X1, X2, dim; kw...)
 end
 
-function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), prefix::String="", movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timestep::Number=0.001, progressbar::Bool=true)
+function plot2tensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), prefix::String="", movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timestep::Number=0.001, progressbar::Bool=true)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -378,7 +465,9 @@ function plotcmptensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X
 	end
 end
 
-function plotlefttensor(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalue=minimum([X1 X2 X3]), maxvalue=maximum([X1 X2 X3]), prefix::String="", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timestep::Number=0.001, progressbar::Bool=true)
+plotcmptensor = plot2tensor
+
+function plot3tensor(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalue=minimum([X1 X2 X3]), maxvalue=maximum([X1 X2 X3]), prefix::String="", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timestep::Number=0.001, progressbar::Bool=true)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -427,6 +516,8 @@ function plotlefttensor(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalu
 		cleanup && run(`find $moviedir -name $prefix-"frame*.png" -delete`)
 	end
 end
+
+plotlefttensor = plot3tensor
 
 function setnewfilename(filename::String, frame::Integer=0; keyword::String="frame")
 	dir = dirname(filename)
