@@ -127,7 +127,7 @@ function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, x
 	return csize
 end
 
-function analysis(T::Array, sizes=[size(T)]; seed::Number=0, tol=1e-16, ini_decomp=nothing, core_nonneg=true, verbose=false, max_iter=50000, lambda::Number=0.1, lambdas=fill(lambda, length(size(T)) + 1))
+function analysis(T::Array, sizes=[size(T)]; seed::Number=0, tol=1e-16, ini_decomp=nothing, core_nonneg=true, verbose=false, max_iter=50000, lambda::Number=0.1, lambdas=fill(lambda, length(size(T)) + 1), progressbar::Bool=false)
 	info("TensorDecompositions Tucker analysis ...")
 	seed > 0 && srand(seed)
 	tsize = size(T)
@@ -139,7 +139,7 @@ function analysis(T::Array, sizes=[size(T)]; seed::Number=0, tol=1e-16, ini_deco
 	tucker_spnn = Array{TensorDecompositions.Tucker{Float64,3}}(nruns)
 	for i in 1:nruns
 		info("Core size: $(sizes[i])")
-		@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i]; tol=tol, ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=max_iter, lambdas=lambdas, progressbar=false)
+		@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i]; tol=tol, ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=max_iter, lambdas=lambdas, progressbar=progressbar)
 		T_esta[i] = TensorDecompositions.compose(tucker_spnn[i])
 		residues[i] = TensorDecompositions.rel_residue(tucker_spnn[i])
 		correlations[i,1] = minimum(map((j)->minimum(map((k)->cor(T_esta[i][:,k,j], T[:,k,j]), 1:tsize[2])), 1:tsize[3]))
