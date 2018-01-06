@@ -19,7 +19,7 @@ function ttanalysis(T::Array, crank::Number; seed::Number=1, functionname::Strin
 	return TT
 end
 
-function bcuanalysis(T::Array, crank::Number; seed::Number=1, functionname::AbstractString="ncp", maxiter::Integer=1000, tol::Number=1e-4, printitn::Integer=0, matlabdir::String="/Users/monty/matlab")
+function bcuanalysis(T::Array, crank::Number; seed::Number=1, functionname::AbstractString="ncp", maxiter::Integer=1000, tol::Number=1e-4, matlabdir::String="/Users/monty/matlab")
 	@MATLAB.mput T crank seed
 	m = """
 	addpath('$matlabdir/BCU');
@@ -27,7 +27,7 @@ function bcuanalysis(T::Array, crank::Number; seed::Number=1, functionname::Abst
 	cd('$matlabdir/TensorToolbox');
 	rng(seed);
 	CP_dec = sptensor(T);
-\	R = $functionname(CP_dec, crank, struct('maxit',$maxiter,'tol',$tol));
+	R = $functionname(CP_dec, crank, struct('maxit',$maxiter,'tol',$tol));
 	% C = double(R);
 	"""
 	MATLAB.eval_string(m)
