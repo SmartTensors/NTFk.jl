@@ -172,8 +172,10 @@ end
 methods: ALS, SGSD, cp_als, cp_apr, cp_nmu, cp_opt, cp_sym, cp_wopt
 """
 function analysis(T::Array, tranks::Vector{Int64}, nTF=1; seed::Number=-1, tol=1e-4, verbose=false, max_iter=50000, method=:ALS, quiet=true)
-	if contains(string(method), "cp")
+	if contains(string(method), "cp_")
 		info("TensorToolbox CanDecomp analysis ...")
+	elseif contains(string(method), "bcu_")
+		info("Block-coordinate nonconvex CanDecomp analysis ...")
 	else
 		info("TensorDecompositions CanDecomp analysis ...")
 	end
