@@ -131,7 +131,7 @@ end
 """
 methods: spnntucker, tucker_als, tucker_sym
 """
-function analysis(T::Array, sizes=[size(T)]; seed::Number=0, tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambda::Number=0.1, lambdas=fill(lambda, length(size(T)) + 1), progressbar::Bool=false)
+function analysis(T::Array, sizes=[size(T)]; seed::Number=0, tol=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambda::Number=0.1, lambdas=fill(lambda, length(size(T)) + 1), progressbar::Bool=false)
 	info("TensorDecompositions Tucker analysis ...")
 	seed > 0 && srand(seed)
 	tsize = size(T)
@@ -171,7 +171,7 @@ end
 """
 methods: ALS, SGSD, cp_als, cp_apr, cp_nmu, cp_opt, cp_sym, cp_wopt
 """
-function analysis(T::Array, tranks::Vector{Int64}, nTF=1; seed::Number=-1, tol=1e-4, verbose=false, max_iter=50000, method=:ALS, quiet=true)
+function analysis(T::Array, tranks::Vector{Int64}, nTF=1; seed::Number=-1, tol=1e-8, verbose=false, max_iter=50000, method=:ALS, quiet=true)
 	if contains(string(method), "cp_")
 		info("TensorToolbox CanDecomp analysis ...")
 	elseif contains(string(method), "bcu_")
@@ -197,8 +197,14 @@ function analysis(T::Array, tranks::Vector{Int64}, nTF=1; seed::Number=-1, tol=1
 		for n = 1:nTF
 			@time cpi[n] = dNTF.candecomp(T, tranks[i]; verbose=verbose, maxiter=max_iter, method=method, tol=tol)
 			residues2[n] = TensorDecompositions.rel_residue(cpi[n])
-			f = cpi[n].factors[1]' .* (cpi[n].lambdas.^(1/3))
-			WBig[n] = hcat(f)
+			s = cpi[n].lambdas.^(1/3)
+			f = map(i->abs.(cpi[n].factors[1]' .* s), 1:3)
+			# p = dNTF.plotmatrix(cpi[n].factors[1]')
+			# display(p); println()
+			# p = dNTF.plotmatrix(f)
+			# display(p); println()
+			# @show minimum(cpi[n].lambdas), maximum(cpi[n].lambdas)
+			WBig[n] = hcat(f...)
 		end
 		if nTF > 1
 			clusterassignments, M = NMFk.clustersolutions(WBig)
