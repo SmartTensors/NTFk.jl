@@ -10,6 +10,6 @@ T_orig = TensorDecompositions.compose(cp_orig)
 T = T_orig
 
 tranks = [1, 2, 3, 4]
-cp, _ = dNTF.analysis(T, [2,3,4], 3, method=:ALS)
-cp, _ = dNTF.analysis(T, [2,3,4], 3, method=:cp_nmu)
-cp, _ = dNTF.analysis(T, [2,3,4], 3, method=:bcu_ncp)
+cp, _ = dNTF.analysis(T, tranks, 3, method=:ALS)
+cp, _ = dNTF.analysis(T, tranks, 3, method=:cp_nmu)
+cp, _ = dNTF.analysis(T, tranks, 3, method=:bcu_ncp)
