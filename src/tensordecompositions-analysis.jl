@@ -131,7 +131,7 @@ end
 """
 methods: spnntucker, tucker_als, tucker_sym
 """
-function analysis(T::Array, sizes=[size(T)], nTF=1; seed::Number=0, tol=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambda::Number=0.1, lambdas=fill(lambda, length(size(T)) + 1), progressbar::Bool=false, quiet::Bool=false)
+function analysis(T::Array, sizes=[size(T)], nTF=1; seed::Number=0, tol=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambda::Number=0.1, lambdas=fill(lambda, length(size(T)) + 1), progressbar::Bool=false, quiet::Bool=true)
 	info("TensorDecompositions Tucker analysis ...")
 	seed > 0 && srand(seed)
 	tsize = size(T)

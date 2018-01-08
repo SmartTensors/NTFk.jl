@@ -17,16 +17,15 @@ T_orig[:,:,3] = X * 3
 T = T_orig
 
 dNTF.analysis(T, [tsize])
-sizes = [(1,1,1), (2,2,2), (2,2,1), (2,1,1), (2,1,2), (1,2,2), (3,2,1), (2,3,1), (3,3,1)]
-sizes = [(2,2,2)]
-tsf, csize, ibest = dNTF.analysis(T, sizes, 10; ini_decomp=:hosvd, progressbar=true, tol=1e-8, max_iter=10000)
+sizes = [(1,1,1), (2,2,2), (2,2,1), (3,2,1), (2,3,1), (3,3,1), (3,3,2), (3,3,3)]
+tsf, csize, ibest = dNTF.analysis(T, sizes, 10; ini_decomp=:hosvd, progressbar=true, tol=1e-6, max_iter=10000)
 
 if ibest != 3
 	warn("Something might be wrong but most probably is not a big deal; the best results should be #3")
 	info("Estimated core size = $csize; best result is #$ibest; the correct core size should be (2,2,1)")
 end
 
-dNTF.plotcmptensor(T_orig, T_esta[ibest], 3; progressbar=false)
+dNTF.plotcmptensor(T_orig, tsf[ibest], 3; progressbar=false)
 @show cor(W[:,1], tsf[ibest].factors[1][:,1])
 @show cor(W[:,2], tsf[ibest].factors[1][:,2])
 @show cor(H[1,:], tsf[ibest].factors[2][:,1])
