@@ -13,7 +13,17 @@ function ttanalysis(T::Array, crank::Number; seed::Number=1, functionname::Strin
 	"""
 	MATLAB.eval_string(m)
 	@MATLAB.mget R
-	TT = TensorDecompositions.CANDECOMP((R["u"][1:end]...), R["lambda"])
+	if R["lambda"] === nothing
+		R["lambda"] = ones(crank)
+	end
+	if crank == 1
+		for i = 1:length(R["u"])
+			R["u"][i] = convert(Array{Float64,2}, R["u"][i]')'
+		end
+		TT = TensorDecompositions.CANDECOMP((R["u"][1:end]...), R["lambda"])
+	else
+		TT = TensorDecompositions.CANDECOMP((R["u"][1:end]...), R["lambda"])
+	end
 	# CC = TensorDecompositions.compose(TT)
 	# @show maximum(C .- CC)
 	return TT
@@ -32,7 +42,17 @@ function bcuanalysis(T::Array, crank::Number; seed::Number=1, functionname::Abst
 	"""
 	MATLAB.eval_string(m)
 	@MATLAB.mget R
-	TT = TensorDecompositions.CANDECOMP((R["u"][1:end]...), R["lambda"])
+	if R["lambda"] === nothing
+		R["lambda"] = ones(crank)
+	end
+	if crank == 1
+		for i = 1:length(R["u"])
+			R["u"][i] = convert(Array{Float64,2}, R["u"][i]')'
+		end
+		TT = TensorDecompositions.CANDECOMP((R["u"][1:end]...), R["lambda"])
+	else
+		TT = TensorDecompositions.CANDECOMP((R["u"][1:end]...), R["lambda"])
+	end
 	# CC = TensorDecompositions.compose(TT)
 	# @show maximum(C .- CC)
 	return TT

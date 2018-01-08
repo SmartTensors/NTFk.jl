@@ -131,7 +131,7 @@ end
 """
 methods: spnntucker, tucker_als, tucker_sym
 """
-function analysis(T::Array, sizes=[size(T)]; seed::Number=0, tol=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambda::Number=0.1, lambdas=fill(lambda, length(size(T)) + 1), progressbar::Bool=false)
+function analysis(T::Array, sizes=[size(T)], nTF=1; seed::Number=0, tol=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambda::Number=0.1, lambdas=fill(lambda, length(size(T)) + 1), progressbar::Bool=false, quiet::Bool=false)
 	info("TensorDecompositions Tucker analysis ...")
 	seed > 0 && srand(seed)
 	tsize = size(T)
@@ -141,16 +141,52 @@ function analysis(T::Array, sizes=[size(T)]; seed::Number=0, tol=1e-8, ini_decom
 	correlations = Array{Float64}(nruns, ndimensons)
 	T_esta = Array{Array{Float64,3}}(nruns)
 	tucker_spnn = Array{TensorDecompositions.Tucker{Float64,3}}(nruns)
+	minsilhouette = Array{Float64}(nruns)
 	for i in 1:nruns
 		info("Core size: $(sizes[i])")
-		@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i]; tol=tol, ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=max_iter, lambdas=lambdas, progressbar=progressbar)
+		residues2 = Array{Float64}(nTF)
+		tsi = Array{TensorDecompositions.Tucker{Float64,3}}(nTF)
+		WBig = Vector{Matrix}(nTF)
+		tsbest = nothing
+		for n = 1:nTF
+			@time tsi[n] = TensorDecompositions.spnntucker(T, sizes[i]; tol=tol, ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=max_iter, lambdas=lambdas, progressbar=progressbar)
+			residues2[n] = TensorDecompositions.rel_residue(tsi[n], T)
+			# s = cpi[n].lambdas.^(1/3)
+			f = tsi[n].factors[1]'
+			# p = dNTF.plotmatrix(cpi[n].factors[1]')
+			# display(p); println()
+			# p = dNTF.plotmatrix(f)
+			# display(p); println()
+			# @show minimum(cpi[n].lambdas), maximum(cpi[n].lambdas)
+			WBig[n] = hcat(f)
+		end
+		if nTF > 1
+			clusterassignments, M = NMFk.clustersolutions(WBig)
+			if !quiet
+				info("Cluster assignments:")
+				display(clusterassignments)
+				info("Cluster centroids:")
+				display(M)
+			end
+			Wa, clustersilhouettes, Wv = NMFk.finalize(WBig, clusterassignments)
+			minsilhouette[i] = minimum(clustersilhouettes)
+			if !quiet
+				info("Silhouettes for each of the $(length(clustersilhouettes)) clusters:" )
+				display(clustersilhouettes')
+				println("Mean silhouette = ", mean(clustersilhouettes))
+				println("Min  silhouette = ", minimum(clustersilhouettes))
+			end
+		else
+			minsilhouette[i] = NaN
+		end
+		imin = indmin(residues2)
+		tucker_spnn[i] = tsi[imin]
 		T_esta[i] = TensorDecompositions.compose(tucker_spnn[i])
-		residues[i] = TensorDecompositions.rel_residue(tucker_spnn[i])
-		@show vecnorm(T_esta[i] .- T)
+		residues[i] = TensorDecompositions.rel_residue(T_esta[i], T)
 		correlations[i,1] = minimum(map((j)->minimum(map((k)->(c=abs.(cor(T_esta[i][:,k,j], T[:,k,j])); c = isnan(c) ? Inf : c), 1:tsize[2])), 1:tsize[3]))
 		correlations[i,2] = minimum(map((j)->minimum(map((k)->(c=abs.(cor(T_esta[i][k,:,j], T[k,:,j])); c = isnan(c) ? Inf : c), 1:tsize[1])), 1:tsize[3]))
 		correlations[i,3] = minimum(map((j)->minimum(map((k)->(c=abs.(cor(T_esta[i][k,j,:], T[k,j,:])); c = isnan(c) ? Inf : c), 1:tsize[1])), 1:tsize[2]))
-		println("$i - $(sizes[i]): residual $(residues[i]) worst tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core))")
+		println("$i - $(sizes[i]): residual $(residues[i]) worst tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core)) silhouette $(minsilhouette[i])")
 	end
 	info("Decompositions:")
 	ibest = 1
@@ -160,12 +196,12 @@ function analysis(T::Array, sizes=[size(T)]; seed::Number=0, tol=1e-8, ini_decom
 			best = residues[i]
 			ibest = i
 		end
-		println("$i - $(sizes[i]): residual $(residues[i]) worst tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core))")
+		println("$i - $(sizes[i]): residual $(residues[i]) worst tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core)) silhouette $(minsilhouette[i])")
 	end
 	# dNTF.atensor(tucker_spnn[ibest].core)
 	csize = TensorToolbox.mrank(tucker_spnn[ibest].core)
 	info("Estimated true core size: $(csize)")
-	return tucker_spnn, csize
+	return tucker_spnn, csize, ibest
 end
 
 """
@@ -196,7 +232,7 @@ function analysis(T::Array, tranks::Vector{Int64}, nTF=1; seed::Number=-1, tol=1
 		cpbest = nothing
 		for n = 1:nTF
 			@time cpi[n] = dNTF.candecomp(T, tranks[i]; verbose=verbose, maxiter=max_iter, method=method, tol=tol)
-			residues2[n] = TensorDecompositions.rel_residue(cpi[n])
+			residues2[n] = TensorDecompositions.rel_residue(cpi[n], T)
 			s = cpi[n].lambdas.^(1/3)
 			f = map(i->abs.(cpi[n].factors[1]' .* s), 1:3)
 			# p = dNTF.plotmatrix(cpi[n].factors[1]')
@@ -217,7 +253,7 @@ function analysis(T::Array, tranks::Vector{Int64}, nTF=1; seed::Number=-1, tol=1
 			Wa, clustersilhouettes, Wv = NMFk.finalize(WBig, clusterassignments)
 			minsilhouette[i] = minimum(clustersilhouettes)
 			if !quiet
-				info("Silhouettes for each of the $nTF solutions:" )
+				info("Silhouettes for each of the $(length(clustersilhouettes)) clusters:" )
 				display(clustersilhouettes')
 				println("Mean silhouette = ", mean(clustersilhouettes))
 				println("Min  silhouette = ", minimum(clustersilhouettes))
@@ -228,8 +264,7 @@ function analysis(T::Array, tranks::Vector{Int64}, nTF=1; seed::Number=-1, tol=1
 		imin = indmin(residues2)
 		cpf[i] = cpi[imin]
 		T_esta[i] = TensorDecompositions.compose(cpf[i])
-		residues[i] = TensorDecompositions.rel_residue(cpf[i])
-		@show vecnorm(T_esta[i] .- T)
+		residues[i] = TensorDecompositions.rel_residue(T_esta[i], T)
 		correlations[i,1] = minimum(map((j)->minimum(map((k)->(c=abs.(cor(T_esta[i][:,k,j], T[:,k,j])); c = isnan(c) ? Inf : c), 1:tsize[2])), 1:tsize[3]))
 		correlations[i,2] = minimum(map((j)->minimum(map((k)->(c=abs.(cor(T_esta[i][k,:,j], T[k,:,j])); c = isnan(c) ? Inf : c), 1:tsize[1])), 1:tsize[3]))
 		correlations[i,3] = minimum(map((j)->minimum(map((k)->(c=abs.(cor(T_esta[i][k,j,:], T[k,j,:])); c = isnan(c) ? Inf : c), 1:tsize[1])), 1:tsize[2]))
@@ -247,7 +282,7 @@ function analysis(T::Array, tranks::Vector{Int64}, nTF=1; seed::Number=-1, tol=1
 	end
 	csize = length(cpf[ibest].lambdas)
 	info("Estimated true core size: $(csize)")
-	return cpf, csize
+	return cpf, csize, ibest
 end
 
 function getsizes(csize::Tuple, tsize::Tuple=csize .+ 1)
