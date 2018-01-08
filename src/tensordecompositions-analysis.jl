@@ -151,14 +151,17 @@ function analysis(T::Array, sizes=[size(T)], nTF=1; seed::Number=0, tol=1e-8, in
 		for n = 1:nTF
 			@time tsi[n] = TensorDecompositions.spnntucker(T, sizes[i]; tol=tol, ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=max_iter, lambdas=lambdas, progressbar=progressbar)
 			residues2[n] = TensorDecompositions.rel_residue(tsi[n], T)
-			# normalizecore!(tsi[n])
+			normalizecore!(tsi[n])
 			f = tsi[n].factors[1]'
+			f[f.==0] = 1e-6
 			# p = dNTF.plotmatrix(cpi[n].factors[1]')
 			# display(p); println()
 			# p = dNTF.plotmatrix(f)
 			# display(p); println()
 			# @show minimum(cpi[n].lambdas), maximum(cpi[n].lambdas)
 			WBig[n] = hcat(f)
+			@show maximum(f, 2)
+			@show residues2[n]
 		end
 		if nTF > 1
 			clusterassignments, M = NMFk.clustersolutions(WBig)

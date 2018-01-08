@@ -18,7 +18,8 @@ T = T_orig
 
 dNTF.analysis(T, [tsize])
 sizes = [(1,1,1), (2,2,2), (2,2,1), (2,1,1), (2,1,2), (1,2,2), (3,2,1), (2,3,1), (3,3,1)]
-tsf, csize, ibest = dNTF.analysis(T, sizes, 10; ini_decomp=nothing, progressbar=true, tol=1e-8, max_iter=1000)
+sizes = [(2,2,2)]
+tsf, csize, ibest = dNTF.analysis(T, sizes, 10; ini_decomp=:hosvd, progressbar=true, tol=1e-8, max_iter=10000)
 
 if ibest != 3
 	warn("Something might be wrong but most probably is not a big deal; the best results should be #3")
