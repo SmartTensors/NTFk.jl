@@ -14,9 +14,7 @@ T_orig .*= 100
 # T = dNTF.add_noise(T_orig, 0.6, true)
 T = T_orig
 
-sizes = [(1,4,4), (1,4,4), (1,4,4), (1,4,4), (1,5,4), (1,5,4), (1,5,4), (1,5,4), (1,5,4)]
-# sizes = [(1,2,2), (1,2,2), (1,2,2), (1,2,2), (1,2,3), (1,2,3), (1,2,3), (1,2,3), (1,2,3)]
-t, c, ibest = dNTF.analysis(T, [tsize]; progressbar=true, tol=1e-16, max_iter=1000)
+t, c, ibest = dNTF.analysis(T, [tsize], 5; progressbar=true, tol=1e-16, max_iter=10000)
 dNTF.plotcmptensor(T, t[ibest], 3; progressbar=false)
 dNTF.plotmatrix(t[ibest].factors[1])
 dNTF.plotmatrix(t[ibest].factors[2])

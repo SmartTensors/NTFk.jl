@@ -236,8 +236,8 @@ function analysis(T::Array, tranks::Vector{Int64}, nTF=1; seed::Number=-1, tol=1
 		for n = 1:nTF
 			@time cpi[n] = dNTF.candecomp(T, tranks[i]; verbose=verbose, maxiter=max_iter, method=method, tol=tol)
 			residues2[n] = TensorDecompositions.rel_residue(cpi[n], T)
-			normalizeclambdas!(cpi[n])
-			f = map(i->abs.(cpi[n].factors[i]'), 1:ndimensons)
+			normalizelambdas!(cpi[n])
+			f = map(k->abs.(cpi[n].factors[k]'), 1:ndimensons)
 			# p = dNTF.plotmatrix(cpi[n].factors[1]')
 			# display(p); println()
 			# p = dNTF.plotmatrix(f)

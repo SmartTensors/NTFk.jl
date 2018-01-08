@@ -13,5 +13,5 @@ T_orig .*= 100
 T = T_orig
 
 tranks = [1, 2, 3, 4, 5]
-t, c, ibest = dNTF.analysis(T, tranks, 10; quiet=false)
+t, c, ibest = dNTF.analysis(T, tranks, 10; method=:cp_nmu)
 dNTF.plotcmptensor(T, t[ibest], 3; progressbar=false)
