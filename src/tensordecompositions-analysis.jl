@@ -151,6 +151,7 @@ function analysis(T::Array, sizes=[size(T)], nTF=1; seed::Number=0, tol=1e-8, in
 		for n = 1:nTF
 			@time tsi[n] = TensorDecompositions.spnntucker(T, sizes[i]; tol=tol, ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=max_iter, lambdas=lambdas, progressbar=progressbar)
 			residues2[n] = TensorDecompositions.rel_residue(tsi[n], T)
+			normalizecore!(tsi[n])
 			# s = cpi[n].lambdas.^(1/3)
 			f = tsi[n].factors[1]'
 			# p = dNTF.plotmatrix(cpi[n].factors[1]')
@@ -233,8 +234,8 @@ function analysis(T::Array, tranks::Vector{Int64}, nTF=1; seed::Number=-1, tol=1
 		for n = 1:nTF
 			@time cpi[n] = dNTF.candecomp(T, tranks[i]; verbose=verbose, maxiter=max_iter, method=method, tol=tol)
 			residues2[n] = TensorDecompositions.rel_residue(cpi[n], T)
-			s = cpi[n].lambdas.^(1/3)
-			f = map(i->abs.(cpi[n].factors[1]' .* s), 1:3)
+			normalizeclambdas!(cpi[n])
+			f = map(i->abs.(cpi[n].factors[i]'), 1:ndimensons)
 			# p = dNTF.plotmatrix(cpi[n].factors[1]')
 			# display(p); println()
 			# p = dNTF.plotmatrix(f)
@@ -326,4 +327,58 @@ function atensor(X::Array)
 			# display(X[st...])
 		end
 	end
+end
+
+function normalizefactors!{T,N}(X::TensorDecompositions.Tucker{T,N})
+	# Xi = TensorDecompositions.compose(X)
+	l = size(X.core)
+	for i = 1:N
+		m = maximum(X.factors[i], 1)
+		X.factors[i] ./= m
+		@assert length(m) == l[i]
+		for j = 1:l[i]
+			ind = map(k->((i==k) ? j : Colon()), 1:N)
+			X.core[ind...] .*= m[j]
+		end
+	end
+	# Xe = TensorDecompositions.compose(X)
+	# vecnorm(Xi .- Xe)
+end
+
+function normalizefactors!{T,N}(X::TensorDecompositions.CANDECOMP{T,N})
+	# Xi = TensorDecompositions.compose(X)
+	for i = 1:N
+		m = maximum(X.factors[i], 1)
+		X.factors[i] ./= m
+		X.lambdas .*= vec(m)
+	end
+	# Xe = TensorDecompositions.compose(X)
+	# vecnorm(Xi .- Xe)
+end
+
+function normalizecore!{T,N}(X::TensorDecompositions.Tucker{T,N})
+	# Xi = TensorDecompositions.compose(X)
+	l = size(X.core)
+	v = collect(1:N)
+	for i = 1:N
+		m = vec(maximum(X.core, v[v.!=i]))
+		X.factors[i] .*= m'
+		for j = 1:l[i]
+			ind = map(k->((i==k) ? j : Colon()), 1:N)
+			X.core[ind...] ./= m[j]
+		end
+	end
+	# Xe = TensorDecompositions.compose(X)
+	# vecnorm(Xi .- Xe)
+end
+
+function normalizelambdas!{T,N}(X::TensorDecompositions.CANDECOMP{T,N})
+	# Xi = TensorDecompositions.compose(X)
+	m = vec(X.lambdas)' .^ (1/N)
+	for i = 1:N
+		X.factors[i] .*= m
+	end
+	X.lambdas ./= X.lambdas
+	# Xe = TensorDecompositions.compose(X)
+	# vecnorm(Xi .- Xe)
 end
