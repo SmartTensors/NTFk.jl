@@ -35,7 +35,7 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	nx, ny = size(t.factors[dim])
 	xvalues = vec(collect(1/nx:1/nx:1))
 	componentnames = map(i->"T$i", 1:crank)
-	p = t.factors[dim] ./ maximum(t.factors[dim])
+	p = t.factors[dim]
 	imax = map(i->indmax(p[:, i]), 1:crank)
 	for i = 1:crank
 		if p[imax[i], i] == 0
@@ -65,8 +65,7 @@ function plot2dmaxtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	nx, ny = size(t.factors[dim])
 	xvalues = vec(collect(1/nx:1/nx:1))
 	componentnames = map(i->"T$i", 1:crank)
-	p = t.factors[dim] ./ maximum(t.factors[dim])
-	imax = map(i->indmax(p[:, i]), 1:crank)
+	imax = map(i->indmax(t.factors[dim][:, i]), 1:crank)
 	for i = 1:crank
 		if p[imax[i], i] == 0
 			warn("Maximum of component $i is equal to zero!")
@@ -74,11 +73,11 @@ function plot2dmaxtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	end
 	order = sortperm(imax)
 	pl = Vector{Any}(crank)
+	nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
 	for (i, o) = enumerate(order)
 		ntt = deepcopy(t)
 		for j = 1:crank
 			if o !== j
-				nt = ntuple(k->(k == dim ? j : :), ndimensons)
 				ntt.core[nt...] .= 0
 			end
 		end
@@ -104,8 +103,7 @@ function plot2dmaxtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	nx, ny = size(t.factors[dim])
 	xvalues = vec(collect(1/nx:1/nx:1))
 	componentnames = map(i->"T$i", 1:crank)
-	p = t.factors[dim] ./ maximum(t.factors[dim])
-	imax = map(i->indmax(p[:, i]), 1:crank)
+	imax = map(i->indmax(t.factors[dim][:, i]), 1:crank)
 	for i = 1:crank
 		if p[imax[i], i] == 0
 			warn("Maximum of component $i is equal to zero!")
@@ -113,11 +111,11 @@ function plot2dmaxtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	end
 	order = sortperm(imax)
 	pl = Vector{Any}(crank+1)
+	nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
 	for (i, o) = enumerate(order)
 		ntt = deepcopy(t)
 		for j = 1:crank
 			if o !== j
-				nt = ntuple(k->(k == dim ? j : :), ndimensons)
 				ntt.core[nt...] .= 0
 			end
 		end
@@ -126,7 +124,7 @@ function plot2dmaxtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
 		pl[i] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
 	end
-	tm = map(i->Distributions.kurtosis(vec(X[i,:,:])), 1:1000)
+	tm = map(j->Distributions.kurtosis(vec(X[nt...])), 1:nx)
 	pl[crank+1] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=parse(Colors.Colorant, "gray")))
 	tc = loopcolors ? [] : [Gadfly.Guide.manual_color_key("", [componentnames; "Kurtosis"], [colors[1:crank]; "gray"])]
 	ff = Gadfly.plot(pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), tc...)
