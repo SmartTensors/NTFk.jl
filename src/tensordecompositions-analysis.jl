@@ -186,9 +186,7 @@ function analysis(T::Array, sizes=[size(T)], nTF=1; seed::Number=0, tol=1e-8, in
 		tucker_spnn[i] = tsi[imin]
 		T_esta[i] = TensorDecompositions.compose(tucker_spnn[i])
 		residues[i] = TensorDecompositions.rel_residue(T_esta[i], T)
-		correlations[i,1] = minimum(map((j)->minimum(map((k)->(c=abs.(cor(T_esta[i][:,k,j], T[:,k,j])); c = isnan(c) ? Inf : c), 1:tsize[2])), 1:tsize[3]))
-		correlations[i,2] = minimum(map((j)->minimum(map((k)->(c=abs.(cor(T_esta[i][k,:,j], T[k,:,j])); c = isnan(c) ? Inf : c), 1:tsize[1])), 1:tsize[3]))
-		correlations[i,3] = minimum(map((j)->minimum(map((k)->(c=abs.(cor(T_esta[i][k,j,:], T[k,j,:])); c = isnan(c) ? Inf : c), 1:tsize[1])), 1:tsize[2]))
+		correlations[i,:] = mincorrelations(T_esta[i], T)
 		println("$i - $(sizes[i]): residual $(residues[i]) worst tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core)) silhouette $(minsilhouette[i])")
 	end
 	info("Decompositions:")
@@ -268,9 +266,7 @@ function analysis(T::Array, tranks::Vector{Int64}, nTF=1; seed::Number=-1, tol=1
 		cpf[i] = cpi[imin]
 		T_esta[i] = TensorDecompositions.compose(cpf[i])
 		residues[i] = TensorDecompositions.rel_residue(T_esta[i], T)
-		correlations[i,1] = minimum(map((j)->minimum(map((k)->(c=abs.(cor(T_esta[i][:,k,j], T[:,k,j])); c = isnan(c) ? Inf : c), 1:tsize[2])), 1:tsize[3]))
-		correlations[i,2] = minimum(map((j)->minimum(map((k)->(c=abs.(cor(T_esta[i][k,:,j], T[k,:,j])); c = isnan(c) ? Inf : c), 1:tsize[1])), 1:tsize[3]))
-		correlations[i,3] = minimum(map((j)->minimum(map((k)->(c=abs.(cor(T_esta[i][k,j,:], T[k,j,:])); c = isnan(c) ? Inf : c), 1:tsize[1])), 1:tsize[2]))
+		correlations[i,:] = mincorrelations(T_esta[i], T)
 		println("$i - $(tranks[i]): residual $(residues[i]) worst tensor correlations $(correlations[i,:]) silhouette $(minsilhouette[i])")
 	end
 	info("Decompositions:")
@@ -388,4 +384,19 @@ function normalizelambdas!{T,N}(X::TensorDecompositions.CANDECOMP{T,N})
 	X.lambdas ./= m
 	# Xe = TensorDecompositions.compose(X)
 	# vecnorm(Xi .- Xe)
+end
+
+function mincorrelations{T,N}(X1::Array{T,N}, X2::Array{T,N})
+	tsize = size(X1)
+	@assert tsize == size(X2)
+	c = Vector{T}(N)
+	c[1] = minimum(map(j->minimum(map(k->corinf(X1[:,k,j], X2[:,k,j]), 1:tsize[2])), 1:tsize[3]))
+	c[2] = minimum(map(j->minimum(map(k->corinf(X1[k,:,j], X2[k,:,j]), 1:tsize[1])), 1:tsize[3]))
+	c[3] = minimum(map(j->minimum(map(k->corinf(X1[k,j,:], X2[k,j,:]), 1:tsize[1])), 1:tsize[2]))
+	return c
+end
+
+function corinf{T}(v1::Vector{T}, v2::Vector{T})
+	c = abs.(cor(v1, v2))
+	c = isnan(c) ? Inf : c
 end
