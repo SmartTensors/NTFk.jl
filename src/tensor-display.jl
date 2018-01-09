@@ -67,22 +67,22 @@ function plot2dmaxtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	componentnames = map(i->"T$i", 1:crank)
 	imax = map(i->indmax(t.factors[dim][:, i]), 1:crank)
 	for i = 1:crank
-		if p[imax[i], i] == 0
+		if t.factors[dim][imax[i], i] == 0
 			warn("Maximum of component $i is equal to zero!")
 		end
 	end
 	order = sortperm(imax)
 	pl = Vector{Any}(crank)
-	nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
 	for (i, o) = enumerate(order)
 		ntt = deepcopy(t)
 		for j = 1:crank
 			if o !== j
+				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
 				ntt.core[nt...] .= 0
 			end
 		end
 		X2 = TensorDecompositions.compose(ntt)
-		tm = maximum(X2, (2,3))
+		tm = mean(X2, (2,3))
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
 		pl[i] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
 	end
@@ -105,17 +105,17 @@ function plot2dmaxtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	componentnames = map(i->"T$i", 1:crank)
 	imax = map(i->indmax(t.factors[dim][:, i]), 1:crank)
 	for i = 1:crank
-		if p[imax[i], i] == 0
+		if t.factors[dim][imax[i], i] == 0
 			warn("Maximum of component $i is equal to zero!")
 		end
 	end
 	order = sortperm(imax)
 	pl = Vector{Any}(crank+1)
-	nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
 	for (i, o) = enumerate(order)
 		ntt = deepcopy(t)
 		for j = 1:crank
 			if o !== j
+				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
 				ntt.core[nt...] .= 0
 			end
 		end
@@ -124,10 +124,10 @@ function plot2dmaxtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
 		pl[i] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
 	end
-	tm = map(j->Distributions.kurtosis(vec(X[nt...])), 1:nx)
+	tm = map(j->Distributions.kurtosis(vec(X[ntuple(k->(k == dim ? j : Colon()), ndimensons)...])), 1:nx)
 	pl[crank+1] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=parse(Colors.Colorant, "gray")))
 	tc = loopcolors ? [] : [Gadfly.Guide.manual_color_key("", [componentnames; "Kurtosis"], [colors[1:crank]; "gray"])]
-	ff = Gadfly.plot(pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), tc...)
+	ff = Gadfly.plot(pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), Gadfly.Coord.Cartesian(ymin=-1, ymax=1), tc...)
 	!quiet && (display(ff); println())
 	if filename != ""
 		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize), ff)
