@@ -56,7 +56,7 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	end
 end
 
-function plot2dmaxtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="")
+function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, functioname::String="mean"; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="")
 	csize = TensorToolbox.mrank(t.core)
 	crank = csize[dim]
 	loopcolors = crank > ncolors ? true : false
@@ -82,7 +82,7 @@ function plot2dmaxtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 			end
 		end
 		X2 = TensorDecompositions.compose(ntt)
-		tm = mean(X2, (2,3))
+		tm =  eval(parse(functioname))(X2, (2,3))
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
 		pl[i] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
 	end
@@ -94,7 +94,7 @@ function plot2dmaxtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	end
 end
 
-function plot2dmaxtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="")
+function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, functioname1::String="mean", functioname2::String="mean"; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing)
 	csize = TensorToolbox.mrank(t.core)
 	crank = csize[dim]
 	loopcolors = crank > ncolors ? true : false
@@ -120,14 +120,15 @@ function plot2dmaxtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 			end
 		end
 		X2 = TensorDecompositions.compose(ntt)
-		tm = maximum(X2, (2,3))
+		tm = eval(parse(functioname1))(X2, (2,3))
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
 		pl[i] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
 	end
-	tm = map(j->Distributions.kurtosis(vec(X[ntuple(k->(k == dim ? j : Colon()), ndimensons)...])), 1:nx)
+	tm = map(j->eval(parse(functioname2))(vec(X[ntuple(k->(k == dim ? j : Colon()), ndimensons)...])), 1:nx)
 	pl[crank+1] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=parse(Colors.Colorant, "gray")))
-	tc = loopcolors ? [] : [Gadfly.Guide.manual_color_key("", [componentnames; "Kurtosis"], [colors[1:crank]; "gray"])]
-	ff = Gadfly.plot(pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), Gadfly.Coord.Cartesian(ymin=-1, ymax=1), tc...)
+	tc = loopcolors ? [] : [Gadfly.Guide.manual_color_key("", [componentnames; "All"], [colors[1:crank]; "gray"])]
+	tm = (ymin == nothing && ymax == nothing) ? [] : [Gadfly.Coord.Cartesian(ymin=ymin, ymax=ymax)]
+	ff = Gadfly.plot(pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), tm..., tc...)
 	!quiet && (display(ff); println())
 	if filename != ""
 		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize), ff)
