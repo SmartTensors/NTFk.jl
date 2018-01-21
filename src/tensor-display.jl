@@ -5,7 +5,7 @@ import TensorToolbox
 import TensorDecompositions
 import Distributions
 
-colors = ["red", "blue", "green", "orange", "magenta", "cyan", "brown", "yellow", "pink", "lime", "navy", "maroon", "olive", "beige", "mintcream", "lavender", "teal", "coral"]
+colors = ["red", "blue", "green", "orange", "magenta", "cyan", "brown", "pink", "lime", "navy", "maroon", "yellow", "olive", "mintcream", "teal", "coral", "lavender", "beige"]
 ncolors = length(colors)
 
 searchdir(key::Regex, path::String = ".") = filter(x->ismatch(key, x), readdir(path))
@@ -24,6 +24,32 @@ function getcsize(case::String; resultdir::String=".")
 		end
 	end
 	return csize, kwa
+end
+
+function gettensorcomponent(t::TensorDecompositions.Tucker, dim::Integer=1)
+	csize = TensorToolbox.mrank(t.core)
+	crank = csize[dim]
+	ndimensons = length(csize)
+	@assert dim >= 1 && dim <= ndimensons
+	imax = map(i->indmax(t.factors[dim][:, i]), 1:crank)
+	for i = 1:crank
+		if t.factors[dim][imax[i], i] == 0
+			warn("Maximum of component $i is equal to zero!")
+		end
+	end
+	order = sortperm(imax)
+	Xe = Array{Any}(crank)
+	for (i, o) = enumerate(order)
+		ntt = deepcopy(t)
+		for j = 1:crank
+			if o !== j
+				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
+				ntt.core[nt...] .= 0
+			end
+		end
+		Xe[i] = TensorDecompositions.compose(ntt)
+	end
+	return Xe
 end
 
 function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[])
@@ -152,9 +178,9 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	end
 end
 
-function plotmatrix(X::Matrix; minvalue=minimum(X), maxvalue=maximum(X), label="", title="", xlabel="", ylabel="")
+function plotmatrix(X::Matrix; minvalue=minimum(X), maxvalue=maximum(X), label="", title="", xlabel="", ylabel="", gm=[Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing)])
 	Xp = min.(max.(X, minvalue), maxvalue)
-	Gadfly.spy(Xp, Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing), Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Guide.colorkey(label), Gadfly.Scale.ContinuousColorScale(Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"), parse(Colors.Colorant, "red")), minvalue=minvalue, maxvalue=maxvalue), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt))
+	Gadfly.spy(Xp, gm..., Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Guide.colorkey(label), Gadfly.Scale.ContinuousColorScale(Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"), parse(Colors.Colorant, "red")), minvalue=minvalue, maxvalue=maxvalue), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt))
 end
 
 function plottensor(T::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
