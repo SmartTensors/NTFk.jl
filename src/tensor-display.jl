@@ -5,7 +5,7 @@ import TensorToolbox
 import TensorDecompositions
 import Distributions
 
-colors = ["red", "blue", "green", "orange", "magenta", "cyan", "brown", "yellow", "pink", "lime", "navy", "maroon", "olive", "beige", "mint", "lavender", "teal", "coral"]
+colors = ["red", "blue", "green", "orange", "magenta", "cyan", "brown", "yellow", "pink", "lime", "navy", "maroon", "olive", "beige", "mintcream", "lavender", "teal", "coral"]
 ncolors = length(colors)
 
 searchdir(key::Regex, path::String = ".") = filter(x->ismatch(key, x), readdir(path))
