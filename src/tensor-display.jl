@@ -5,7 +5,7 @@ import TensorToolbox
 import TensorDecompositions
 import Distributions
 
-colors = ["red", "blue", "green", "orange", "magenta", "cyan", "brown", "yellow"]
+colors = ["red", "blue", "green", "orange", "magenta", "cyan", "brown", "yellow", "pink", "lime", "navy", "maroon", "olive", "beige", "mint", "lavender", "teal", "coral"]
 ncolors = length(colors)
 
 searchdir(key::Regex, path::String = ".") = filter(x->ismatch(key, x), readdir(path))
@@ -33,7 +33,7 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	nx, ny = size(t.factors[dim])
-	xvalues = vec(collect(1/nx:1/nx:1))
+	xvalues = nx < 100 ? vec(collect(1:nx)) : vec(collect(1/nx:1/nx:1))
 	componentnames = map(i->"T$i", 1:crank)
 	p = t.factors[dim]
 	imax = map(i->indmax(p[:, i]), 1:crank)
@@ -64,12 +64,18 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	nx, ny = size(t.factors[dim])
-	xvalues = vec(collect(1/nx:1/nx:1))
+	xvalues = nx < 100 ? vec(collect(1:nx)) : vec(collect(1/nx:1/nx:1))
 	componentnames = map(i->"T$i", 1:crank)
 	imax = map(i->indmax(t.factors[dim][:, i]), 1:crank)
 	for i = 1:crank
 		if t.factors[dim][imax[i], i] == 0
 			warn("Maximum of component $i is equal to zero!")
+		end
+	end
+	dp = Vector{Int64}(0)
+	for i = 1:ndimensons
+		if i != dim
+			push!(dp, i)
 		end
 	end
 	order = sortperm(imax)
@@ -83,7 +89,7 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 			end
 		end
 		X2 = TensorDecompositions.compose(ntt)
-		tm =  eval(parse(functionname))(X2, (2,3))
+		tm = eval(parse(functionname))(X2, dp)
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
 		pl[i] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
 	end
@@ -103,12 +109,18 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	nx, ny = size(t.factors[dim])
-	xvalues = vec(collect(1/nx:1/nx:1))
+	xvalues = nx < 100 ? vec(collect(1:nx)) : vec(collect(1/nx:1/nx:1))
 	componentnames = map(i->"T$i", 1:crank)
 	imax = map(i->indmax(t.factors[dim][:, i]), 1:crank)
 	for i = 1:crank
 		if t.factors[dim][imax[i], i] == 0
 			warn("Maximum of component $i is equal to zero!")
+		end
+	end
+	dp = Vector{Int64}(0)
+	for i = 1:ndimensons
+		if i != dim
+			push!(dp, i)
 		end
 	end
 	order = sortperm(imax)
@@ -122,7 +134,7 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 			end
 		end
 		X2 = TensorDecompositions.compose(ntt)
-		tm = eval(parse(functionname1))(X2, (2,3))
+		tm = eval(parse(functionname1))(X2, dp)
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
 		pl[i] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
 	end
@@ -130,8 +142,8 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	pl[crank+1] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=3Gadfly.pt, line_style=:dash, default_color=parse(Colors.Colorant, "gray")))
 	Xe = TensorDecompositions.compose(t)
 	tm = map(j->eval(parse(functionname2))(vec(Xe[ntuple(k->(k == dim ? j : Colon()), ndimensons)...])), 1:nx)
-	pl[crank+2] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=parse(Colors.Colorant, "brown")))
-	tc = loopcolors ? [] : [Gadfly.Guide.manual_color_key("", [componentnames; "Est."; "True"], [colors[1:crank]; "brown"; "gray"])]
+	pl[crank+2] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=parse(Colors.Colorant, "gray85")))
+	tc = loopcolors ? [] : [Gadfly.Guide.manual_color_key("", [componentnames; "Est."; "True"], [colors[1:crank]; "gray85"; "gray"])]
 	tm = (ymin == nothing && ymax == nothing) ? [] : [Gadfly.Coord.Cartesian(ymin=ymin, ymax=ymax)]
 	ff = Gadfly.plot(pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., tm..., tc...)
 	!quiet && (display(ff); println())
