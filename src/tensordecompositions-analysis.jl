@@ -96,7 +96,7 @@ function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, x
 		yrank = length(collect(yindex))
 		trank = trank
 		info("Solving $(problemname) problem for $(case) ...")
-		t, csize = dNTF.analysis(X[timeindex, xindex, yindex], [(trank, xrank, yrank)]; resultdir=resultdir, keyword="$(case)-"seed=seed, tol=tol, ini_decomp=ini_decomp, core_nonneg=true, verbose=false, max_iter=max_iter, lambda=lambda)
+		t, csize = dNTF.analysis(X[timeindex, xindex, yindex], [(trank, xrank, yrank)]; resultdir=resultdir, keyword="$(case)-", seed=seed, tol=tol, ini_decomp=ini_decomp, core_nonneg=true, verbose=false, max_iter=max_iter, lambda=lambda)
 	else
 		t = loadresults(case, csize; resultdir=resultdir)
 		if t == nothing
