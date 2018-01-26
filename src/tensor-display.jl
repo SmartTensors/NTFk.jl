@@ -81,6 +81,7 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	if filename != ""
 		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize, dpi=300), ff)
 	end
+	return ff
 end
 
 function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, functionname::String="mean"; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[])
@@ -126,6 +127,7 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	if filename != ""
 		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize, dpi=300), ff)
 	end
+	return ff
 end
 
 function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, functionname1::String="mean", functionname2::String="mean"; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[])
@@ -176,10 +178,11 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	if filename != ""
 		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize, dpi=300), ff)
 	end
+	return ff
 end
 
 function plotmatrix(X::Matrix; minvalue=minimum(X), maxvalue=maximum(X), label="", title="", xlabel="", ylabel="", gm=[Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing)])
-	Xp = min.(max.(X, minvalue), maxvalue)
+	Xp = min.(max.(X, minvalue), maxvalue, 1e-6)
 	Gadfly.spy(Xp, gm..., Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Guide.colorkey(label), Gadfly.Scale.ContinuousColorScale(Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"), parse(Colors.Colorant, "red")), minvalue=minvalue, maxvalue=maxvalue), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt))
 end
 
@@ -222,12 +225,15 @@ function plottensor(X::Array, dim::Integer=1; minvalue=minimum(X), maxvalue=maxi
 			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize), p)
 		end
 	end
-	if movie
+	if movie && prefix != ""
 		c = `ffmpeg -i $moviedir/$prefix-frame%06d.png -vcodec libx264 -pix_fmt yuv420p -f mp4 -y $moviedir/$prefix.mp4`
 		if quiet
 			run(pipeline(c, stdout=DevNull, stderr=DevNull))
 		else
 			run(c)
+		end
+		if moviedir == "."
+			moviedir, prefix = splitdir(prefix)
 		end
 		cleanup && run(`find $moviedir -name $prefix-"frame*".png -delete`)
 	end
@@ -496,12 +502,15 @@ function plot2tensors(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X1
 			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize), p)
 		end
 	end
-	if movie
+	if movie && prefix != ""
 		c = `ffmpeg -i $moviedir/$prefix-frame%06d.png -vcodec libx264 -pix_fmt yuv420p -f mp4 -y $moviedir/$prefix.mp4`
 		if quiet
 			run(pipeline(c, stdout=DevNull, stderr=DevNull))
 		else
 			run(c)
+		end
+		if moviedir == "."
+			moviedir, prefix = splitdir(prefix)
 		end
 		cleanup && run(`find $moviedir -name $prefix-"frame*.png" -delete`)
 	end
@@ -548,12 +557,15 @@ function plot3tensors(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalue=
 			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize), p)
 		end
 	end
-	if movie
+	if movie && prefix != ""
 		c = `ffmpeg -i $moviedir/$prefix-frame%06d.png -vcodec libx264 -pix_fmt yuv420p -f mp4 -y $moviedir/$prefix.mp4`
 		if quiet
 			run(pipeline(c, stdout=DevNull, stderr=DevNull))
 		else
 			run(c)
+		end
+		if moviedir == "."
+			moviedir, prefix = splitdir(prefix)
 		end
 		cleanup && run(`find $moviedir -name $prefix-"frame*.png" -delete`)
 	end
