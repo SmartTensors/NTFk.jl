@@ -427,7 +427,7 @@ function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : :), ndimensons)
 		p1 = plotmatrix(X[nt...], minvalue=minvalue, maxvalue=maxvalue, title=title)
-		p2 = plot2dmodtensorcomponents(X, t, dim, "maximum"; gm=[Gadfly.layer(xintercept=[i*timestep], Gadfly.Geom.vline(color=["gray"], size=[2Gadfly.pt]))], quiet=true)
+		p2 = plot2dmodtensorcomponents(t, dim, "maximum"; xtitle="Time", ytitle="Max concentrations", gm=[Gadfly.layer(xintercept=[i*timestep], Gadfly.Geom.vline(color=["gray"], size=[2Gadfly.pt]))], quiet=true)
 		p = Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1Compose.w, 1Compose.h), Gadfly.render(p1)),
 							Compose.compose(Compose.context(0, 0, 1Compose.w, 0.7Compose.h), Gadfly.render(p2)))
 		!quiet && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
@@ -614,7 +614,10 @@ function plot3tensors(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalue=
 	end
 end
 
-plotlefttensor = plot3tensors
+function plotlefttensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
+	X2 = TensorDecompositions.compose(T2)
+	plot3tensors(X1, X2, X2-X1, dim; kw...)
+end
 
 function setnewfilename(filename::String, frame::Integer=0; keyword::String="frame")
 	dir = dirname(filename)
