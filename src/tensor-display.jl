@@ -182,7 +182,7 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 end
 
 function plotmatrix(X::Matrix; minvalue=minimum(X), maxvalue=maximum(X), label="", title="", xlabel="", ylabel="", gm=[Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing)])
-	Xp = min.(max.(X, minvalue), maxvalue, 1e-6)
+	Xp = min.(max.(X, minvalue, 1e-32), maxvalue)
 	Gadfly.spy(Xp, gm..., Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Guide.colorkey(label), Gadfly.Scale.ContinuousColorScale(Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"), parse(Colors.Colorant, "red")), minvalue=minvalue, maxvalue=maxvalue), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt))
 end
 
@@ -191,8 +191,7 @@ function plottensor(T::Union{TensorDecompositions.Tucker,TensorDecompositions.CA
 	plottensor(X, dim; kw...)
 end
 
-function plottensor(X::Array, dim::Integer=1; minvalue=minimum(X), maxvalue=maximum(X), prefix::String="", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, timestep::Number=0.001, progressbar::Bool=true)
-	sizes = size(X)
+function plottensor(X::Array, dim::Integer=1; minvalue=minimum(X), maxvalue=maximum(X), prefix::String="", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timestep=1 / sizes[dim], progressbar::Bool=true)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -406,6 +405,52 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 	dNTF.plot3tensors(permutedims(X1, pt), permutedims(X2[order[1]], pt), permutedims(X2[order[2]], pt); prefix=prefix, kw...)
 end
 
+function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t.core), sizes=size(X), timestep=1 / sizes[dim], cleanup::Bool=true, movie::Bool=true, moviedir=".", prefix::String="", title="", quiet::Bool=true, filter=(), order=[], minvalue=minimum(X), maxvalue=maximum(X), hsize=12Compose.inch, vsize=12Compose.inch, kw...)
+	if !isdir(moviedir)
+		mkdir(moviedir)
+	end
+	ndimensons = length(sizes)
+	if dim > ndimensons || dim < 1
+		warn("Dimension should be >=1 or <=$(length(sizes))")
+		return
+	end
+	if pdim > ndimensons || pdim < 1
+		warn("Dimension should be >=1 or <=$(length(sizes))")
+		return
+	end
+	if ndimensons <= 3
+		dimname = ("Row", "Column", "Layer")
+	else
+		dimname = ntuple(i->("D$i"), ndimensons)
+	end
+	for i = 1:sizes[dim]
+		framename = "$(dimname[dim]) $i"
+		nt = ntuple(k->(k == dim ? i : :), ndimensons)
+		p1 = plotmatrix(X[nt...], minvalue=minvalue, maxvalue=maxvalue, title=title)
+		p2 = plot2dmodtensorcomponents(X, t, dim, "maximum"; gm=[Gadfly.layer(xintercept=[i*timestep], Gadfly.Geom.vline(color=["gray"], size=[2Gadfly.pt]))], quiet=true)
+		p = Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1Compose.w, 1Compose.h), Gadfly.render(p1)),
+							Compose.compose(Compose.context(0, 0, 1Compose.w, 0.7Compose.h), Gadfly.render(p2)))
+		!quiet && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
+		if prefix != ""
+			filename = setnewfilename(prefix, i)
+			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize), p)
+		end
+	end
+	if movie && prefix != ""
+		c = `ffmpeg -i $moviedir/$prefix-frame%06d.png -vcodec libx264 -pix_fmt yuv420p -f mp4 -y $moviedir/$prefix.mp4`
+		if quiet
+			run(pipeline(c, stdout=DevNull, stderr=DevNull))
+		else
+			run(c)
+		end
+		if moviedir == "."
+			moviedir, prefix = splitdir(prefix)
+		end
+		cleanup && run(`find $moviedir -name $prefix-"frame*".png -delete`)
+	end
+
+end
+
 function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), order=[], kw...)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
@@ -459,11 +504,10 @@ function plot2tensors(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDec
 	plotcmptensor(X1, X2, dim; kw...)
 end
 
-function plot2tensors(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), prefix::String="", movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timestep::Number=0.001, progressbar::Bool=true)
+function plot2tensors(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), prefix::String="", movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timestep=1 / sizes[dim], progressbar::Bool=true)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
-	sizes = size(X1)
 	@assert sizes == size(X2)
 	ndimensons = length(sizes)
 	if dim > ndimensons || dim < 1
@@ -483,7 +527,7 @@ function plot2tensors(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X1
 		g = Compose.hstack(g1, g2)
 		if title != ""
 			t = Compose.compose(Compose.context(0, 0, 1Compose.w, 0.0001Compose.h),
-			                (Compose.context(), Compose.fill("gray"), Compose.fontsize(20Compose.pt), Compose.text(0.5Compose.w, 0, title * " : " * sprintf("%06d", i), Compose.hcenter, Compose.vtop)))
+							(Compose.context(), Compose.fill("gray"), Compose.fontsize(20Compose.pt), Compose.text(0.5Compose.w, 0, title * " : " * sprintf("%06d", i), Compose.hcenter, Compose.vtop)))
 			g = Compose.vstack(t, g)
 		end
 		if progressbar
@@ -518,11 +562,10 @@ end
 
 plotcmptensor = plot2tensors
 
-function plot3tensors(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalue=minimum([X1 X2 X3]), maxvalue=maximum([X1 X2 X3]), prefix::String="", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timestep::Number=0.001, progressbar::Bool=true)
+function plot3tensors(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalue=minimum([X1 X2 X3]), maxvalue=maximum([X1 X2 X3]), prefix::String="", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timestep=1 / sizes[dim], progressbar::Bool=true)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
-	sizes = size(X1)
 	@assert sizes == size(X2)
 	ndimensons = length(sizes)
 	if dim > ndimensons || dim < 1
