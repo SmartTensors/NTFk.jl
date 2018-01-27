@@ -504,24 +504,22 @@ function plot2tensors(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDec
 	plotcmptensor(X1, X2, dim; kw...)
 end
 
-function plot2tensors(X1::Array, X2::Array, dim::Integer=1; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), prefix::String="", movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timestep=1 / sizes[dim], progressbar::Bool=true)
+function plot2tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), prefix::String="", movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timestep=1 / sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : :), N))
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
-	@assert sizes == size(X2)
-	ndimensons = length(sizes)
-	if dim > ndimensons || dim < 1
+	if dim > N || dim < 1
 		warn("Dimension should be >=1 or <=$(length(sizes))")
 		return
 	end
-	if ndimensons <= 3
+	if N <= 3
 		dimname = ("Row", "Column", "Layer")
 	else
-		dimname = ntuple(i->("D$i"), ndimensons)
+		dimname = ntuple(i->("D$i"), N)
 	end
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
-		nt = ntuple(k->(k == dim ? i : :), ndimensons)
+		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
 		g1 = plotmatrix(X1[nt...], minvalue=minvalue, maxvalue=maxvalue, title=ltitle)
 		g2 = plotmatrix(X2[nt...], minvalue=minvalue, maxvalue=maxvalue, title=rtitle)
 		g = Compose.hstack(g1, g2)

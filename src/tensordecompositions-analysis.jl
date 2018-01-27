@@ -1,6 +1,8 @@
 import TensorDecompositions
 import NMFk
 
+DMAXITER = 1000
+
 function loadcase(case::String; datadir::String=".")
 	f = "$(datadir)/$(case)F.jld"
 	if isfile(f)
@@ -33,7 +35,7 @@ function loadresults(case::String, csize::Tuple=(); resultdir::String=".")
 	end
 end
 
-function analysistime1(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", figuredir::String=".", suffix::String="", seed::Number=0, max_iter=1000, tol=1e-8, ini_decomp=nothing, lambda::Number=0.1)
+function analysistime1(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", figuredir::String=".", suffix::String="", seed::Number=0, max_iter=DMAXITER, tol=1e-8, ini_decomp=nothing, lambda::Number=0.1)
 	if !isdir(resultdir)
 		mkdir(resultdir)
 	end
@@ -51,7 +53,7 @@ function analysistime1(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1
 	return csize
 end
 
-function analysistime(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", figuredir::String=".", suffix::String="", seed::Number=0, max_iter=1000, tol=1e-8)
+function analysistime(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", figuredir::String=".", suffix::String="", seed::Number=0, max_iter=DMAXITER, tol=1e-8)
 	if !isdir(resultdir)
 		mkdir(resultdir)
 	end
@@ -70,7 +72,7 @@ function analysistime(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:
 	return csize
 end
 
-function analysis(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank1=10, trank2=3, datadir::String=".", resultdir::String=".", moviedir::String=".", suffix::String="", seed::Number=0, max_iter=1000, tol=1e-8, ini_decomp=nothing)
+function analysis(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank1=10, trank2=3, datadir::String=".", resultdir::String=".", moviedir::String=".", suffix::String="", seed::Number=0, max_iter=DMAXITER, tol=1e-8, ini_decomp=nothing)
 	if !isdir(resultdir)
 		mkdir(resultdir)
 	end
@@ -86,7 +88,7 @@ function analysis(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81
 	return csize
 end
 
-function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", figuredir::String=".", problemname::String="sparse", makemovie::Bool=true, skipmakemovies::Bool=false, skipmakedatamovie::Bool=false, skipmaketimemovies::Bool=false, skipxymakemovies::Bool=true, quiet::Bool=true, seed::Number=0, max_iter=1000, tol=1e-8, ini_decomp=nothing, lambda::Number=0.1)
+function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", figuredir::String=".", problemname::String="sparse", makemovie::Bool=true, skipmakemovies::Bool=false, skipmakedatamovie::Bool=false, skipmaketimemovies::Bool=false, skipxymakemovies::Bool=true, quiet::Bool=true, seed::Number=0, max_iter=DMAXITER, tol=1e-8, ini_decomp=nothing, lambda::Number=0.1)
 	if length(csize) == 0
 		if !skipmakemovies && !skipmakedatamovie
 			info("Making problem movie for $(case) ...")
@@ -130,7 +132,7 @@ end
 """
 methods: spnntucker, tucker_als, tucker_sym
 """
-function analysis{T,N}(X::Array{T,N}, sizes=[size(X)], nTF=1; resultdir::String=".", keyword::String="", seed::Number=0, tol=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambda::Number=0.1, lambdas=fill(lambda, length(size(X)) + 1), progressbar::Bool=false, quiet::Bool=true)
+function analysis{T,N}(X::Array{T,N}, sizes=[size(X)], nTF=1; resultdir::String=".", keyword::String="", seed::Number=0, tol=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=DMAXITER, lambda::Number=0.1, lambdas=fill(lambda, length(size(X)) + 1), progressbar::Bool=false, quiet::Bool=true)
 	info("TensorDecompositions Tucker analysis ...")
 	seed > 0 && srand(seed)
 	tsize = size(X)
@@ -206,7 +208,7 @@ end
 """
 methods: ALS, SGSD, cp_als, cp_apr, cp_nmu, cp_opt, cp_sym, cp_wopt
 """
-function analysis{T,N}(X::Array{T,N}, tranks::Vector{Int64}, nTF=1; resultdir::String=".", keyword::String="", seed::Number=-1, tol=1e-8, verbose=false, max_iter=50000, method=:ALS, quiet=true, kw...)
+function analysis{T,N}(X::Array{T,N}, tranks::Vector{Int64}, nTF=1; resultdir::String=".", keyword::String="", seed::Number=-1, tol=1e-8, verbose=false, max_iter=DMAXITER, method=:ALS, quiet=true, kw...)
 	if contains(string(method), "cp_")
 		info("TensorToolbox CanDecomp analysis ...")
 	elseif contains(string(method), "bcu_")
