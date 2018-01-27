@@ -191,23 +191,18 @@ function plottensor(T::Union{TensorDecompositions.Tucker,TensorDecompositions.CA
 	plottensor(X, dim; kw...)
 end
 
-function plottensor(X::Array, dim::Integer=1; minvalue=minimum(X), maxvalue=maximum(X), prefix::String="", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timestep=1 / sizes[dim], progressbar::Bool=true)
+function plottensor{T,N}(X::Array{T,N}, dim::Integer=1; minvalue=minimum(X), maxvalue=maximum(X), prefix::String="", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timestep=1 / sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : :), N))
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
-	ndimensons = length(sizes)
-	if dim > ndimensons || dim < 1
+	if dim > N || dim < 1
 		warn("Dimension should be >=1 or <=$(length(sizes))")
 		return
 	end
-	if ndimensons <= 3
-		dimname = ("Row", "Column", "Layer")
-	else
-		dimname = ntuple(i->("D$i"), ndimensons)
-	end
+	dimname = namedimension(N; char="D", names=("Row", "Column", "Layer"))
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
-		nt = ntuple(k->(k == dim ? i : :), ndimensons)
+		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
 		g = plotmatrix(X[nt...], minvalue=minvalue, maxvalue=maxvalue, title=title)
 		if progressbar
 			f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0.001Compose.h),
@@ -246,12 +241,13 @@ function zerotensorcomponents(t::TensorDecompositions.CANDECOMP, d::Int)
 	t.lambdas[nt...] .= 0
 end
 
-function namedimension(ndimensons::Int)
+function namedimension(ndimensons::Int; char="C", names=("T", "X", "Y"))
 	if ndimensons <= 3
-		dimname = ("T", "X", "Y")
+		dimname = names
 	else
-		dimname = ntuple(i->("C$i"), ndimensons)
+		dimname = ntuple(i->("$char$i"), ndimensons)
 	end
+	return dimname
 end
 
 function plottensorcomponents(X1::Array, t2::TensorDecompositions.CANDECOMP; prefix::String="", filter=(), kw...)
@@ -418,11 +414,7 @@ function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::
 		warn("Dimension should be >=1 or <=$(length(sizes))")
 		return
 	end
-	if ndimensons <= 3
-		dimname = ("Row", "Column", "Layer")
-	else
-		dimname = ntuple(i->("D$i"), ndimensons)
-	end
+	dimname = namedimension(ndimensons; char="D", names=("Row", "Column", "Layer"))
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : :), ndimensons)
@@ -508,15 +500,12 @@ function plot2tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minva
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
+	@assert sizes == size(X2)
 	if dim > N || dim < 1
 		warn("Dimension should be >=1 or <=$(length(sizes))")
 		return
 	end
-	if N <= 3
-		dimname = ("Row", "Column", "Layer")
-	else
-		dimname = ntuple(i->("D$i"), N)
-	end
+	dimname = namedimension(N; char="D", names=("Row", "Column", "Layer"))
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
@@ -560,25 +549,20 @@ end
 
 plotcmptensor = plot2tensors
 
-function plot3tensors(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalue=minimum([X1 X2 X3]), maxvalue=maximum([X1 X2 X3]), prefix::String="", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timestep=1 / sizes[dim], progressbar::Bool=true)
+function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integer=1; minvalue=minimum([X1 X2 X3]), maxvalue=maximum([X1 X2 X3]), prefix::String="", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timestep=1 / sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : :), N))
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
 	@assert sizes == size(X2)
 	@assert sizes == size(X3)
-	ndimensons = length(sizes)
-	if dim > ndimensons || dim < 1
+	if dim > N || dim < 1
 		warn("Dimension should be >=1 or <=$(length(sizes))")
 		return
 	end
-	if ndimensons <= 3
-		dimname = ("Row", "Column", "Layer")
-	else
-		dimname = ntuple(i->("D$i"), ndimensons)
-	end
+	dimname = namedimension(N; char="D", names=("Row", "Column", "Layer"))
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
-		nt = ntuple(k->(k == dim ? i : :), ndimensons)
+		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
 		g1 = plotmatrix(X1[nt...], minvalue=minvalue, maxvalue=maxvalue, title=ltitle)
 		g2 = plotmatrix(X2[nt...], minvalue=minvalue, maxvalue=maxvalue, title=ctitle)
 		g3 = plotmatrix(X3[nt...], minvalue=minvalue, maxvalue=maxvalue, title=rtitle)
