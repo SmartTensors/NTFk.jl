@@ -567,6 +567,7 @@ function plot3tensors(X1::Array, X2::Array, X3::Array, dim::Integer=1; minvalue=
 		mkdir(moviedir)
 	end
 	@assert sizes == size(X2)
+	@assert sizes == size(X3)
 	ndimensons = length(sizes)
 	if dim > ndimensons || dim < 1
 		warn("Dimension should be >=1 or <=$(length(sizes))")

@@ -130,26 +130,26 @@ end
 """
 methods: spnntucker, tucker_als, tucker_sym
 """
-function analysis(T::Array, sizes=[size(T)], nTF=1; resultdir::String=".", keyword::String="", seed::Number=0, tol=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambda::Number=0.1, lambdas=fill(lambda, length(size(T)) + 1), progressbar::Bool=false, quiet::Bool=true)
+function analysis{T,N}(X::Array{T,N}, sizes=[size(X)], nTF=1; resultdir::String=".", keyword::String="", seed::Number=0, tol=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambda::Number=0.1, lambdas=fill(lambda, length(size(X)) + 1), progressbar::Bool=false, quiet::Bool=true)
 	info("TensorDecompositions Tucker analysis ...")
 	seed > 0 && srand(seed)
-	tsize = size(T)
+	tsize = size(X)
 	ndimensons = length(tsize)
 	nruns = length(sizes)
-	residues = Array{Float64}(nruns)
-	correlations = Array{Float64}(nruns, ndimensons)
-	T_esta = Array{Array{Float64,3}}(nruns)
-	tucker_spnn = Array{TensorDecompositions.Tucker{Float64,3}}(nruns)
-	minsilhouette = Array{Float64}(nruns)
+	residues = Array{T}(nruns)
+	correlations = Array{T}(nruns, ndimensons)
+	X_esta = Array{Array{T,N}}(nruns)
+	tucker_spnn = Array{TensorDecompositions.Tucker{T,N}}(nruns)
+	minsilhouette = Array{T}(nruns)
 	for i in 1:nruns
 		info("Core size: $(sizes[i])")
 		residues2 = Array{Float64}(nTF)
-		tsi = Array{TensorDecompositions.Tucker{Float64,3}}(nTF)
+		tsi = Array{TensorDecompositions.Tucker{T,N}}(nTF)
 		WBig = Vector{Matrix}(nTF)
 		tsbest = nothing
 		for n = 1:nTF
-			@time tsi[n] = TensorDecompositions.spnntucker(T, sizes[i]; tol=tol, ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=max_iter, lambdas=lambdas, progressbar=progressbar)
-			residues2[n] = TensorDecompositions.rel_residue(tsi[n], T)
+			@time tsi[n] = TensorDecompositions.spnntucker(X, sizes[i]; tol=tol, ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=max_iter, lambdas=lambdas, progressbar=progressbar)
+			residues2[n] = TensorDecompositions.rel_residue(tsi[n], X)
 			normalizecore!(tsi[n])
 			f = tsi[n].factors[1]'
 			f[f.==0] = 1e-6
@@ -181,9 +181,9 @@ function analysis(T::Array, sizes=[size(T)], nTF=1; resultdir::String=".", keywo
 		end
 		imin = indmin(residues2)
 		tucker_spnn[i] = tsi[imin]
-		T_esta[i] = TensorDecompositions.compose(tucker_spnn[i])
-		residues[i] = TensorDecompositions.rel_residue(T_esta[i], T)
-		correlations[i,:] = mincorrelations(T_esta[i], T)
+		X_esta[i] = TensorDecompositions.compose(tucker_spnn[i])
+		residues[i] = TensorDecompositions.rel_residue(X_esta[i], X)
+		correlations[i,:] = mincorrelations(X_esta[i], X)
 		println("$i - $(sizes[i]): residual $(residues[i]) worst tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core)) silhouette $(minsilhouette[i])")
 	end
 	info("Decompositions:")
@@ -206,7 +206,7 @@ end
 """
 methods: ALS, SGSD, cp_als, cp_apr, cp_nmu, cp_opt, cp_sym, cp_wopt
 """
-function analysis(T::Array, tranks::Vector{Int64}, nTF=1; resultdir::String=".", keyword::String="", seed::Number=-1, tol=1e-8, verbose=false, max_iter=50000, method=:ALS, quiet=true)
+function analysis{T,N}(X::Array{T,N}, tranks::Vector{Int64}, nTF=1; resultdir::String=".", keyword::String="", seed::Number=-1, tol=1e-8, verbose=false, max_iter=50000, method=:ALS, quiet=true, kw...)
 	if contains(string(method), "cp_")
 		info("TensorToolbox CanDecomp analysis ...")
 	elseif contains(string(method), "bcu_")
@@ -215,23 +215,23 @@ function analysis(T::Array, tranks::Vector{Int64}, nTF=1; resultdir::String=".",
 		info("TensorDecompositions CanDecomp analysis ...")
 	end
 	seed >= 0 && srand(seed)
-	tsize = size(T)
+	tsize = size(X)
 	ndimensons = length(tsize)
 	nruns = length(tranks)
-	residues = Array{Float64}(nruns)
-	correlations = Array{Float64}(nruns, ndimensons)
-	T_esta = Array{Array{Float64,3}}(nruns)
-	cpf = Array{TensorDecompositions.CANDECOMP{Float64,3}}(nruns)
+	residues = Array{T}(nruns)
+	correlations = Array{T}(nruns, ndimensons)
+	X_esta = Array{Array{T,N}}(nruns)
+	cpf = Array{TensorDecompositions.CANDECOMP{T,N}}(nruns)
 	minsilhouette = Array{Float64}(nruns)
 	for i in 1:nruns
 		info("CP core rank: $(tranks[i])")
-		residues2 = Array{Float64}(nTF)
-		cpi = Array{TensorDecompositions.CANDECOMP{Float64,3}}(nTF)
+		residues2 = Array{T}(nTF)
+		cpi = Array{TensorDecompositions.CANDECOMP{T,N}}(nTF)
 		WBig = Vector{Matrix}(nTF)
 		cpbest = nothing
 		for n = 1:nTF
-			@time cpi[n] = dNTF.candecomp(T, tranks[i]; verbose=verbose, maxiter=max_iter, method=method, tol=tol)
-			residues2[n] = TensorDecompositions.rel_residue(cpi[n], T)
+			@time cpi[n] = dNTF.candecomp(X, tranks[i]; verbose=verbose, maxiter=max_iter, method=method, tol=tol, kw...)
+			residues2[n] = TensorDecompositions.rel_residue(cpi[n], X)
 			normalizelambdas!(cpi[n])
 			f = map(k->abs.(cpi[n].factors[k]'), 1:ndimensons)
 			# p = dNTF.plotmatrix(cpi[n].factors[1]')
@@ -262,9 +262,9 @@ function analysis(T::Array, tranks::Vector{Int64}, nTF=1; resultdir::String=".",
 		end
 		imin = indmin(residues2)
 		cpf[i] = cpi[imin]
-		T_esta[i] = TensorDecompositions.compose(cpf[i])
-		residues[i] = TensorDecompositions.rel_residue(T_esta[i], T)
-		correlations[i,:] = mincorrelations(T_esta[i], T)
+		X_esta[i] = TensorDecompositions.compose(cpf[i])
+		residues[i] = TensorDecompositions.rel_residue(X_esta[i], X)
+		correlations[i,:] = mincorrelations(X_esta[i], X)
 		println("$i - $(tranks[i]): residual $(residues[i]) worst tensor correlations $(correlations[i,:]) silhouette $(minsilhouette[i])")
 	end
 	info("Decompositions:")
