@@ -35,3 +35,31 @@ function add_noise{T, N}(tnsr::Array{T,N}, sn_ratio = 0.6, nonnegative::Bool = f
 	end
 	tnsr + 10^(-sn_ratio/0.2) * vecnorm(tnsr) / vecnorm(tnsr) * tnsr_noise
 end
+
+function arrayoperation{T, N}(A::Array{T,N}, tmap=ntuple(k->(Colon()), N), functionname="mean")
+	@assert length(tmap) == N
+	nci = 0
+	for i = 1:N
+		if tmap[i] != Colon()
+			if nci == 0
+				nci = i
+			else
+				warn("Map ($(tmap)) is wrong! More than one non-colon fields! Operation failed!")
+				return
+			end
+		end
+	end
+	if nci == 0
+		warn("Map ($(tmap)) is wrong! Only one non-colon field is needed! Operation failed!")
+		return
+	end
+	el = tmap[nci]
+	asize = size(A)
+	v = vec(collect(1:asize[nci]))
+	deleteat!(v, el[2:end])
+	t = ntuple(k->(k == nci ? v : Colon()), N)
+	B = A[t...]
+	t = ntuple(k->(k == nci ? el[1] : Colon()), N)
+	B[t...] = eval(parse(functionname))(A[tmap...], nci)
+	return B
+end
