@@ -63,3 +63,23 @@ function arrayoperation{T, N}(A::Array{T,N}, tmap=ntuple(k->(Colon()), N), funct
 	B[t...] = eval(parse(functionname))(A[tmap...], nci)
 	return B
 end
+
+function movingaverage{T, N}(A::Array{T, N}, masize::Number=1)
+	if masize == 0
+		return A
+	end
+	B = similar(A)
+	R = CartesianRange(size(A))
+	I1, Iend = first(R), last(R)
+	for I in R
+		#n, s = 0, zero(eltype(B))
+		s = Vector{T}(0)
+		for J in CartesianRange(max(I1, I-masize), min(Iend, I+masize))
+			push!(s, A[J])
+			#s += A[J]
+			#n += 1
+		end
+		B[I] = maximum(s)
+	end
+	return B
+end

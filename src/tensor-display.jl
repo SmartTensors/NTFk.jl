@@ -30,29 +30,34 @@ function getcsize(case::String; resultdir::String=".")
 end
 
 function gettensorcomponent(t::TensorDecompositions.Tucker, dim::Integer=1)
+	cs = size(t.core)[dim]
 	csize = TensorToolbox.mrank(t.core)
 	crank = csize[dim]
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
-	imax = map(i->indmax(t.factors[dim][:, i]), 1:crank)
-	for i = 1:crank
-		if t.factors[dim][imax[i], i] == 0
-			warn("Maximum of component $i is equal to zero!")
-		end
-	end
-	order = sortperm(imax)
-	Xe = Array{Any}(crank)
-	for (i, o) = enumerate(order)
+	# imax = map(i->indmax(t.factors[dim][:, i]), 1:cs[dim])
+	# for i = 1:cs[dim]
+	# 	if t.factors[dim][imax[i], i] == 0
+	# 		warn("Maximum of component $i is equal to zero!")
+	# 	else
+	# 		@show t.factors[dim][imax[i], i]
+	# 	end
+	# end
+	# order = sortperm(imax)
+	Xe = Array{Any}(cs)
+	for i = 1:cs
 		ntt = deepcopy(t)
-		for j = 1:crank
-			if o !== j
+		for j = 1:cs
+			if i !== j
 				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
 				ntt.core[nt...] .= 0
 			end
 		end
 		Xe[i] = TensorDecompositions.compose(ntt)
 	end
-	return Xe
+	m = map(i->maximum(Xe[i]), 1:cs[dim])
+	imax = sortperm(m; rev=true)
+	return Xe[imax[1:crank]]
 end
 
 function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[])
@@ -184,8 +189,8 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	return ff
 end
 
-function plotmatrix(X::Matrix; minvalue=minimum(X), maxvalue=maximum(X), label="", title="", xlabel="", ylabel="", gm=[Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing)])
-	Xp = min.(max.(X, minvalue, 1e-32), maxvalue)
+function plotmatrix(X::Matrix; minvalue=minimum(X), maxvalue=maximum(X), label="", title="", xlabel="", ylabel="", gm=[Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing)], masize::Int64=0)
+	Xp = min.(max.(movingaverage(X, masize), minvalue, 1e-32), maxvalue)
 	Gadfly.spy(Xp, gm..., Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Guide.colorkey(label), Gadfly.Scale.ContinuousColorScale(colormap..., minvalue=minvalue, maxvalue=maxvalue), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt))
 end
 
@@ -194,7 +199,7 @@ function plottensor(T::Union{TensorDecompositions.Tucker,TensorDecompositions.CA
 	plottensor(X, dim; kw...)
 end
 
-function plottensor{T,N}(X::Array{T,N}, dim::Integer=1; minvalue=minimum(X), maxvalue=maximum(X), prefix::String="", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timestep=1 / sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : :), N))
+function plottensor{T,N}(X::Array{T,N}, dim::Integer=1; minvalue=minimum(X), maxvalue=maximum(X), prefix::String="", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timestep=1 / sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N))
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -293,7 +298,7 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::I
 		ntt = deepcopy(t2)
 		for j = 1:crank
 			if i !== j
-				nt = ntuple(k->(k == dim ? j : :), ndimensons)
+				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
 				ntt.core[nt...] .= 0
 			end
 		end
@@ -332,7 +337,7 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		ntt = deepcopy(t)
 		for j = 1:crank
 			if i !== j
-				nt = ntuple(k->(k == dim ? j : :), ndimensons)
+				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
 				ntt.core[nt...] .= 0
 			end
 		end
@@ -381,7 +386,7 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 		ntt = deepcopy(t2)
 		for j = 1:crank
 			if i !== j
-				nt = ntuple(k->(k == dim ? j : :), ndimensons)
+				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
 				ntt.core[nt...] .= 0
 			end
 		end
@@ -420,7 +425,7 @@ function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::
 	dimname = namedimension(ndimensons; char="D", names=("Row", "Column", "Layer"))
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
-		nt = ntuple(k->(k == dim ? i : :), ndimensons)
+		nt = ntuple(k->(k == dim ? i : Colon()), ndimensons)
 		p1 = plotmatrix(X[nt...], minvalue=minvalue, maxvalue=maxvalue, title=title)
 		p2 = plot2dmodtensorcomponents(t, dim, "maximum"; xtitle="Time", ytitle="Max concentrations", gm=[Gadfly.layer(xintercept=[i*timestep], Gadfly.Geom.vline(color=["gray"], size=[2Gadfly.pt]))], quiet=true)
 		p = Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1Compose.w, 1Compose.h), Gadfly.render(p1)),
@@ -471,7 +476,7 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		ntt = deepcopy(t)
 		for j = 1:crank
 			if i !== j
-				nt = ntuple(k->(k == dim ? j : :), ndimensons)
+				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
 				ntt.core[nt...] .= 0
 			end
 		end
@@ -499,7 +504,7 @@ function plot2tensors(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDec
 	plotcmptensor(X1, X2, dim; kw...)
 end
 
-function plot2tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), prefix::String="", movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timestep=1 / sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : :), N))
+function plot2tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), prefix::String="", movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timestep=1 / sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N))
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -552,7 +557,7 @@ end
 
 plotcmptensor = plot2tensors
 
-function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integer=1; minvalue=minimum([X1 X2 X3]), maxvalue=maximum([X1 X2 X3]), prefix::String="", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timestep=1 / sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : :), N))
+function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integer=1; minvalue=minimum([X1 X2 X3]), maxvalue=maximum([X1 X2 X3]), prefix::String="", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timestep=1 / sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), kw...)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -566,9 +571,9 @@ function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
-		g1 = plotmatrix(X1[nt...], minvalue=minvalue, maxvalue=maxvalue, title=ltitle)
-		g2 = plotmatrix(X2[nt...], minvalue=minvalue, maxvalue=maxvalue, title=ctitle)
-		g3 = plotmatrix(X3[nt...], minvalue=minvalue, maxvalue=maxvalue, title=rtitle)
+		g1 = plotmatrix(X1[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ltitle, kw...)
+		g2 = plotmatrix(X2[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ctitle, kw...)
+		g3 = plotmatrix(X3[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=rtitle, kw...)
 		g = Compose.hstack(g1, g2, g3)
 		if progressbar
 			f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0.001Compose.h),
