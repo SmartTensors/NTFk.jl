@@ -35,8 +35,8 @@ function gettensorcomponent(t::TensorDecompositions.Tucker, dim::Integer=1)
 	crank = csize[dim]
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
-	# imax = map(i->indmax(t.factors[dim][:, i]), 1:cs[dim])
-	# for i = 1:cs[dim]
+	# imax = map(i->indmax(t.factors[dim][:, i]), 1:cs)
+	# for i = 1:cs
 	# 	if t.factors[dim][imax[i], i] == 0
 	# 		warn("Maximum of component $i is equal to zero!")
 	# 	else
@@ -46,16 +46,17 @@ function gettensorcomponent(t::TensorDecompositions.Tucker, dim::Integer=1)
 	# order = sortperm(imax)
 	Xe = Array{Any}(cs)
 	for i = 1:cs
-		ntt = deepcopy(t)
+		tcore = copy(t.core)
 		for j = 1:cs
 			if i !== j
 				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
-				ntt.core[nt...] .= 0
+				t.core[nt...] .= 0
 			end
 		end
-		Xe[i] = TensorDecompositions.compose(ntt)
+		Xe[i] = TensorDecompositions.compose(t)
+		t.core .= tcore
 	end
-	m = map(i->maximum(Xe[i]), 1:cs[dim])
+	m = maximum.(Xe)
 	imax = sortperm(m; rev=true)
 	return Xe[imax[1:crank]]
 end
@@ -116,15 +117,16 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	order = sortperm(imax)
 	pl = Vector{Any}(crank)
 	for (i, o) = enumerate(order)
-		ntt = deepcopy(t)
+		tcore = copy(t.core)
 		for j = 1:crank
 			if o !== j
 				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
-				ntt.core[nt...] .= 0
+				t.core[nt...] .= 0
 			end
 		end
 		X2 = TensorDecompositions.compose(ntt)
 		tm = eval(parse(functionname))(X2, dp)
+		t.core .= tcore
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
 		pl[i] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
 	end
@@ -162,15 +164,16 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	order = sortperm(imax)
 	pl = Vector{Any}(crank+2)
 	for (i, o) = enumerate(order)
-		ntt = deepcopy(t)
+		tcore = copy(t.core)
 		for j = 1:crank
 			if o !== j
 				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
-				ntt.core[nt...] .= 0
+				t.core[nt...] .= 0
 			end
 		end
 		X2 = TensorDecompositions.compose(ntt)
 		tm = eval(parse(functionname1))(X2, dp)
+		t.core .= tcore
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
 		pl[i] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
 	end
@@ -295,11 +298,11 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::I
 	end
 	for i = 1:crank
 		info("Making component $(dimname[dim])-$i movie ...")
-		ntt = deepcopy(t2)
+		t2core = copy(t2.core)
 		for j = 1:crank
 			if i !== j
 				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
-				ntt.core[nt...] .= 0
+				t2.core[nt...] .= 0
 			end
 		end
 		if length(filter) == 0
@@ -307,6 +310,7 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::I
 		else
 			X2 = TensorDecompositions.compose(ntt)[filter...]
 		end
+		t2.core .= t2core
 		title = pdim > 1 ? "$(dimname[dim])-$i" : ""
 		dNTF.plot2tensors(permutedims(X1, pt), permutedims(X2, pt); progressbar=false, title=title, prefix=prefix * string(i),  kw...)
 	end
@@ -334,11 +338,11 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 	X = Vector{Any}(crank)
 	for i = 1:crank
 		info("Making component $(dimname[dim])-$i movie ...")
-		ntt = deepcopy(t)
+		tcore = copy(t.core)
 		for j = 1:crank
 			if i !== j
 				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
-				ntt.core[nt...] .= 0
+				t.core[nt...] .= 0
 			end
 		end
 		if length(filter) == 0
@@ -346,6 +350,7 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		else
 			X[i] = TensorDecompositions.compose(ntt)[filter...]
 		end
+		t.core .= tcore
 	end
 	if sizeof(order) == 0
 		p = t.factors[dim]
@@ -383,11 +388,11 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 	X2 = Vector{Any}(crank)
 	for i = 1:crank
 		info("Making component $(dimname[dim])-$i movie ...")
-		ntt = deepcopy(t2)
+		t2core = copy(t2.core)
 		for j = 1:crank
 			if i !== j
 				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
-				ntt.core[nt...] .= 0
+				t2.core[nt...] .= 0
 			end
 		end
 		if length(filter) == 0
@@ -395,6 +400,7 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 		else
 			X2[i] = TensorDecompositions.compose(ntt)[filter...]
 		end
+		t2.core .= t2core
 	end
 	if sizeof(order) == 0
 		p = t2.factors[dim]
@@ -473,11 +479,11 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 	X = Vector{Any}(crank)
 	for i = 1:crank
 		info("Making component $(dimname[dim])-$i movie ...")
-		ntt = deepcopy(t)
+		tcore = copy(t.core)
 		for j = 1:crank
 			if i !== j
 				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
-				ntt.core[nt...] .= 0
+				t.core[nt...] .= 0
 			end
 		end
 		if length(filter) == 0
@@ -485,6 +491,7 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		else
 			X[i] = TensorDecompositions.compose(ntt)[filter...]
 		end
+		t.core .= tcore
 	end
 	if sizeof(order) == 0
 		p = t.factors[dim]

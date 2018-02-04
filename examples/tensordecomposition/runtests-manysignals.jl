@@ -28,11 +28,14 @@ for i = 1:tsize[2]
 		T[:,i,:] = tt[m[i]]
 	end
 end
+T *= 100
 dNTF.plottensor(T; movie=true, prefix="movies/signals-50_50_50", quiet=true)
 
 # tranks = [20]
 # tc, c, ibest = dNTF.analysis(T, tranks; method=:cp_als)
 # dNTF.plotcmptensor(T, tc[ibest]; minvalue=0, maxvalue=1000000)
-# tt, c, ibest = dNTF.analysis(T, [tsize]; progressbar=true, tol=1e-16, max_iter=100000, lambda=1e-12)
+# tt, c, ibest = dNTF.analysis(T, [tsize]; progressbar=true, max_iter=100000, lambda=1e-12)
+tt, c, ibest = dNTF.analysis(T, [tsize]; progressbar=true, core_nonneg=false)
+dNTF.plotcmptensor(T, tt[ibest]; minvalue=0, maxvalue=100)
 th = TensorDecompositions.hosvd(T, tsize)
-dNTF.plotcmptensor(T, th; minvalue=0, maxvalue=1, movie=true, prefix="movies/signals-hosvd", quiet=true)
+dNTF.plotcmptensor(T, th; minvalue=0, maxvalue=1, movie=true, prefix="movies/signals-50_50_50-hosvd", quiet=true)
