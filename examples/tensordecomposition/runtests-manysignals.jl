@@ -19,7 +19,7 @@ tt = Vector(length(v))
 for i = 1:length(v)
 	tt[i] = makesignal(tsize[1], tsize[3], v[i])
 end
-m = rand(vec(collect(1:length(v))), tsize[2])
+m = rand(vec(collect(0:length(v))), tsize[2])
 T = Array{Float64}(tsize)
 for i = 1:tsize[2]
 	if m[i] == 0
@@ -28,14 +28,26 @@ for i = 1:tsize[2]
 		T[:,i,:] = tt[m[i]]
 	end
 end
-T *= 100
-dNTF.plottensor(T; movie=true, prefix="movies/signals-50_50_50", quiet=true)
+dNTF.plottensor(T; movie=true, prefix="movies/signals-$(length(v))-50_50_50", quiet=true)
+# dNTF.plottensor(T)
 
 # tranks = [20]
 # tc, c, ibest = dNTF.analysis(T, tranks; method=:cp_als)
 # dNTF.plotcmptensor(T, tc[ibest]; minvalue=0, maxvalue=1000000)
 # tt, c, ibest = dNTF.analysis(T, [tsize]; progressbar=true, max_iter=100000, lambda=1e-12)
-tt, c, ibest = dNTF.analysis(T, [tsize]; progressbar=true, core_nonneg=false)
-dNTF.plotcmptensor(T, tt[ibest]; minvalue=0, maxvalue=100)
+# tt, c, ibest = dNTF.analysis(T, [tsize]; progressbar=true, core_nonneg=false)
+# dNTF.plotcmptensor(T, tt[ibest]; minvalue=0, maxvalue=100)
 th = TensorDecompositions.hosvd(T, tsize)
-dNTF.plotcmptensor(T, th; minvalue=0, maxvalue=1, movie=true, prefix="movies/signals-50_50_50-hosvd", quiet=true)
+# dNTF.plotcmptensor(T, th; minvalue=0, maxvalue=1)
+dNTF.plotcmptensor(T, th; minvalue=0, maxvalue=1, movie=true, prefix="movies/signals-$(length(v))-50_50_50-cmp", quiet=true)
+dNTF.normalizefactors!(th)
+dNTF.normalizecore!(th)
+g = similar(th.factors[2][:,1])
+for i = 1:length(v)
+	m = th.factors[2][:,i] .>0.9
+	g[m] = i
+end
+ig = sortperm(g)
+Te = TensorDecompositions.compose(th)
+# dNTF.plotcmptensor(T, Te[:, ig, :]; minvalue=0, maxvalue=1)
+dNTF.plotcmptensor(T, Te[:, ig, :]; minvalue=0, maxvalue=1, movie=true, prefix="movies/signals-$(length(v))-50_50_50-decomp", quiet=true)

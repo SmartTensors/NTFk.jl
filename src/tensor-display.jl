@@ -58,6 +58,39 @@ function gettensorcomponent(t::TensorDecompositions.Tucker, dim::Integer=1)
 	end
 	m = maximum.(Xe)
 	imax = sortperm(m; rev=true)
+	@show m[imax]
+	return Xe[imax[1:crank]]
+end
+
+function gettensorcomponent2(t::TensorDecompositions.Tucker, dim::Integer=1)
+	cs = size(t.core)[dim]
+	csize = TensorToolbox.mrank(t.core)
+	crank = csize[dim]
+	ndimensons = length(csize)
+	@assert dim >= 1 && dim <= ndimensons
+	# imax = map(i->indmax(t.factors[dim][:, i]), 1:cs)
+	# for i = 1:cs
+	# 	if t.factors[dim][imax[i], i] == 0
+	# 		warn("Maximum of component $i is equal to zero!")
+	# 	else
+	# 		@show t.factors[dim][imax[i], i]
+	# 	end
+	# end
+	# order = sortperm(imax)
+	Xe = Array{Any}(cs)
+	for i = 1:cs
+		tfactors = copy(t.factors[dim])
+		for j = 1:cs
+			if i !== j
+				t.factors[dim][:, j] .= 0
+			end
+		end
+		Xe[i] = TensorDecompositions.compose(t)
+		t.factors[dim] .= tfactors
+	end
+	m = maximum.(Xe)
+	imax = sortperm(m; rev=true)
+	@show m[imax]
 	return Xe[imax[1:crank]]
 end
 
@@ -124,7 +157,7 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 				t.core[nt...] .= 0
 			end
 		end
-		X2 = TensorDecompositions.compose(ntt)
+		X2 = TensorDecompositions.compose(t)
 		tm = eval(parse(functionname))(X2, dp)
 		t.core .= tcore
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
@@ -171,7 +204,7 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 				t.core[nt...] .= 0
 			end
 		end
-		X2 = TensorDecompositions.compose(ntt)
+		X2 = TensorDecompositions.compose(t)
 		tm = eval(parse(functionname1))(X2, dp)
 		t.core .= tcore
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
@@ -227,7 +260,7 @@ function plottensor{T,N}(X::Array{T,N}, dim::Integer=1; minvalue=minimum(X), max
 		!quiet && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
 		if prefix != ""
 			filename = setnewfilename(prefix, i)
-			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize), p)
+			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=300), p)
 		end
 	end
 	if movie && prefix != ""
@@ -266,13 +299,14 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.CANDECOMP; pre
 	crank = length(t2.lambdas)
 	for i = 1:crank
 		info("Making component $i movie ...")
-		ntt = deepcopy(t2)
-		ntt.lambdas[1:end .!== i] = 0
+		t2lambdas = copy(t2)
+		t2.lambdas[1:end .!== i] = 0
 		if length(filter) == 0
-			X2 = TensorDecompositions.compose(ntt)
+			X2 = TensorDecompositions.compose(t2)
 		else
-			X2 = TensorDecompositions.compose(ntt)[filter...]
+			X2 = TensorDecompositions.compose(t2)[filter...]
 		end
+		t2.lambdas .= t2lambdas
 		dNTF.plot2tensors(X1, X2; progressbar=false, prefix=prefix * string(i), kw...)
 	end
 end
@@ -306,9 +340,9 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::I
 			end
 		end
 		if length(filter) == 0
-			X2 = TensorDecompositions.compose(ntt)
+			X2 = TensorDecompositions.compose(t2)
 		else
-			X2 = TensorDecompositions.compose(ntt)[filter...]
+			X2 = TensorDecompositions.compose(t2)[filter...]
 		end
 		t2.core .= t2core
 		title = pdim > 1 ? "$(dimname[dim])-$i" : ""
@@ -346,9 +380,9 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 			end
 		end
 		if length(filter) == 0
-			X[i] = TensorDecompositions.compose(ntt)
+			X[i] = TensorDecompositions.compose(t)
 		else
-			X[i] = TensorDecompositions.compose(ntt)[filter...]
+			X[i] = TensorDecompositions.compose(t)[filter...]
 		end
 		t.core .= tcore
 	end
@@ -396,9 +430,9 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 			end
 		end
 		if length(filter) == 0
-			X2[i] = TensorDecompositions.compose(ntt)
+			X2[i] = TensorDecompositions.compose(t2)
 		else
-			X2[i] = TensorDecompositions.compose(ntt)[filter...]
+			X2[i] = TensorDecompositions.compose(t2)[filter...]
 		end
 		t2.core .= t2core
 	end
@@ -436,10 +470,10 @@ function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::
 		p2 = plot2dmodtensorcomponents(t, dim, "maximum"; xtitle="Time", ytitle="Max concentrations", gm=[Gadfly.layer(xintercept=[i*timestep], Gadfly.Geom.vline(color=["gray"], size=[2Gadfly.pt]))], quiet=true)
 		p = Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1Compose.w, 1Compose.h), Gadfly.render(p1)),
 							Compose.compose(Compose.context(0, 0, 1Compose.w, 0.7Compose.h), Gadfly.render(p2)))
-		!quiet && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
+		!quiet && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=50), p); println())
 		if prefix != ""
 			filename = setnewfilename(prefix, i)
-			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize), p)
+			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=300), p)
 		end
 	end
 	if movie && prefix != ""
@@ -487,9 +521,9 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 			end
 		end
 		if length(filter) == 0
-			X[i] = TensorDecompositions.compose(ntt)
+			X[i] = TensorDecompositions.compose(t)
 		else
-			X[i] = TensorDecompositions.compose(ntt)[filter...]
+			X[i] = TensorDecompositions.compose(t)[filter...]
 		end
 		t.core .= tcore
 	end
@@ -545,7 +579,7 @@ function plot2tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minva
 		!quiet && (Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
 		if prefix != ""
 			filename = setnewfilename(prefix, i)
-			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize), p)
+			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=300), p)
 		end
 	end
 	if movie && prefix != ""
@@ -595,7 +629,7 @@ function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::
 		!quiet && (Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
 		if prefix != ""
 			filename = setnewfilename(prefix, i)
-			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize), p)
+			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=300), p)
 		end
 	end
 	if movie && prefix != ""
