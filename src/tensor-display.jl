@@ -29,69 +29,85 @@ function getcsize(case::String; resultdir::String=".")
 	return csize, kwa
 end
 
-function gettensorcomponent(t::TensorDecompositions.Tucker, dim::Integer=1)
+function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; core::Bool=false)
 	cs = size(t.core)[dim]
 	csize = TensorToolbox.mrank(t.core)
 	crank = csize[dim]
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
-	# imax = map(i->indmax(t.factors[dim][:, i]), 1:cs)
-	# for i = 1:cs
-	# 	if t.factors[dim][imax[i], i] == 0
-	# 		warn("Maximum of component $i is equal to zero!")
-	# 	else
-	# 		@show t.factors[dim][imax[i], i]
-	# 	end
-	# end
-	# order = sortperm(imax)
-	Xe = Array{Any}(cs)
+	Xe = Vector{Any}(cs)
 	for i = 1:cs
-		tcore = copy(t.core)
-		for j = 1:cs
-			if i !== j
-				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
-				t.core[nt...] .= 0
+		if core
+			tcore = copy(t.core)
+			for j = 1:cs
+				if i !== j
+					nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
+					t.core[nt...] .= 0
+				end
 			end
+			Xe[i] = TensorDecompositions.compose(t)
+			t.core .= tcore
+		else
+			tfactors = copy(t.factors[dim])
+			for j = 1:cs
+				if i !== j
+					t.factors[dim][:, j] .= 0
+				end
+			end
+			Xe[i] = TensorDecompositions.compose(t)
+			t.factors[dim] .= tfactors
 		end
-		Xe[i] = TensorDecompositions.compose(t)
-		t.core .= tcore
 	end
 	m = maximum.(Xe)
 	imax = sortperm(m; rev=true)
-	@show m[imax]
 	return Xe[imax[1:crank]]
 end
 
-function gettensorcomponent2(t::TensorDecompositions.Tucker, dim::Integer=1)
+function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core)
 	cs = size(t.core)[dim]
 	csize = TensorToolbox.mrank(t.core)
 	crank = csize[dim]
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
-	# imax = map(i->indmax(t.factors[dim][:, i]), 1:cs)
-	# for i = 1:cs
-	# 	if t.factors[dim][imax[i], i] == 0
-	# 		warn("Maximum of component $i is equal to zero!")
-	# 	else
-	# 		@show t.factors[dim][imax[i], i]
-	# 	end
-	# end
-	# order = sortperm(imax)
-	Xe = Array{Any}(cs)
-	for i = 1:cs
-		tfactors = copy(t.factors[dim])
-		for j = 1:cs
-			if i !== j
-				t.factors[dim][:, j] .= 0
+	if method == :factormagnitude
+		fmax = vec(maximum(t.factors[dim], 1))
+		@assert cs == length(fmax)
+		for i = 1:cs
+			if fmax[i] == 0
+				warn("Maximum of component $i is equal to zero!")
 			end
 		end
-		Xe[i] = TensorDecompositions.compose(t)
-		t.factors[dim] .= tfactors
+		ifmax = sortperm(fmax; rev=true)[1:crank]
+		imax = map(i->indmax(t.factors[dim][:, ifmax[i]]), 1:crank)
+		order = ifmax[sortperm(imax)]
+	else
+		maxXe = Vector{Float64}(cs)
+		for i = 1:cs
+			if method == :core
+				tcore = copy(t.core)
+				for j = 1:cs
+					if i !== j
+						nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
+						t.core[nt...] .= 0
+					end
+				end
+				maxXe[i] = maximum(TensorDecompositions.compose(t))
+				t.core .= tcore
+			else
+				tfactors = copy(t.factors[dim])
+				for j = 1:cs
+					if i !== j
+						t.factors[dim][:, j] .= 0
+					end
+				end
+				maxXe[i] = maximum(TensorDecompositions.compose(t))
+				t.factors[dim] .= tfactors
+			end
+		end
+		imax = sortperm(maxXe; rev=true)
+		order = imax[1:crank]
 	end
-	m = maximum.(Xe)
-	imax = sortperm(m; rev=true)
-	@show m[imax]
-	return Xe[imax[1:crank]]
+	return order
 end
 
 function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[])
@@ -103,14 +119,8 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	nx, ny = size(t.factors[dim])
 	xvalues = nx < 100 ? vec(collect(1:nx)) : vec(collect(1/nx:1/nx:1))
 	componentnames = map(i->"T$i", 1:crank)
+	order = gettensorcomponentorder(t, dim; method=:factormagnitudect)
 	p = t.factors[dim]
-	imax = map(i->indmax(p[:, i]), 1:crank)
-	for i = 1:crank
-		if p[imax[i], i] == 0
-			warn("Maximum of component $i is equal to zero!")
-		end
-	end
-	order = sortperm(imax)
 	pl = Vector{Any}(crank)
 	for i = 1:crank
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
@@ -135,19 +145,13 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	nx, ny = size(t.factors[dim])
 	xvalues = nx < 100 ? vec(collect(1:nx)) : vec(collect(1/nx:1/nx:1))
 	componentnames = map(i->"T$i", 1:crank)
-	imax = map(i->indmax(t.factors[dim][:, i]), 1:crank)
-	for i = 1:crank
-		if t.factors[dim][imax[i], i] == 0
-			warn("Maximum of component $i is equal to zero!")
-		end
-	end
+	order = gettensorcomponentorder(t, dim; method=:factormagnitudect)
 	dp = Vector{Int64}(0)
 	for i = 1:ndimensons
 		if i != dim
 			push!(dp, i)
 		end
 	end
-	order = sortperm(imax)
 	pl = Vector{Any}(crank)
 	for (i, o) = enumerate(order)
 		tcore = copy(t.core)
@@ -182,19 +186,13 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	nx, ny = size(t.factors[dim])
 	xvalues = nx < 100 ? vec(collect(1:nx)) : vec(collect(1/nx:1/nx:1))
 	componentnames = map(i->"T$i", 1:crank)
-	imax = map(i->indmax(t.factors[dim][:, i]), 1:crank)
-	for i = 1:crank
-		if t.factors[dim][imax[i], i] == 0
-			warn("Maximum of component $i is equal to zero!")
-		end
-	end
+	order = gettensorcomponentorder(t, dim; method=:factormagnitudect)
 	dp = Vector{Int64}(0)
 	for i = 1:ndimensons
 		if i != dim
 			push!(dp, i)
 		end
 	end
-	order = sortperm(imax)
 	pl = Vector{Any}(crank+2)
 	for (i, o) = enumerate(order)
 		tcore = copy(t.core)
@@ -387,14 +385,7 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		t.core .= tcore
 	end
 	if sizeof(order) == 0
-		p = t.factors[dim]
-		imax = map(i->indmax(p[:, i]), 1:crank)
-		for i = 1:crank
-			if p[imax[i], i] == 0
-				warn("Maximum of component $i is equal to zero!")
-			end
-		end
-		order = sortperm(imax)
+		order = gettensorcomponentorder(t, dim; method=:factormagnitudect)
 	end
 	dNTF.plot2tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt); prefix=prefix, kw...)
 end
@@ -437,14 +428,7 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 		t2.core .= t2core
 	end
 	if sizeof(order) == 0
-		p = t2.factors[dim]
-		imax = map(i->indmax(p[:, i]), 1:crank)
-		for i = 1:crank
-			if p[imax[i], i] == 0
-				warn("Maximum of component $i is equal to zero!")
-			end
-		end
-		order = sortperm(imax)
+		order = gettensorcomponentorder(t2, dim; method=:factormagnitudect)
 	end
 	dNTF.plot3tensors(permutedims(X1, pt), permutedims(X2[order[1]], pt), permutedims(X2[order[2]], pt); prefix=prefix, kw...)
 end
@@ -528,14 +512,7 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		t.core .= tcore
 	end
 	if sizeof(order) == 0
-		p = t.factors[dim]
-		imax = map(i->indmax(p[:, i]), 1:crank)
-		for i = 1:crank
-			if p[imax[i], i] == 0
-				warn("Maximum of component $i is equal to zero!")
-			end
-		end
-		order = sortperm(imax)
+		order = gettensorcomponentorder(t, dim; method=:factormagnitudect)
 	end
 	dNTF.plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt); prefix=prefix, kw...)
 end
