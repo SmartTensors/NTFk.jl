@@ -8,8 +8,9 @@ import Distributions
 colors = ["red", "blue", "green", "orange", "magenta", "cyan", "brown", "pink", "lime", "navy", "maroon", "yellow", "olive", "springgreen", "teal", "coral", "lavender", "beige"]
 ncolors = length(colors)
 
-colormap = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"), parse(Colors.Colorant, "red"))]
-# colormap = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"))]
+colormap_gyr = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"), parse(Colors.Colorant, "red"))]
+colormap_gy = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"))]
+colormap_wb = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "white"), parse(Colors.Colorant, "black"))]
 
 searchdir(key::Regex, path::String = ".") = filter(x->ismatch(key, x), readdir(path))
 searchdir(key::String, path::String = ".") = filter(x->contains(x, key), readdir(path))
@@ -36,26 +37,25 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; cor
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	Xe = Vector{Any}(cs)
+	tt = deepcopy(t)
 	for i = 1:cs
 		if core
-			tcore = copy(t.core)
 			for j = 1:cs
 				if i !== j
 					nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
-					t.core[nt...] .= 0
+					tt.core[nt...] .= 0
 				end
 			end
-			Xe[i] = TensorDecompositions.compose(t)
-			t.core .= tcore
+			Xe[i] = TensorDecompositions.compose(tt)
+			tt.core .= t.core
 		else
-			tfactors = copy(t.factors[dim])
 			for j = 1:cs
 				if i !== j
-					t.factors[dim][:, j] .= 0
+					tt.factors[dim][:, j] .= 0
 				end
 			end
-			Xe[i] = TensorDecompositions.compose(t)
-			t.factors[dim] .= tfactors
+			Xe[i] = TensorDecompositions.compose(tt)
+			tt.factors[dim] .= t.factors[dim]
 		end
 	end
 	m = maximum.(Xe)
@@ -82,26 +82,25 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 		order = ifmax[sortperm(imax)]
 	else
 		maxXe = Vector{Float64}(cs)
+		tt = deepcopy(t)
 		for i = 1:cs
 			if method == :core
-				tcore = copy(t.core)
 				for j = 1:cs
 					if i !== j
 						nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
-						t.core[nt...] .= 0
+						tt.core[nt...] .= 0
 					end
 				end
-				maxXe[i] = maximum(TensorDecompositions.compose(t))
-				t.core .= tcore
+				maxXe[i] = maximum(TensorDecompositions.compose(tt))
+				tt.core .= t.core
 			else
-				tfactors = copy(t.factors[dim])
 				for j = 1:cs
 					if i !== j
-						t.factors[dim][:, j] .= 0
+						tt.factors[dim][:, j] .= 0
 					end
 				end
-				maxXe[i] = maximum(TensorDecompositions.compose(t))
-				t.factors[dim] .= tfactors
+				maxXe[i] = maximum(TensorDecompositions.compose(tt))
+				tt.factors[dim] .= t.factors[dim]
 			end
 		end
 		imax = sortperm(maxXe; rev=true)
@@ -110,14 +109,14 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 	return order
 end
 
-function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[])
+function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true)
 	csize = TensorToolbox.mrank(t.core)
 	crank = csize[dim]
 	loopcolors = crank > ncolors ? true : false
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	nx, ny = size(t.factors[dim])
-	xvalues = nx < 100 ? vec(collect(1:nx)) : vec(collect(1/nx:1/nx:1))
+	xvalues = timescale ? vec(collect(1/nx:1/nx:1)) : vec(collect(1:nx))
 	componentnames = map(i->"T$i", 1:crank)
 	order = gettensorcomponentorder(t, dim; method=:factormagnitudect)
 	p = t.factors[dim]
@@ -131,19 +130,19 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	ff = Gadfly.plot(pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., tc..., tm...)
 	!quiet && (display(ff); println())
 	if filename != ""
-		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize, dpi=300), ff)
+		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize, dpi=150), ff)
 	end
 	return ff
 end
 
-function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, functionname::String="mean"; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[])
+function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, functionname::String="mean"; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true)
 	csize = TensorToolbox.mrank(t.core)
 	crank = csize[dim]
 	loopcolors = crank > ncolors ? true : false
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	nx, ny = size(t.factors[dim])
-	xvalues = nx < 100 ? vec(collect(1:nx)) : vec(collect(1/nx:1/nx:1))
+	xvalues = timescale ? vec(collect(1/nx:1/nx:1)) : vec(collect(1:nx))
 	componentnames = map(i->"T$i", 1:crank)
 	order = gettensorcomponentorder(t, dim; method=:factormagnitudect)
 	dp = Vector{Int64}(0)
@@ -153,17 +152,17 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 		end
 	end
 	pl = Vector{Any}(crank)
+	tt = deepcopy(t)
 	for (i, o) = enumerate(order)
-		tcore = copy(t.core)
 		for j = 1:crank
 			if o !== j
 				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
-				t.core[nt...] .= 0
+				tt.core[nt...] .= 0
 			end
 		end
-		X2 = TensorDecompositions.compose(t)
+		X2 = TensorDecompositions.compose(tt)
+		tt.core .= t.core
 		tm = eval(parse(functionname))(X2, dp)
-		t.core .= tcore
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
 		pl[i] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
 	end
@@ -172,19 +171,19 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	ff = Gadfly.plot(pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., tm..., tc...)
 	!quiet && (display(ff); println())
 	if filename != ""
-		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize, dpi=300), ff)
+		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize, dpi=150), ff)
 	end
 	return ff
 end
 
-function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, functionname1::String="mean", functionname2::String="mean"; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[])
+function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, functionname1::String="mean", functionname2::String="mean"; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true)
 	csize = TensorToolbox.mrank(t.core)
 	crank = csize[dim]
 	loopcolors = crank > ncolors ? true : false
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	nx, ny = size(t.factors[dim])
-	xvalues = nx < 100 ? vec(collect(1:nx)) : vec(collect(1/nx:1/nx:1))
+	xvalues = timescale ? vec(collect(1/nx:1/nx:1)) : vec(collect(1:nx))
 	componentnames = map(i->"T$i", 1:crank)
 	order = gettensorcomponentorder(t, dim; method=:factormagnitudect)
 	dp = Vector{Int64}(0)
@@ -194,17 +193,17 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 		end
 	end
 	pl = Vector{Any}(crank+2)
+	tt = deepcopy(t)
 	for (i, o) = enumerate(order)
-		tcore = copy(t.core)
 		for j = 1:crank
 			if o !== j
 				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
-				t.core[nt...] .= 0
+				tt.core[nt...] .= 0
 			end
 		end
-		X2 = TensorDecompositions.compose(t)
+		X2 = TensorDecompositions.compose(tt)
+		tt.core .= t.core
 		tm = eval(parse(functionname1))(X2, dp)
-		t.core .= tcore
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
 		pl[i] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
 	end
@@ -218,12 +217,12 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	ff = Gadfly.plot(pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., tm..., tc...)
 	!quiet && (display(ff); println())
 	if filename != ""
-		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize, dpi=300), ff)
+		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize, dpi=150), ff)
 	end
 	return ff
 end
 
-function plotmatrix(X::Matrix; minvalue=minimum(X), maxvalue=maximum(X), label="", title="", xlabel="", ylabel="", gm=[Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing)], masize::Int64=0)
+function plotmatrix(X::Matrix; minvalue=minimum(X), maxvalue=maximum(X), label="", title="", xlabel="", ylabel="", gm=[Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing)], masize::Int64=0, colormap=colormap_gyr)
 	Xp = min.(max.(movingaverage(X, masize), minvalue, 1e-32), maxvalue)
 	Gadfly.spy(Xp, gm..., Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Guide.colorkey(label), Gadfly.Scale.ContinuousColorScale(colormap..., minvalue=minvalue, maxvalue=maxvalue), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt))
 end
@@ -233,7 +232,7 @@ function plottensor(T::Union{TensorDecompositions.Tucker,TensorDecompositions.CA
 	plottensor(X, dim; kw...)
 end
 
-function plottensor{T,N}(X::Array{T,N}, dim::Integer=1; minvalue=minimum(X), maxvalue=maximum(X), prefix::String="", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timestep=1 / sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N))
+function plottensor{T,N}(X::Array{T,N}, dim::Integer=1; minvalue=minimum(X), maxvalue=maximum(X), prefix::String="", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timestep=1 / sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -245,7 +244,7 @@ function plottensor{T,N}(X::Array{T,N}, dim::Integer=1; minvalue=minimum(X), max
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
-		g = plotmatrix(X[nt...], minvalue=minvalue, maxvalue=maxvalue, title=title)
+		g = plotmatrix(X[nt...], minvalue=minvalue, maxvalue=maxvalue, title=title, colormap=colormap)
 		if progressbar
 			f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0.001Compose.h),
 			(Compose.context(), Compose.fill("gray"), Compose.fontsize(10Compose.pt), Compose.text(0.01, -50000.0, sprintf("%6.4f", i * timestep), Compose.hleft, Compose.vtop)),
@@ -258,7 +257,7 @@ function plottensor{T,N}(X::Array{T,N}, dim::Integer=1; minvalue=minimum(X), max
 		!quiet && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
 		if prefix != ""
 			filename = setnewfilename(prefix, i)
-			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=300), p)
+			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=150), p)
 		end
 	end
 	if movie && prefix != ""
@@ -270,6 +269,9 @@ function plottensor{T,N}(X::Array{T,N}, dim::Integer=1; minvalue=minimum(X), max
 		end
 		if moviedir == "."
 			moviedir, prefix = splitdir(prefix)
+			if moviedir == ""
+				moviedir = "."
+			end
 		end
 		cleanup && run(`find $moviedir -name $prefix-"frame*".png -delete`)
 	end
@@ -295,16 +297,16 @@ end
 function plottensorcomponents(X1::Array, t2::TensorDecompositions.CANDECOMP; prefix::String="", filter=(), kw...)
 	ndimensons = length(size(X1))
 	crank = length(t2.lambdas)
+	tt = deepcopy(t2)
 	for i = 1:crank
 		info("Making component $i movie ...")
-		t2lambdas = copy(t2)
-		t2.lambdas[1:end .!== i] = 0
+		tt.lambdas[1:end .!== i] = 0
 		if length(filter) == 0
-			X2 = TensorDecompositions.compose(t2)
+			X2 = TensorDecompositions.compose(tt)
 		else
-			X2 = TensorDecompositions.compose(t2)[filter...]
+			X2 = TensorDecompositions.compose(tt)[filter...]
 		end
-		t2.lambdas .= t2lambdas
+		tt.lambdas .= t2.lambdas
 		dNTF.plot2tensors(X1, X2; progressbar=false, prefix=prefix * string(i), kw...)
 	end
 end
@@ -328,21 +330,21 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::I
 			push!(pt, i)
 		end
 	end
+	tt = deepcopy(t2)
 	for i = 1:crank
 		info("Making component $(dimname[dim])-$i movie ...")
-		t2core = copy(t2.core)
 		for j = 1:crank
 			if i !== j
 				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
-				t2.core[nt...] .= 0
+				tt.core[nt...] .= 0
 			end
 		end
 		if length(filter) == 0
-			X2 = TensorDecompositions.compose(t2)
+			X2 = TensorDecompositions.compose(tt)
 		else
-			X2 = TensorDecompositions.compose(t2)[filter...]
+			X2 = TensorDecompositions.compose(tt)[filter...]
 		end
-		t2.core .= t2core
+		tt.core .= t2.core
 		title = pdim > 1 ? "$(dimname[dim])-$i" : ""
 		dNTF.plot2tensors(permutedims(X1, pt), permutedims(X2, pt); progressbar=false, title=title, prefix=prefix * string(i),  kw...)
 	end
@@ -367,22 +369,22 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 			push!(pt, i)
 		end
 	end
+	tt = deepcopy(t)
 	X = Vector{Any}(crank)
 	for i = 1:crank
 		info("Making component $(dimname[dim])-$i movie ...")
-		tcore = copy(t.core)
 		for j = 1:crank
 			if i !== j
 				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
-				t.core[nt...] .= 0
+				tt.core[nt...] .= 0
 			end
 		end
 		if length(filter) == 0
-			X[i] = TensorDecompositions.compose(t)
+			X[i] = TensorDecompositions.compose(tt)
 		else
-			X[i] = TensorDecompositions.compose(t)[filter...]
+			X[i] = TensorDecompositions.compose(tt)[filter...]
 		end
-		t.core .= tcore
+		tt.core .= t.core
 	end
 	if sizeof(order) == 0
 		order = gettensorcomponentorder(t, dim; method=:factormagnitudect)
@@ -410,22 +412,22 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 			push!(pt, i)
 		end
 	end
+	tt = deepcopy(t2)
 	X2 = Vector{Any}(crank)
 	for i = 1:crank
 		info("Making component $(dimname[dim])-$i movie ...")
-		t2core = copy(t2.core)
 		for j = 1:crank
 			if i !== j
 				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
-				t2.core[nt...] .= 0
+				tt.core[nt...] .= 0
 			end
 		end
 		if length(filter) == 0
-			X2[i] = TensorDecompositions.compose(t2)
+			X2[i] = TensorDecompositions.compose(tt)
 		else
-			X2[i] = TensorDecompositions.compose(t2)[filter...]
+			X2[i] = TensorDecompositions.compose(tt)[filter...]
 		end
-		t2.core .= t2core
+		tt.core .= t2.core
 	end
 	if sizeof(order) == 0
 		order = gettensorcomponentorder(t2, dim; method=:factormagnitudect)
@@ -433,7 +435,7 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 	dNTF.plot3tensors(permutedims(X1, pt), permutedims(X2[order[1]], pt), permutedims(X2[order[2]], pt); prefix=prefix, kw...)
 end
 
-function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t.core), sizes=size(X), timestep=1 / sizes[dim], cleanup::Bool=true, movie::Bool=true, moviedir=".", prefix::String="", title="", quiet::Bool=true, filter=(), order=[], minvalue=minimum(X), maxvalue=maximum(X), hsize=12Compose.inch, vsize=12Compose.inch, kw...)
+function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t.core), sizes=size(X), timestep=1 / sizes[dim], cleanup::Bool=true, movie::Bool=true, moviedir=".", prefix::String="", title="", quiet::Bool=true, filter=(), order=[], minvalue=minimum(X), maxvalue=maximum(X), hsize=12Compose.inch, vsize=12Compose.inch, colormap=colormap_gyr, kw...)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -450,14 +452,15 @@ function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : Colon()), ndimensons)
-		p1 = plotmatrix(X[nt...], minvalue=minvalue, maxvalue=maxvalue, title=title)
-		p2 = plot2dmodtensorcomponents(t, dim, "maximum"; xtitle="Time", ytitle="Max concentrations", gm=[Gadfly.layer(xintercept=[i*timestep], Gadfly.Geom.vline(color=["gray"], size=[2Gadfly.pt]))], quiet=true)
-		p = Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1Compose.w, 1Compose.h), Gadfly.render(p1)),
-							Compose.compose(Compose.context(0, 0, 1Compose.w, 0.7Compose.h), Gadfly.render(p2)))
+		p1 = plotmatrix(X[nt...], minvalue=minvalue, maxvalue=maxvalue, title=title, colormap=colormap)
+		p2 = plot2dmodtensorcomponents(X, t, dim, "mean"; xtitle="Time", ytitle="Max concentrations", gm=[Gadfly.layer(xintercept=[i*timestep], Gadfly.Geom.vline(color=["gray"], size=[2Gadfly.pt]))], quiet=true)
+		# p2 = plot2dtensorcomponents(t, dim; xtitle="Time", ytitle="Component", gm=[Gadfly.layer(xintercept=[i*timestep], Gadfly.Geom.vline(color=["gray"], size=[2Gadfly.pt]))], quiet=true)
+		p = Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 2/3), Gadfly.render(p1)),
+							Compose.compose(Compose.context(0, 0, 1, 1/3), Gadfly.render(p2)))
 		!quiet && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=50), p); println())
 		if prefix != ""
 			filename = setnewfilename(prefix, i)
-			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=300), p)
+			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=150), p)
 		end
 	end
 	if movie && prefix != ""
@@ -469,6 +472,9 @@ function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::
 		end
 		if moviedir == "."
 			moviedir, prefix = splitdir(prefix)
+			if moviedir == ""
+				moviedir = "."
+			end
 		end
 		cleanup && run(`find $moviedir -name $prefix-"frame*".png -delete`)
 	end
@@ -494,22 +500,22 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 			push!(pt, i)
 		end
 	end
+	tt = deepcopy(t)
 	X = Vector{Any}(crank)
 	for i = 1:crank
 		info("Making component $(dimname[dim])-$i movie ...")
-		tcore = copy(t.core)
 		for j = 1:crank
 			if i !== j
 				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
-				t.core[nt...] .= 0
+				tt.core[nt...] .= 0
 			end
 		end
 		if length(filter) == 0
-			X[i] = TensorDecompositions.compose(t)
+			X[i] = TensorDecompositions.compose(tt)
 		else
-			X[i] = TensorDecompositions.compose(t)[filter...]
+			X[i] = TensorDecompositions.compose(tt)[filter...]
 		end
-		t.core .= tcore
+		tt.core .= t.core
 	end
 	if sizeof(order) == 0
 		order = gettensorcomponentorder(t, dim; method=:factormagnitudect)
@@ -522,7 +528,7 @@ function plot2tensors(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDec
 	plotcmptensor(X1, X2, dim; kw...)
 end
 
-function plot2tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), prefix::String="", movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timestep=1 / sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N))
+function plot2tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), prefix::String="", movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timestep=1 / sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -535,8 +541,8 @@ function plot2tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minva
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
-		g1 = plotmatrix(X1[nt...], minvalue=minvalue, maxvalue=maxvalue, title=ltitle)
-		g2 = plotmatrix(X2[nt...], minvalue=minvalue, maxvalue=maxvalue, title=rtitle)
+		g1 = plotmatrix(X1[nt...], minvalue=minvalue, maxvalue=maxvalue, title=ltitle, colormap=colormap)
+		g2 = plotmatrix(X2[nt...], minvalue=minvalue, maxvalue=maxvalue, title=rtitle, colormap=colormap)
 		g = Compose.hstack(g1, g2)
 		if title != ""
 			t = Compose.compose(Compose.context(0, 0, 1Compose.w, 0.0001Compose.h),
@@ -556,7 +562,7 @@ function plot2tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minva
 		!quiet && (Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
 		if prefix != ""
 			filename = setnewfilename(prefix, i)
-			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=300), p)
+			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=150), p)
 		end
 	end
 	if movie && prefix != ""
@@ -568,6 +574,9 @@ function plot2tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minva
 		end
 		if moviedir == "."
 			moviedir, prefix = splitdir(prefix)
+			if moviedir == ""
+				moviedir = "."
+			end
 		end
 		cleanup && run(`find $moviedir -name $prefix-"frame*.png" -delete`)
 	end
@@ -575,7 +584,7 @@ end
 
 plotcmptensor = plot2tensors
 
-function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integer=1; minvalue=minimum([X1 X2 X3]), maxvalue=maximum([X1 X2 X3]), prefix::String="", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timestep=1 / sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), kw...)
+function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integer=1; minvalue=minimum([X1 X2 X3]), maxvalue=maximum([X1 X2 X3]), prefix::String="", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timestep=1 / sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr, kw...)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -589,9 +598,9 @@ function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
-		g1 = plotmatrix(X1[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ltitle, kw...)
-		g2 = plotmatrix(X2[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ctitle, kw...)
-		g3 = plotmatrix(X3[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=rtitle, kw...)
+		g1 = plotmatrix(X1[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ltitle, colormap=colormap, kw...)
+		g2 = plotmatrix(X2[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ctitle, colormap=colormap, kw...)
+		g3 = plotmatrix(X3[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=rtitle, colormap=colormap, kw...)
 		g = Compose.hstack(g1, g2, g3)
 		if progressbar
 			f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0.001Compose.h),
@@ -606,7 +615,7 @@ function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::
 		!quiet && (Gadfly.draw(Gadfly.PNG(hsize, vsize), p); println())
 		if prefix != ""
 			filename = setnewfilename(prefix, i)
-			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=300), p)
+			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=150), p)
 		end
 	end
 	if movie && prefix != ""
@@ -618,6 +627,9 @@ function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::
 		end
 		if moviedir == "."
 			moviedir, prefix = splitdir(prefix)
+			if moviedir == ""
+				moviedir = "."
+			end
 		end
 		cleanup && run(`find $moviedir -name $prefix-"frame*.png" -delete`)
 	end
