@@ -1,4 +1,4 @@
-module dNTF
+module NTFk
 
 "Checks if package is available"
 function ispkgavailable(modulename::String; quiet::Bool=false)
@@ -57,14 +57,14 @@ import JLD
 
 const dntfdir = splitdir(Base.source_path())[1]
 
-include("dntf-analysis.jl")
+include("analysis.jl")
+include("plot.jl")
 include("tensordecompositions-helpers.jl")
 include("tensordecompositions-memory.jl")
 include("tensordecompositions-analysis.jl")
 include("tensordecompositions-decomposition.jl")
-include("tensor-display.jl")
 if isdefined(:MATLAB)
-    include("tensortoolbox-analysis.jl")
+    include("matlab-tensortoolbox-analysis.jl")
 end
 
 end
