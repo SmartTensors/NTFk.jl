@@ -1,4 +1,4 @@
-import dNTF
+import NTFk
 
 tsize = (2, 10, 5)
 T_orig = Array{Float64}(tsize)
@@ -9,9 +9,9 @@ T_orig[:,:,4] = [zeros(2,6) ones(2,2) zeros(2,2)]
 T_orig[:,:,5] = [zeros(2,8) ones(2,2)]
 T_orig .*= 100
 
-# T = dNTF.add_noise(T_orig, 0.6, true)
+# T = NTFk.add_noise(T_orig, 0.6, true)
 T = T_orig
 
 tranks = [1, 2, 3, 4, 5]
-t, c, ibest = dNTF.analysis(T, tranks, 10; method=:cp_nmu)
-dNTF.plotcmptensor(T, t[ibest], 3; progressbar=false)
+t, c, ibest = NTFk.analysis(T, tranks, 10; method=:cp_nmu)
+NTFk.plotcmptensor(T, t[ibest], 3; progressbar=false)

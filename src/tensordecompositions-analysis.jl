@@ -92,13 +92,13 @@ function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, x
 	if length(csize) == 0
 		if !skipmakemovies && !skipmakedatamovie
 			info("Making problem movie for $(case) ...")
-			dNTF.plottensor(X[timeindex, xindex, yindex]; movie=makemovie, moviedir=moviedir, prefix="$(case)", quiet=quiet)
+			NTFk.plottensor(X[timeindex, xindex, yindex]; movie=makemovie, moviedir=moviedir, prefix="$(case)", quiet=quiet)
 		end
 		xrank = length(collect(xindex))
 		yrank = length(collect(yindex))
 		trank = trank
 		info("Solving $(problemname) problem for $(case) ...")
-		t, csize = dNTF.analysis(X[timeindex, xindex, yindex], [(trank, xrank, yrank)]; resultdir=resultdir, keyword="$(case)-", seed=seed, tol=tol, ini_decomp=ini_decomp, core_nonneg=true, verbose=false, max_iter=max_iter, lambda=lambda)
+		t, csize = NTFk.analysis(X[timeindex, xindex, yindex], [(trank, xrank, yrank)]; resultdir=resultdir, keyword="$(case)-", seed=seed, tol=tol, ini_decomp=ini_decomp, core_nonneg=true, verbose=false, max_iter=max_iter, lambda=lambda)
 	else
 		t = loadresults(case, csize; resultdir=resultdir)
 		if t == nothing
@@ -109,21 +109,21 @@ function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, x
 		if !skipmaketimemovies
 			info("Making $(problemname) problem comparison movie for $(case) ...")
 			nt = TensorDecompositions.compose(t[1])
-			dNTF.plotcmptensor(X[timeindex, xindex, yindex], nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])", quiet=quiet)
+			NTFk.plotcmptensor(X[timeindex, xindex, yindex], nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])", quiet=quiet)
 			info("Making $(problemname) problem leftover movie for $(case) ...")
-			dNTF.plotlefttensor(X[timeindex, xindex, yindex], nt, X[timeindex, xindex, yindex] .- nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-left", quiet=quiet)
+			NTFk.plotlefttensor(X[timeindex, xindex, yindex], nt, X[timeindex, xindex, yindex] .- nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-left", quiet=quiet)
 			info("Making $(problemname) problem component T movie for $(case) ...")
-			dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-t", quiet=quiet)
+			NTFk.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-t", quiet=quiet)
 		end
 		info("Making $(problemname) 2D component plot for $(case) ...")
-		dNTF.plot2dtensorcomponents(t[1]; quiet=quiet, filename="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-t2d.png", figuredir=figuredir)
+		NTFk.plot2dtensorcomponents(t[1]; quiet=quiet, filename="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-t2d.png", figuredir=figuredir)
 		if !skipmaketimemovies && !skipxymakemovies
 			info("Making $(problemname) problem component X movie for $(case) ...")
-			dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-x", quiet=quiet)
-			dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2, 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-xt", quiet=quiet)
+			NTFk.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-x", quiet=quiet)
+			NTFk.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2, 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-xt", quiet=quiet)
 			info("Making $(problemname) problem component Y movie for $(case) ...")
-			dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-y", quiet=quiet)
-			dNTF.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3, 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-yt", quiet=quiet)
+			NTFk.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-y", quiet=quiet)
+			NTFk.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3, 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-yt", quiet=quiet)
 		end
 	end
 	return csize
@@ -155,9 +155,9 @@ function analysis{T,N}(X::Array{T,N}, sizes=[size(X)], nTF=1; resultdir::String=
 			normalizecore!(tsi[n])
 			f = tsi[n].factors[1]'
 			f[f.==0] = 1e-6
-			# p = dNTF.plotmatrix(cpi[n].factors[1]')
+			# p = NTFk.plotmatrix(cpi[n].factors[1]')
 			# display(p); println()
-			# p = dNTF.plotmatrix(f)
+			# p = NTFk.plotmatrix(f)
 			# display(p); println()
 			# @show minimum(cpi[n].lambdas), maximum(cpi[n].lambdas)
 			WBig[n] = hcat(f)
@@ -198,7 +198,7 @@ function analysis{T,N}(X::Array{T,N}, sizes=[size(X)], nTF=1; resultdir::String=
 		end
 		println("$i - $(sizes[i]): residual $(residues[i]) worst tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core)) silhouette $(minsilhouette[i])")
 	end
-	# dNTF.atensor(tucker_spnn[ibest].core)
+	# NTFk.atensor(tucker_spnn[ibest].core)
 	csize = TensorToolbox.mrank(tucker_spnn[ibest].core)
 	info("Estimated true core size: $(csize)")
 	JLD.save("$(resultdir)/$(keyword)$(csize[1])_$(csize[2])_$(csize[3]).jld", "t", tucker_spnn)
@@ -232,13 +232,13 @@ function analysis{T,N}(X::Array{T,N}, tranks::Vector{Int64}, nTF=1; resultdir::S
 		WBig = Vector{Matrix}(nTF)
 		cpbest = nothing
 		for n = 1:nTF
-			@time cpi[n] = dNTF.candecomp(X, tranks[i]; verbose=verbose, maxiter=max_iter, method=method, tol=tol, kw...)
+			@time cpi[n] = NTFk.candecomp(X, tranks[i]; verbose=verbose, maxiter=max_iter, method=method, tol=tol, kw...)
 			residues2[n] = TensorDecompositions.rel_residue(cpi[n], X)
 			normalizelambdas!(cpi[n])
 			f = map(k->abs.(cpi[n].factors[k]'), 1:ndimensons)
-			# p = dNTF.plotmatrix(cpi[n].factors[1]')
+			# p = NTFk.plotmatrix(cpi[n].factors[1]')
 			# display(p); println()
-			# p = dNTF.plotmatrix(f)
+			# p = NTFk.plotmatrix(f)
 			# display(p); println()
 			# @show minimum(cpi[n].lambdas), maximum(cpi[n].lambdas)
 			WBig[n] = hcat(f...)

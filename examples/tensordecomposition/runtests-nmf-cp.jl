@@ -1,4 +1,4 @@
-import dNTF
+import NTFk
 
 srand(2015)
 a = rand(20)
@@ -13,13 +13,13 @@ T_orig[:,:,1] = X
 T_orig[:,:,2] = X * 2
 T_orig[:,:,3] = X * 3
 
-# T = dNTF.add_noise(T_orig, 0.6, true)
+# T = NTFk.add_noise(T_orig, 0.6, true)
 T = T_orig
 
 tranks = [2, 3, 4]
-cpf, csize, ibest = dNTF.analysis(T, tranks, 10; method=:cp_als, quiet=false)
+cpf, csize, ibest = NTFk.analysis(T, tranks, 10; method=:cp_als, quiet=false)
 
-dNTF.plotcmptensor(T_orig, T_esta[ibest], 3; progressbar=false)
+NTFk.plotcmptensor(T_orig, T_esta[ibest], 3; progressbar=false)
 @show ibest
 @show cor(W[:,1], cpf[ibest].factors[1][:,1])
 @show cor(W[:,2], cpf[ibest].factors[1][:,2])

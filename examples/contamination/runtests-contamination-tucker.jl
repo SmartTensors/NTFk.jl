@@ -1,4 +1,4 @@
-import dNTF
+import NTFk
 import TensorDecompositions
 import TensorToolbox
 import JLD
@@ -40,7 +40,7 @@ for i in 1:nruns
 end
 
 csize = TensorToolbox.mrank(tucker_spnn[ibest].core)
-dNTF.atensor(tucker_spnn[ibest].core)
+NTFk.atensor(tucker_spnn[ibest].core)
 ndimensons = length(csize)
 info("Estimated true core size: $(csize)")
 
@@ -79,4 +79,4 @@ for i in 1:nruns
 	println("$i - $(sizes[i]): residual $(residues[i]) tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core))")
 end
 
-dNTF.plotcmptensor(T_orig, T_esta[ibest], 3)
+NTFk.plotcmptensor(T_orig, T_esta[ibest], 3)

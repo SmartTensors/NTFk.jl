@@ -1,4 +1,4 @@
-import dNTF
+import NTFk
 import TensorDecompositions
 import JLD
 
@@ -40,4 +40,4 @@ for i in 1:nruns
 	println("$i - $(tranks[i]): residual $(residues[i]) tensor correlations $(correlations[i,:]) ")
 end
 
-dNTF.plotcmptensor(T_orig, T_esta[ibest], 3)
+NTFk.plotcmptensor(T_orig, T_esta[ibest], 3)

@@ -1,4 +1,4 @@
-import dNTF
+import NTFk
 
 function makesignal(s, t, v)
 	a = zeros(s, t)
@@ -28,11 +28,11 @@ for i = 1:tsize[2]
 		T[:,i,:] = tt[m[i]]
 	end
 end
-dNTF.plottensor(T)
+NTFk.plottensor(T)
 
 # tranks = [20]
-# tc, c, ibest = dNTF.analysis(T, tranks; method=:cp_als)
-# dNTF.plotcmptensor(T, tc[ibest]; minvalue=0, maxvalue=1000000)
-# tt, c, ibest = dNTF.analysis(T, [tsize]; progressbar=true, tol=1e-16, max_iter=100000, lambda=1e-12)
+# tc, c, ibest = NTFk.analysis(T, tranks; method=:cp_als)
+# NTFk.plotcmptensor(T, tc[ibest]; minvalue=0, maxvalue=1000000)
+# tt, c, ibest = NTFk.analysis(T, [tsize]; progressbar=true, tol=1e-16, max_iter=100000, lambda=1e-12)
 th = TensorDecompositions.hosvd(T, tsize)
-dNTF.plotcmptensor(T, th; minvalue=0, maxvalue=1)
+NTFk.plotcmptensor(T, th; minvalue=0, maxvalue=1)

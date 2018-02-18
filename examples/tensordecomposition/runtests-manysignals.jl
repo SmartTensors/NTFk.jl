@@ -1,4 +1,4 @@
-import dNTF
+import NTFk
 
 function makesignal(s, t, v)
 	a = zeros(s, t)
@@ -28,20 +28,20 @@ for i = 1:tsize[2]
 		T[:,i,:] = tt[m[i]]
 	end
 end
-dNTF.plottensor(T; movie=true, prefix="movies/signals-$(length(v))-50_50_50", quiet=true)
-# dNTF.plottensor(T)
+NTFk.plottensor(T; movie=true, prefix="movies/signals-$(length(v))-50_50_50", quiet=true)
+# NTFk.plottensor(T)
 
 # tranks = [20]
-# tc, c, ibest = dNTF.analysis(T, tranks; method=:cp_als)
-# dNTF.plotcmptensor(T, tc[ibest]; minvalue=0, maxvalue=1000000)
-# tt, c, ibest = dNTF.analysis(T, [tsize]; progressbar=true, max_iter=100000, lambda=1e-12)
-# tt, c, ibest = dNTF.analysis(T, [tsize]; progressbar=true, core_nonneg=false)
-# dNTF.plotcmptensor(T, tt[ibest]; minvalue=0, maxvalue=100)
+# tc, c, ibest = NTFk.analysis(T, tranks; method=:cp_als)
+# NTFk.plotcmptensor(T, tc[ibest]; minvalue=0, maxvalue=1000000)
+# tt, c, ibest = NTFk.analysis(T, [tsize]; progressbar=true, max_iter=100000, lambda=1e-12)
+# tt, c, ibest = NTFk.analysis(T, [tsize]; progressbar=true, core_nonneg=false)
+# NTFk.plotcmptensor(T, tt[ibest]; minvalue=0, maxvalue=100)
 th = TensorDecompositions.hosvd(T, tsize)
-# dNTF.plotcmptensor(T, th; minvalue=0, maxvalue=1)
-dNTF.plotcmptensor(T, th; minvalue=0, maxvalue=1, movie=true, prefix="movies/signals-$(length(v))-50_50_50-cmp", quiet=true)
-dNTF.normalizefactors!(th)
-dNTF.normalizecore!(th)
+# NTFk.plotcmptensor(T, th; minvalue=0, maxvalue=1)
+NTFk.plotcmptensor(T, th; minvalue=0, maxvalue=1, movie=true, prefix="movies/signals-$(length(v))-50_50_50-cmp", quiet=true)
+NTFk.normalizefactors!(th)
+NTFk.normalizecore!(th)
 g = similar(th.factors[2][:,1])
 for i = 1:length(v)
 	m = th.factors[2][:,i] .>0.9
@@ -49,5 +49,5 @@ for i = 1:length(v)
 end
 ig = sortperm(g)
 Te = TensorDecompositions.compose(th)
-# dNTF.plotcmptensor(T, Te[:, ig, :]; minvalue=0, maxvalue=1)
-dNTF.plotcmptensor(T, Te[:, ig, :]; minvalue=0, maxvalue=1, movie=true, prefix="movies/signals-$(length(v))-50_50_50-decomp", quiet=true)
+# NTFk.plotcmptensor(T, Te[:, ig, :]; minvalue=0, maxvalue=1)
+NTFk.plotcmptensor(T, Te[:, ig, :]; minvalue=0, maxvalue=1, movie=true, prefix="movies/signals-$(length(v))-50_50_50-decomp", quiet=true)

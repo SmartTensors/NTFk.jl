@@ -1,4 +1,4 @@
-import dNTF
+import NTFk
 import Base.Test
 
 @Base.Test.testset "NTFk" begin
