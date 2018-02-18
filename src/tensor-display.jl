@@ -720,5 +720,53 @@ function setnewfilename(filename::String, frame::Integer=0; keyword::String="fra
 	end
 end
 
+function plot2d(T::Array, Te::Array; quiet::Bool=false, ymin=nothing, ymax=nothing, wellnames=nothing, Tmax=nothing, Tmin=nothing, xtitle::String="x", ytitle::String="y", figuredir="results", hsize=8Gadfly.inch, vsize=4Gadfly.inch, keyword="", dimname="Well", colors=[parse(Colors.Colorant, "green"), parse(Colors.Colorant, "orange"), parse(Colors.Colorant, "blue"), parse(Colors.Colorant, "gray")], gm=[Gadfly.Guide.manual_color_key("", ["Oil", "Gas", "Water"], colors[1:3])])
+	c = size(T)
+	if wellnames != nothing
+		@assert length(wellnames) == c[1]
+	end
+	@assert c == size(Te)
+	if Tmax != nothing && Tmin != nothing
+		@assert size(Tmax) == size(Tmin)
+		append = ""
+	else
+		append = "_normalized"
+	end
+	if keyword != ""
+		append *= "_$(keyword)"
+	end
+	for w = 1:c[1]
+		!quiet && (if wellnames != nothing
+			println("$dimname $w : $(wellnames[w])")
+		else
+			println("$dimname $w")
+		end)
+		p = Vector{Any}(c[3] * 2)
+		pc = 1
+		for i = 1:c[3]
+			y = T[w,:,i]
+			ye = Te[w,:,i]
+			if Tmax != nothing && Tmin != nothing
+				y = y * (Tmax[w,i] - Tmin[w,i]) + Tmin[w,i]
+				ye = ye * (Tmax[w,i] - Tmin[w,i]) + Tmin[w,i]
+			end
+			p[pc] = Gadfly.layer(x=1:c[2], y=y, Gadfly.Geom.line, Gadfly.Theme(line_width=1Gadfly.pt, default_color=colors[i]))
+			pc += 1
+			p[pc] = Gadfly.layer(x=1:c[2], y=ye, Gadfly.Geom.line, Gadfly.Theme(line_width=1Gadfly.pt, line_style=:dash, default_color=colors[i]))
+			pc += 1
+		end
+		tm = (ymin == nothing && ymax == nothing) ? [] : [Gadfly.Coord.Cartesian(ymin=ymin, ymax=ymax)]
+		if wellnames != nothing
+			tm = [tm..., Gadfly.Guide.title("$dimname $(wellnames[w])")]
+			filename = "$(figuredir)/$(lowercase(dimname))_$(wellnames[w])$(append).png"
+		else
+			filename = "$(figuredir)/$(lowercase(dimname))$(append).png"
+		end
+		f = Gadfly.plot(p..., tm..., Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm...)
+		Gadfly.draw(Gadfly.PNG(filename, hsize, vsize, dpi=300), f)
+		!quiet && (display(f); println())
+	end
+end
+
 "Convert `@sprintf` macro into `sprintf` function"
 sprintf(args...) = eval(:@sprintf($(args...)))
