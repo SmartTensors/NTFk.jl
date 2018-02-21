@@ -13,6 +13,8 @@ function makesignal(s, t, v)
 	return a
 end
 
+srand(10)
+
 tsize = (50, 50, 50)
 v = [1.1,1.2,1.3,1.4,1.5,1.6]
 tt = Vector(length(v))
@@ -28,7 +30,7 @@ for i = 1:tsize[2]
 		T[:,i,:] = tt[m[i]]
 	end
 end
-NTFk.plottensor(T; movie=true, prefix="movies/signals-$(length(v))-50_50_50", quiet=true)
+# NTFk.plottensor(T; movie=true, prefix="movies/signals-$(length(v))-50_50_50", quiet=true)
 # NTFk.plottensor(T)
 
 # tranks = [20]
@@ -39,15 +41,10 @@ NTFk.plottensor(T; movie=true, prefix="movies/signals-$(length(v))-50_50_50", qu
 # NTFk.plotcmptensor(T, tt[ibest]; minvalue=0, maxvalue=100)
 th = TensorDecompositions.hosvd(T, tsize)
 # NTFk.plotcmptensor(T, th; minvalue=0, maxvalue=1)
-NTFk.plotcmptensor(T, th; minvalue=0, maxvalue=1, movie=true, prefix="movies/signals-$(length(v))-50_50_50-cmp", quiet=true)
+# NTFk.plotcmptensor(T, th; minvalue=0, maxvalue=1, movie=true, prefix="movies/signals-$(length(v))-50_50_50-cmp", quiet=true)
 NTFk.normalizefactors!(th)
 NTFk.normalizecore!(th)
-g = similar(th.factors[2][:,1])
-for i = 1:length(v)
-	m = th.factors[2][:,i] .>0.9
-	g[m] = i
-end
-ig = sortperm(g)
+ig = sortperm(NTFk.gettensorcomponentgroups(th, 2))
 Te = TensorDecompositions.compose(th)
-# NTFk.plotcmptensor(T, Te[:, ig, :]; minvalue=0, maxvalue=1)
-NTFk.plotcmptensor(T, Te[:, ig, :]; minvalue=0, maxvalue=1, movie=true, prefix="movies/signals-$(length(v))-50_50_50-decomp", quiet=true)
+NTFk.plotcmptensor(T, Te[:, ig, :]; minvalue=0, maxvalue=1)
+# NTFk.plotcmptensor(T, Te[:, ig, :]; minvalue=0, maxvalue=1, movie=true, prefix="movies/signals-$(length(v))-50_50_50-decomp", quiet=true)

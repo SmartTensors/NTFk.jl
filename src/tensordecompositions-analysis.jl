@@ -132,7 +132,7 @@ end
 """
 methods: spnntucker, tucker_als, tucker_sym
 """
-function analysis{T,N}(X::Array{T,N}, sizes=[size(X)], nTF=1; resultdir::String=".", keyword::String="", seed::Number=0, tol=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=DMAXITER, lambda::Number=0.1, lambdas=fill(lambda, length(size(X)) + 1), progressbar::Bool=false, quiet::Bool=true)
+function analysis{T,N}(X::Array{T,N}, sizes=[size(X)], nTF=1; resultdir::String=".", keyword::String="", seed::Number=0, tol=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=DMAXITER, lambda::Number=0.1, lambdas=fill(lambda, length(size(X)) + 1), eigmethod=trues(N), progressbar::Bool=false, quiet::Bool=true)
 	info("TensorDecompositions Tucker analysis ...")
 	seed > 0 && srand(seed)
 	tsize = size(X)
@@ -150,7 +150,7 @@ function analysis{T,N}(X::Array{T,N}, sizes=[size(X)], nTF=1; resultdir::String=
 		WBig = Vector{Matrix}(nTF)
 		tsbest = nothing
 		for n = 1:nTF
-			@time tsi[n] = TensorDecompositions.spnntucker(X, sizes[i]; tol=tol, ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=max_iter, lambdas=lambdas, progressbar=progressbar)
+			@time tsi[n] = TensorDecompositions.spnntucker(X, sizes[i]; eigmethod=eigmethod, tol=tol, ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=max_iter, lambdas=lambdas, progressbar=progressbar)
 			residues2[n] = TensorDecompositions.rel_residue(tsi[n], X)
 			normalizecore!(tsi[n])
 			f = tsi[n].factors[1]'
