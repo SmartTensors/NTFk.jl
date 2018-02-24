@@ -4,6 +4,7 @@ import Compose
 import TensorToolbox
 import TensorDecompositions
 import Distributions
+import Interpolations
 
 colors = ["red", "blue", "green", "orange", "magenta", "cyan", "brown", "pink", "lime", "navy", "maroon", "yellow", "olive", "springgreen", "teal", "coral", "lavender", "beige"]
 ncolors = length(colors)
@@ -61,6 +62,50 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; cor
 	m = maximum.(Xe)
 	imax = sortperm(m; rev=true)
 	return Xe[imax[1:crank]]
+end
+
+function getgridvalues(v, r; logtransform=true)
+	lv = length(v)
+	lr = length(r)
+	@assert lv == lr
+	f = similar(v)
+	for i=1:lv
+		try
+			if logtransform
+				f[i] = Interpolations.interpolate((log10.(r[i]),), 1:length(r[i]), Interpolations.Gridded(Interpolations.Linear()))[log10(v[i])]
+			else
+				f[i] = Interpolations.interpolate((r[i],), 1:length(r[i]), Interpolations.Gridded(Interpolations.Linear()))[v[i]]
+			end
+		catch
+			if logtransform
+				f[i] = Interpolations.interpolate((sort!(log10.(r[i])),), length(r[i]):-1:1, Interpolations.Gridded(Interpolations.Linear()))[log10(v[i])]
+			else
+				f[i] = Interpolations.interpolate((sort!(r[i]),), length(r[i]):-1:1, Interpolations.Gridded(Interpolations.Linear()))[v[i]]
+			end
+		end
+	end
+	return f
+end
+
+function getinterpolatedtensor{T,N}(t::TensorDecompositions.Tucker{T,N}, v; sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line())), Interpolations.OnCell()])
+	lv = length(v)
+	f = Vector(lv)
+	factors = []
+	for i = 1:N
+		push!(factors, t.factors[i])
+	end
+	for j = 1:lv
+		if !isnan(v[j])
+			cv = size(t.factors[j], 2)
+			f = Array{T}(1,cv)
+			for i = 1:cv
+				f[1, i] = Interpolations.interpolate(t.factors[j][:, i], sp...)[v[j]]
+			end
+			factors[j] = f
+		end
+	end
+	tn = TensorDecompositions.Tucker((factors...), t.core)
+	return tn
 end
 
 function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core)
@@ -364,7 +409,7 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.CANDECOMP; pre
 			X2 = TensorDecompositions.compose(tt)[filter...]
 		end
 		tt.lambdas .= t2.lambdas
-		NTFk.plot2tensors(X1, X2; progressbar=false, prefix=prefix * string(i), kw...)
+		plot2tensors(X1, X2; progressbar=false, prefix=prefix * string(i), kw...)
 	end
 end
 
@@ -403,7 +448,7 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::I
 		end
 		tt.core .= t2.core
 		title = pdim > 1 ? "$(dimname[dim])-$i" : ""
-		NTFk.plot2tensors(permutedims(X1, pt), permutedims(X2, pt); progressbar=false, title=title, prefix=prefix * string(i),  kw...)
+		plot2tensors(permutedims(X1, pt), permutedims(X2, pt); progressbar=false, title=title, prefix=prefix * string(i),  kw...)
 	end
 end
 
@@ -446,7 +491,7 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 	if sizeof(order) == 0
 		order = gettensorcomponentorder(t, dim; method=:factormagnitudect)
 	end
-	NTFk.plot2tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt); prefix=prefix, kw...)
+	plot2tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt); prefix=prefix, kw...)
 end
 
 function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String="", filter=(), order=[], kw...)
@@ -489,7 +534,7 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 	if sizeof(order) == 0
 		order = gettensorcomponentorder(t2, dim; method=:factormagnitudect)
 	end
-	NTFk.plot3tensors(permutedims(X1, pt), permutedims(X2[order[1]], pt), permutedims(X2[order[2]], pt); prefix=prefix, kw...)
+	plot3tensors(permutedims(X1, pt), permutedims(X2[order[1]], pt), permutedims(X2[order[2]], pt); prefix=prefix, kw...)
 end
 
 function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t.core), sizes=size(X), timestep=1/sizes[dim], cleanup::Bool=true, movie::Bool=false, moviedir=".", prefix::String="", title="", quiet::Bool=false, filter=(), order=[], minvalue=minimum(X), maxvalue=maximum(X), hsize=12Compose.inch, vsize=12Compose.inch, colormap=colormap_gyr, kw...)
@@ -579,15 +624,15 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 	if sizeof(order) == 0
 		order = gettensorcomponentorder(t, dim; method=:factormagnitudect)
 	end
-	NTFk.plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt); prefix=prefix, kw...)
+	plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt); prefix=prefix, kw...)
 end
 
 function plot2tensors(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
 	X2 = TensorDecompositions.compose(T2)
-	plotcmptensor(X1, X2, dim; kw...)
+	plot2tensors(X1, X2, dim; kw...)
 end
 
-function plot2tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), prefix::String="", movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timestep=1/sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr)
+function plot2tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", prefix::String = "", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timestep=1/sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -641,9 +686,9 @@ function plot2tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minva
 	end
 end
 
-plotcmptensor = plot2tensors
+plotcmptensors = plot2tensors
 
-function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integer=1; minvalue=minimum([X1 X2 X3]), maxvalue=maximum([X1 X2 X3]), prefix::String="", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timestep=1/sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr, kw...)
+function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integer=1; minvalue=minimum([X1 X2 X3]), maxvalue=maximum([X1 X2 X3]), minvalue3=minvalue, maxvalue3=maxvalue, prefix::String="", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timestep=1/sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr, kw...)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -659,7 +704,7 @@ function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::
 		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
 		g1 = plotmatrix(X1[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ltitle, colormap=colormap, kw...)
 		g2 = plotmatrix(X2[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ctitle, colormap=colormap, kw...)
-		g3 = plotmatrix(X3[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=rtitle, colormap=colormap, kw...)
+		g3 = plotmatrix(X3[nt...]; minvalue=minvalue3, maxvalue=maxvalue3, title=rtitle, colormap=colormap, kw...)
 		g = Compose.hstack(g1, g2, g3)
 		if progressbar
 			f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0.001Compose.h),
@@ -694,9 +739,15 @@ function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::
 	end
 end
 
+function plotlefttensor(X1::Array, X2::Array, dim::Integer=1; kw...)
+	D=X2-X1
+	plot3tensors(X1, X2, D, dim; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), minvalue3=minimum(D), maxvalue3=maximum(D), kw...)
+end
+
 function plotlefttensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
 	X2 = TensorDecompositions.compose(T2)
-	plot3tensors(X1, X2, X2-X1, dim; kw...)
+	D=X2-X1
+	plot3tensors(X1, X2, D, dim; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), minvalue3=minimum(D), maxvalue3=maximum(D), kw...)
 end
 
 function setnewfilename(filename::String, frame::Integer=0; keyword::String="frame")
