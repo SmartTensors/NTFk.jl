@@ -178,12 +178,12 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	nx, ny = size(t.factors[dim])
 	xvalues = timescale ? vec(collect(1/nx:1/nx:1)) : vec(collect(1:nx))
 	componentnames = map(i->"T$i", 1:crank)
-	order = gettensorcomponentorder(t, dim; method=:factormagnitudect)
+	order = gettensorcomponentorder(t, dim; method=:factormagnitude)
 	p = t.factors[dim]
 	pl = Vector{Any}(crank)
 	for i = 1:crank
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
-		pl[i] = Gadfly.layer(x=xvalues, y=abs.(p[:, order[i]]), Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
+		pl[i] = Gadfly.layer(x=xvalues, y=p[:, order[i]], Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
 	end
 	tc = loopcolors ? [] : [Gadfly.Guide.manual_color_key("", componentnames, colors[1:crank])]
 	tm = (ymin == nothing && ymax == nothing) ? [] : [Gadfly.Coord.Cartesian(ymin=ymin, ymax=ymax)]
@@ -207,7 +207,7 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	nx, ny = size(t.factors[dim])
 	xvalues = timescale ? vec(collect(1/nx:1/nx:1)) : vec(collect(1:nx))
 	componentnames = map(i->"T$i", 1:crank)
-	order = gettensorcomponentorder(t, dim; method=:factormagnitudect)
+	order = gettensorcomponentorder(t, dim; method=:factormagnitude)
 	dp = Vector{Int64}(0)
 	for i = 1:ndimensons
 		if i != dim
@@ -251,7 +251,7 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	nx, ny = size(t.factors[dim])
 	xvalues = timescale ? vec(collect(1/nx:1/nx:1)) : vec(collect(1:nx))
 	componentnames = map(i->"T$i", 1:crank)
-	order = gettensorcomponentorder(t, dim; method=:factormagnitudect)
+	order = gettensorcomponentorder(t, dim; method=:factormagnitude)
 	dp = Vector{Int64}(0)
 	for i = 1:ndimensons
 		if i != dim
@@ -489,7 +489,7 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		tt.core .= t.core
 	end
 	if sizeof(order) == 0
-		order = gettensorcomponentorder(t, dim; method=:factormagnitudect)
+		order = gettensorcomponentorder(t, dim; method=:factormagnitude)
 	end
 	plot2tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt); prefix=prefix, kw...)
 end
@@ -532,7 +532,7 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 		tt.core .= t2.core
 	end
 	if sizeof(order) == 0
-		order = gettensorcomponentorder(t2, dim; method=:factormagnitudect)
+		order = gettensorcomponentorder(t2, dim; method=:factormagnitude)
 	end
 	plot3tensors(permutedims(X1, pt), permutedims(X2[order[1]], pt), permutedims(X2[order[2]], pt); prefix=prefix, kw...)
 end
@@ -622,7 +622,7 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		tt.core .= t.core
 	end
 	if sizeof(order) == 0
-		order = gettensorcomponentorder(t, dim; method=:factormagnitudect)
+		order = gettensorcomponentorder(t, dim; method=:factormagnitude)
 	end
 	plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt); prefix=prefix, kw...)
 end
@@ -739,15 +739,25 @@ function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::
 	end
 end
 
-function plotlefttensor(X1::Array, X2::Array, dim::Integer=1; kw...)
+function plotlefttensor(X1::Array, X2::Array, dim::Integer=1; center=true, kw...)
 	D=X2-X1
-	plot3tensors(X1, X2, D, dim; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), minvalue3=minimum(D), maxvalue3=maximum(D), kw...)
+	min3 = minimum(D)
+	max3 = maximum(D)
+	if center
+		min3, max3 = min(min3, -max3), max(max3, -min3)
+	end
+	plot3tensors(X1, X2, D, dim; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), minvalue3=min3, maxvalue3=max3, kw...)
 end
 
-function plotlefttensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
+function plotlefttensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; center=true, kw...)
 	X2 = TensorDecompositions.compose(T2)
 	D=X2-X1
-	plot3tensors(X1, X2, D, dim; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), minvalue3=minimum(D), maxvalue3=maximum(D), kw...)
+	min3 = minimum(D)
+	max3 = maximum(D)
+	if center
+		min3, max3 = min(min3, -max3), max(max3, -min3)
+	end
+	plot3tensors(X1, X2, D, dim; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), minvalue3=min3, maxvalue3=max3, kw...)
 end
 
 function setnewfilename(filename::String, frame::Integer=0; keyword::String="frame")
