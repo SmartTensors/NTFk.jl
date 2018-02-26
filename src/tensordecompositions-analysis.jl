@@ -319,8 +319,12 @@ function atensor(X::Array)
 	for i = 1:nd
 		info("D$i ($(tsize[i]))")
 		for j = 1:tsize[i]
-			st = ntuple(k->(k == i ? j : Colon()), 3)
-			r = rank(X[st...])
+			st = ntuple(k->(k == i ? j : Colon()), nd)
+			if nd == 3
+				r = rank(X[st...])
+			else
+				r = TensorToolbox.mrank(X[st...])
+			end
 			z = count(X[st...] .> 0)
 			println("$j : rank $r non-zeros $z")
 			# display(X[st...])
