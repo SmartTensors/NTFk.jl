@@ -98,7 +98,7 @@ function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, x
 		yrank = length(collect(yindex))
 		trank = trank
 		info("Solving $(problemname) problem for $(case) ...")
-		t, csize = NTFk.analysis(X[timeindex, xindex, yindex], [(trank, xrank, yrank)]; resultdir=resultdir, keyword="$(case)-", seed=seed, tol=tol, ini_decomp=ini_decomp, core_nonneg=true, verbose=false, max_iter=max_iter, lambda=lambda)
+		t, csize = NTFk.analysis(X[timeindex, xindex, yindex], [(trank, xrank, yrank)]; resultdir=resultdir, prefix="$(case)-", seed=seed, tol=tol, ini_decomp=ini_decomp, core_nonneg=true, verbose=false, max_iter=max_iter, lambda=lambda)
 	else
 		t = loadresults(case, csize; resultdir=resultdir)
 		if t == nothing
@@ -132,7 +132,7 @@ end
 """
 methods: spnntucker, tucker_als, tucker_sym
 """
-function analysis{T,N}(X::Array{T,N}, sizes=[size(X)], nTF=1; resultdir::String=".", keyword::String="", seed::Number=0, tol=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=DMAXITER, lambda::Number=0.1, lambdas=fill(lambda, length(size(X)) + 1), eigmethod=trues(N), progressbar::Bool=false, quiet::Bool=true)
+function analysis{T,N}(X::Array{T,N}, sizes=[size(X)], nTF=1; resultdir::String=".", prefix::String="", seed::Number=0, tol=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=DMAXITER, lambda::Number=0.1, lambdas=fill(lambda, length(size(X)) + 1), eigmethod=trues(N), progressbar::Bool=false, quiet::Bool=true)
 	info("TensorDecompositions Tucker analysis ...")
 	seed > 0 && srand(seed)
 	tsize = size(X)
@@ -201,14 +201,14 @@ function analysis{T,N}(X::Array{T,N}, sizes=[size(X)], nTF=1; resultdir::String=
 	# NTFk.atensor(tucker_spnn[ibest].core)
 	csize = TensorToolbox.mrank(tucker_spnn[ibest].core)
 	info("Estimated true core size: $(csize)")
-	JLD.save("$(resultdir)/$(keyword)$(csize[1])_$(csize[2])_$(csize[3]).jld", "t", tucker_spnn)
+	JLD.save("$(resultdir)/$(prefix)$(csize[1])_$(csize[2])_$(csize[3]).jld", "t", tucker_spnn)
 	return tucker_spnn, csize, ibest
 end
 
 """
 methods: ALS, SGSD, cp_als, cp_apr, cp_nmu, cp_opt, cp_sym, cp_wopt
 """
-function analysis{T,N}(X::Array{T,N}, tranks::Vector{Int64}, nTF=1; resultdir::String=".", keyword::String="", seed::Number=-1, tol=1e-8, verbose=false, max_iter=DMAXITER, method=:ALS, quiet=true, kw...)
+function analysis{T,N}(X::Array{T,N}, tranks::Vector{Int64}, nTF=1; resultdir::String=".", prefix::String="", seed::Number=-1, tol=1e-8, verbose=false, max_iter=DMAXITER, method=:ALS, quiet=true, kw...)
 	if contains(string(method), "cp_")
 		info("TensorToolbox CanDecomp analysis ...")
 	elseif contains(string(method), "bcu_")
@@ -281,7 +281,7 @@ function analysis{T,N}(X::Array{T,N}, tranks::Vector{Int64}, nTF=1; resultdir::S
 	end
 	csize = length(cpf[ibest].lambdas)
 	info("Estimated true core size: $(csize)")
-	JLD.save("$(resultdir)/$(keyword)$(csize).jld", "t", cpf)
+	JLD.save("$(resultdir)/$(prefix)$(csize).jld", "t", cpf)
 	return cpf, csize, ibest
 end
 
