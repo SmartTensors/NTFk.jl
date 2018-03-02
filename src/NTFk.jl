@@ -48,11 +48,14 @@ macro tryimport(s::Symbol)
     return :($(esc(q)))
 end
 
+import NMFk
 import CanDecomp
 import TensorDecompositions
 import TensorOperations
 import TensorToolbox
 import JLD
+import PyPlot
+import Gadfly
 @tryimport MATLAB
 
 const dntfdir = splitdir(Base.source_path())[1]

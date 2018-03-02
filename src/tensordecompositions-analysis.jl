@@ -25,7 +25,7 @@ function loadcase(case::String; datadir::String=".")
 end
 
 function loadresults(case::String, csize::Tuple=(); resultdir::String=".")
-	filename = "$(resultdir)/$(case)-$(csize[1])_$(csize[2])_$(csize[3]).jld"
+	filename = "$(resultdir)/$(case)-$(mapsize(csize)).jld"
 	if isfile(filename)
 		t = JLD.load(filename, "t")
 		return t
@@ -109,21 +109,21 @@ function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, x
 		if !skipmaketimemovies
 			info("Making $(problemname) problem comparison movie for $(case) ...")
 			nt = TensorDecompositions.compose(t[1])
-			NTFk.plotcmptensor(X[timeindex, xindex, yindex], nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])", quiet=quiet)
+			NTFk.plotcmptensor(X[timeindex, xindex, yindex], nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$((mapsize(csize)))", quiet=quiet)
 			info("Making $(problemname) problem leftover movie for $(case) ...")
-			NTFk.plotlefttensor(X[timeindex, xindex, yindex], nt, X[timeindex, xindex, yindex] .- nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-left", quiet=quiet)
+			NTFk.plotlefttensor(X[timeindex, xindex, yindex], nt, X[timeindex, xindex, yindex] .- nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$((mapsize(csize)))-left", quiet=quiet)
 			info("Making $(problemname) problem component T movie for $(case) ...")
-			NTFk.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-t", quiet=quiet)
+			NTFk.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$((mapsize(csize)))-t", quiet=quiet)
 		end
 		info("Making $(problemname) 2D component plot for $(case) ...")
-		NTFk.plot2dtensorcomponents(t[1]; quiet=quiet, filename="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-t2d.png", figuredir=figuredir)
+		NTFk.plot2dtensorcomponents(t[1]; quiet=quiet, filename="$(case)-$((mapsize(csize)))-t2d.png", figuredir=figuredir)
 		if !skipmaketimemovies && !skipxymakemovies
 			info("Making $(problemname) problem component X movie for $(case) ...")
-			NTFk.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-x", quiet=quiet)
-			NTFk.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2, 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-xt", quiet=quiet)
+			NTFk.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$((mapsize(csize)))-x", quiet=quiet)
+			NTFk.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 2, 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$((mapsize(csize)))-xt", quiet=quiet)
 			info("Making $(problemname) problem component Y movie for $(case) ...")
-			NTFk.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-y", quiet=quiet)
-			NTFk.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3, 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$(csize[1])_$(csize[2])_$(csize[3])-yt", quiet=quiet)
+			NTFk.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$((mapsize(csize)))-y", quiet=quiet)
+			NTFk.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 3, 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$((mapsize(csize)))-yt", quiet=quiet)
 		end
 	end
 	return csize
@@ -201,7 +201,7 @@ function analysis{T,N}(X::Array{T,N}, sizes=[size(X)], nTF=1; resultdir::String=
 	# NTFk.atensor(tucker_spnn[ibest].core)
 	csize = TensorToolbox.mrank(tucker_spnn[ibest].core)
 	info("Estimated true core size: $(csize)")
-	JLD.save("$(resultdir)/$(prefix)$(csize[1])_$(csize[2])_$(csize[3]).jld", "t", tucker_spnn)
+	JLD.save("$(resultdir)/$(prefix)$((mapsize(csize))).jld", "t", tucker_spnn)
 	return tucker_spnn, csize, ibest
 end
 
@@ -392,16 +392,34 @@ function normalizelambdas!{T,N}(X::TensorDecompositions.CANDECOMP{T,N})
 end
 
 function mincorrelations{T,N}(X1::Array{T,N}, X2::Array{T,N})
-	tsize = size(X1)
-	@assert tsize == size(X2)
-	c = Vector{T}(N)
-	c[1] = minimum(map(j->minimum(map(k->corinf(X1[:,k,j], X2[:,k,j]), 1:tsize[2])), 1:tsize[3]))
-	c[2] = minimum(map(j->minimum(map(k->corinf(X1[k,:,j], X2[k,:,j]), 1:tsize[1])), 1:tsize[3]))
-	c[3] = minimum(map(j->minimum(map(k->corinf(X1[k,j,:], X2[k,j,:]), 1:tsize[1])), 1:tsize[2]))
-	return c
+	if N == 3
+		tsize = size(X1)
+		@assert tsize == size(X2)
+		c = Vector{T}(N)
+		c[1] = minimum(map(j->minimum(map(k->corinf(X1[:,k,j], X2[:,k,j]), 1:tsize[2])), 1:tsize[3]))
+		c[2] = minimum(map(j->minimum(map(k->corinf(X1[k,:,j], X2[k,:,j]), 1:tsize[1])), 1:tsize[3]))
+		c[3] = minimum(map(j->minimum(map(k->corinf(X1[k,j,:], X2[k,j,:]), 1:tsize[1])), 1:tsize[2]))
+		return c
+	else
+		warn("Minimum correlations can be computed for 3 dimensional tensors only; D=$N")
+		return NaN
+	end
 end
 
 function corinf{T}(v1::Vector{T}, v2::Vector{T})
 	c = abs.(cor(v1, v2))
 	c = isnan(c) ? Inf : c
+end
+
+function mapsize(csize)
+	c = length(csize)
+	s = ""
+	for i = 1:c
+		if i == c
+			s *= "$(csize[i])"
+		else
+			s *= "$(csize[i])_"
+		end
+	end
+	return s
 end
