@@ -129,6 +129,18 @@ function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, x
 	return csize
 end
 
+function analysis{T,N}(X::Array{T,N}, dsizes::Vector{Int64}, dim, nTF; kw...)
+	csize = collect(size(X))
+	ndimensons = length(csize)
+	sizes = Vector{Tuple}(0)
+	for i in dsizes
+		nt = ntuple(k->(k == dim ? i : csize[k]), ndimensons)
+		push!(sizes, nt)
+	end
+	@show sizes
+	analysis(X, sizes, nTF; kw...)
+end
+
 """
 methods: spnntucker, tucker_als, tucker_sym
 """
