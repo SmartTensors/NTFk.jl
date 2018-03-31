@@ -34,9 +34,9 @@ end
 function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; core::Bool=false)
 	cs = size(t.core)[dim]
 	csize = TensorToolbox.mrank(t.core)
-	crank = csize[dim]
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
+	crank = csize[dim]
 	Xe = Vector{Any}(cs)
 	tt = deepcopy(t)
 	for i = 1:cs
@@ -111,9 +111,9 @@ end
 function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core)
 	cs = size(t.core)[dim]
 	csize = TensorToolbox.mrank(t.core)
-	crank = csize[dim]
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
+	crank = csize[dim]
 	if method == :factormagnitude
 		fmax = vec(maximum(t.factors[dim], 1))
 		@assert cs == length(fmax)
@@ -171,10 +171,10 @@ end
 
 function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude))
 	csize = TensorToolbox.mrank(t.core)
-	crank = csize[dim]
-	loopcolors = crank > ncolors ? true : false
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
+	crank = csize[dim]
+	loopcolors = crank > ncolors ? true : false
 	nx, ny = size(t.factors[dim])
 	xvalues = timescale ? vec(collect(1/nx:1/nx:1)) : vec(collect(1:nx))
 	componentnames = map(i->"T$i", 1:crank)
@@ -200,10 +200,10 @@ end
 
 function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, functionname::String="mean"; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude))
 	csize = TensorToolbox.mrank(t.core)
-	crank = csize[dim]
-	loopcolors = crank > ncolors ? true : false
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
+	crank = csize[dim]
+	loopcolors = crank > ncolors ? true : false
 	nx, ny = size(t.factors[dim])
 	xvalues = timescale ? vec(collect(1/nx:1/nx:1)) : vec(collect(1:nx))
 	componentnames = map(i->"T$i", 1:crank)
@@ -244,10 +244,10 @@ end
 
 function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, functionname1::String="mean", functionname2::String="mean"; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude))
 	csize = TensorToolbox.mrank(t.core)
-	crank = csize[dim]
-	loopcolors = crank > ncolors ? true : false
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
+	crank = csize[dim]
+	loopcolors = crank > ncolors ? true : false
 	nx, ny = size(t.factors[dim])
 	xvalues = timescale ? vec(collect(1/nx:1/nx:1)) : vec(collect(1:nx))
 	componentnames = map(i->"T$i", 1:crank)
@@ -291,10 +291,10 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 end
 
 function plotmatrix(X::Matrix; minvalue=minimum(X), maxvalue=maximum(X), label="", title="", xlabel="", ylabel="", gm=[Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing)], masize::Int64=0, colormap=colormap_gyr, filename::String="", hsize=6Compose.inch, vsize=6Compose.inch, figuredir::String=".")
-	Xp = min.(max.(movingaverage(X, masize), minvalue, 1e-32), maxvalue)
-	p = Gadfly.spy(Xp, Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Guide.ColorKey(title=label), Gadfly.Scale.ContinuousColorScale(colormap..., minvalue=minvalue, maxvalue=maxvalue), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt), gm...)
+	Xp = min.(max.(movingaverage(X, masize), minvalue), maxvalue)
+	p = Gadfly.spy(Xp, Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Guide.ColorKey(title=label), Gadfly.Scale.ContinuousColorScale(colormap..., minvalue=minvalue, maxvalue=maxvalue), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt, bar_spacing=0Gadfly.mm), gm...)
 	if filename != ""
-		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize, dpi=150), p)
+		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize, dpi=300), p)
 	end
 	return p
 end
@@ -339,7 +339,7 @@ function plottensor{T,N}(X::Array{T,N}, dim::Integer=1; minvalue=minimum(X), max
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
 		M = X[nt...]
-		if cutoff && maximum(M) .<= cutvalue
+		if cutoff && maximum(M[.!isnan.(M)]) .<= cutvalue
 			continue
 		end
 		g = plotmatrix(M, minvalue=minvalue, maxvalue=maxvalue, title=title, colormap=colormap)
@@ -574,15 +574,15 @@ function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::
 	end
 end
 
-function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), kw...)
+function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=true,csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, offset=0, order=gettensorcomponentorder(t, dim; method=:factormagnitude), kw...)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	dimname = namedimension(ndimensons)
 	crank = csize[dim]
 	@assert crank > 2
 	pt = Vector{Int64}(0)
-	if pdim > 1
-		push!(pt, pdim)
+	push!(pt, pdim)
+	if transpose
 		for i = ndimensons:-1:1
 			if i != pdim
 				push!(pt, i)
@@ -590,7 +590,9 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		end
 	else
 		for i = 1:ndimensons
-			push!(pt, i)
+			if i != pdim
+				push!(pt, i)
+			end
 		end
 	end
 	tt = deepcopy(t)
@@ -607,6 +609,12 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 			X[i] = TensorDecompositions.compose(tt)
 		else
 			X[i] = TensorDecompositions.compose(tt)[filter...]
+		end
+		if mask != nothing
+			X[i][mask] = NaN
+		end
+		if offset != 0
+			X[i] .+ offset
 		end
 		tt.core .= t.core
 	end
