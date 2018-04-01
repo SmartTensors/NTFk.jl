@@ -144,63 +144,76 @@ end
 """
 methods: spnntucker, tucker_als, tucker_sym
 """
-function analysis{T,N}(X::Array{T,N}, sizes=[size(X)], nTF=1; resultdir::String=".", prefix::String="", seed::Number=0, tol=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=DMAXITER, lambda::Number=0.1, lambdas=fill(lambda, length(size(X)) + 1), eigmethod=trues(N), progressbar::Bool=false, quiet::Bool=true)
+function analysis{T,N}(X::Array{T,N}, csize::NTuple{N,Int}=size(X), nTF::Integer=1; clusterdim::Integer=1, resultdir::String=".", prefix::String="", seed::Integer=0, tol::Number=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter::Integer=DMAXITER, lambda::Number=0.1, lambdas=fill(lambda, length(size(X)) + 1), eigmethod=trues(N), progressbar::Bool=false, quiet::Bool=true, saveall::Bool=false)
 	info("TensorDecompositions Tucker analysis ...")
+	@assert clusterdim <= N || clusterdim > 1
+	warn("Clustering Dimension: $clusterdim")
 	seed > 0 && srand(seed)
 	tsize = size(X)
 	ndimensons = length(tsize)
-	nruns = length(sizes)
-	residues = Array{T}(nruns)
-	correlations = Array{T}(nruns, ndimensons)
-	X_esta = Array{Array{T,N}}(nruns)
-	tucker_spnn = Array{TensorDecompositions.Tucker{T,N}}(nruns)
-	minsilhouette = Array{T}(nruns)
-	for i in 1:nruns
-		info("Core size: $(sizes[i])")
-		residues2 = Array{Float64}(nTF)
-		tsi = Array{TensorDecompositions.Tucker{T,N}}(nTF)
-		WBig = Vector{Matrix}(nTF)
-		tsbest = nothing
-		for n = 1:nTF
-			@time tsi[n] = TensorDecompositions.spnntucker(X, sizes[i]; eigmethod=eigmethod, tol=tol, ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=max_iter, lambdas=lambdas, progressbar=progressbar)
-			residues2[n] = TensorDecompositions.rel_residue(tsi[n], X)
-			normalizecore!(tsi[n])
-			f = tsi[n].factors[1]'
-			f[f.==0] = 1e-6
-			# p = NTFk.plotmatrix(cpi[n].factors[1]')
-			# display(p); println()
-			# p = NTFk.plotmatrix(f)
-			# display(p); println()
-			# @show minimum(cpi[n].lambdas), maximum(cpi[n].lambdas)
-			WBig[n] = hcat(f)
-		end
-		if nTF > 1
-			clusterassignments, M = NMFk.clustersolutions(WBig)
-			if !quiet
-				info("Cluster assignments:")
-				display(clusterassignments)
-				info("Cluster centroids:")
-				display(M)
-			end
-			Wa, clustersilhouettes, Wv = NMFk.finalize(WBig, clusterassignments)
-			minsilhouette[i] = minimum(clustersilhouettes)
-			if !quiet
-				info("Silhouettes for each of the $(length(clustersilhouettes)) clusters:" )
-				display(clustersilhouettes')
-				println("Mean silhouette = ", mean(clustersilhouettes))
-				println("Min  silhouette = ", minimum(clustersilhouettes))
-			end
-		else
-			minsilhouette[i] = NaN
-		end
-		imin = indmin(residues2)
-		tucker_spnn[i] = tsi[imin]
-		X_esta[i] = TensorDecompositions.compose(tucker_spnn[i])
-		residues[i] = TensorDecompositions.rel_residue(X_esta[i], X)
-		correlations[i,:] = mincorrelations(X_esta[i], X)
-		println("$i - $(sizes[i]): residual $(residues[i]) worst tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core)) silhouette $(minsilhouette[i])")
+	info("Core size: $(size)")
+	residues = Vector{Float64}(nTF)
+	tsi = Vector{TensorDecompositions.Tucker{T,N}}(nTF)
+	WBig = Vector{Matrix}(nTF)
+	tsbest = nothing
+	for n = 1:nTF
+		@time tsi[n] = TensorDecompositions.spnntucker(X, csize; eigmethod=eigmethod, tol=tol, ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=max_iter, lambdas=lambdas, progressbar=progressbar)
+		residues[n] = TensorDecompositions.rel_residue(tsi[n], X)
+		normalizecore!(tsi[n])
+		f = tsi[n].factors[clusterdim]'
+		# f[f.==0] = max(minimum(f), 1e-6)
+		# p = NTFk.plotmatrix(cpi[n].factors[1]')
+		# display(p); println()
+		# p = NTFk.plotmatrix(f)
+		# display(p); println()
+		# @show minimum(cpi[n].lambdas), maximum(cpi[n].lambdas)
+		WBig[n] = hcat(f)
 	end
-	info("Decompositions:")
+	if nTF > 1
+		clusterassignments, M = NMFk.clustersolutions(WBig)
+		if !quiet
+			info("Cluster assignments:")
+			display(clusterassignments)
+			info("Cluster centroids:")
+			display(M)
+		end
+		Wa, clustersilhouettes, Wv = NMFk.finalize(WBig, clusterassignments)
+		minsilhouette = minimum(clustersilhouettes)
+		if !quiet
+			info("Silhouettes for each of the $(length(clustersilhouettes)) clusters:" )
+			display(clustersilhouettes')
+			println("Mean silhouette = ", mean(clustersilhouettes))
+			println("Min  silhouette = ", minimum(clustersilhouettes))
+		end
+	else
+		minsilhouette = NaN
+	end
+	imin = indmin(residues)
+	X_esta = TensorDecompositions.compose(tsi[imin])
+	correlations = mincorrelations(X_esta, X)
+	# NTFk.atensor(tsi[imin].core)
+	csize_new = TensorToolbox.mrank(tsi[imin].core)
+	println("$(csize): residual $(residues[imin]) worst tensor correlations $(correlations) rank $(csize_new) silhouette $(minsilhouette)")
+	saveall && JLD.save("$(resultdir)/$(prefix)$(mapsize(csize))->$(mapsize(csize_new)).jld", "t", tsi[imin])
+	return tsi[imin], csize_new, residues[imin], correlations, minsilhouette
+end
+
+function analysis{T,N}(X::Array{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Integer=1; clusterdim::Integer=1, resultdir::String=".", prefix::String="", seed::Integer=0, kw...)
+	info("TensorDecompositions Tucker analysis ...")
+	@assert clusterdim <= N || clusterdim > 1
+	warn("Clustering Dimension: $clusterdim")
+	seed > 0 && srand(seed)
+	tsize = size(X)
+	ndimensons = length(tsize)
+	nruns = length(csizes)
+	residues = Vector{T}(nruns)
+	correlations = Array{T}(nruns, ndimensons)
+	tucker_spnn = Vector{TensorDecompositions.Tucker{T,N}}(nruns)
+	minsilhouette = Vector{T}(nruns)
+	for i in 1:nruns
+		tucker_spnn[i], csize, residues[i], correlations[i, :], minsilhouette[i] = analysis(X, csizes[i], nTF; clusterdim=clusterdim, resultdir=resultdir, prefix=prefix, kw...)
+	end
+	info("Decompositions (clustering dimension: $clusterdim)")
 	ibest = 1
 	best = Inf
 	for i in 1:nruns
@@ -208,19 +221,19 @@ function analysis{T,N}(X::Array{T,N}, sizes=[size(X)], nTF=1; resultdir::String=
 			best = residues[i]
 			ibest = i
 		end
-		println("$i - $(sizes[i]): residual $(residues[i]) worst tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core)) silhouette $(minsilhouette[i])")
+		println("$i - $(csizes[i]): residual $(residues[i]) worst tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core)) silhouette $(minsilhouette[i])")
 	end
 	# NTFk.atensor(tucker_spnn[ibest].core)
 	csize = TensorToolbox.mrank(tucker_spnn[ibest].core)
 	info("Estimated true core size: $(csize)")
-	JLD.save("$(resultdir)/$(prefix)$((mapsize(csize))).jld", "t", tucker_spnn)
+	JLD.save("$(resultdir)/$(prefix)$(mapsize(csize)).jld", "t", tucker_spnn)
 	return tucker_spnn, csize, ibest
 end
 
 """
 methods: ALS, SGSD, cp_als, cp_apr, cp_nmu, cp_opt, cp_sym, cp_wopt
 """
-function analysis{T,N}(X::Array{T,N}, tranks::Vector{Int64}, nTF=1; resultdir::String=".", prefix::String="", seed::Number=-1, tol=1e-8, verbose=false, max_iter=DMAXITER, method=:ALS, quiet=true, kw...)
+function analysis{T,N}(X::Array{T,N}, trank::Integer, nTF=1; resultdir::String=".", prefix::String="", seed::Number=-1, tol=1e-8, verbose=false, max_iter=DMAXITER, method=:ALS, quiet=true, kw...)
 	if contains(string(method), "cp_")
 		info("TensorToolbox CanDecomp analysis ...")
 	elseif contains(string(method), "bcu_")
@@ -231,55 +244,61 @@ function analysis{T,N}(X::Array{T,N}, tranks::Vector{Int64}, nTF=1; resultdir::S
 	seed >= 0 && srand(seed)
 	tsize = size(X)
 	ndimensons = length(tsize)
+	info("CP core rank: $(trank)")
+	residues = Array{T}(nTF)
+	cpi = Array{TensorDecompositions.CANDECOMP{T,N}}(nTF)
+	WBig = Vector{Matrix}(nTF)
+	cpbest = nothing
+	for n = 1:nTF
+		@time cpi[n] = NTFk.candecomp(X, trank; verbose=verbose, maxiter=max_iter, method=method, tol=tol, kw...)
+		residues[n] = TensorDecompositions.rel_residue(cpi[n], X)
+		normalizelambdas!(cpi[n])
+		f = map(k->cpi[n].factors[k]', 1:ndimensons)
+		# p = NTFk.plotmatrix(cpi[n].factors[1]')
+		# display(p); println()
+		# p = NTFk.plotmatrix(f)
+		# display(p); println()
+		# @show minimum(cpi[n].lambdas), maximum(cpi[n].lambdas)
+		WBig[n] = hcat(f...)
+	end
+	if nTF > 1
+		clusterassignments, M = NMFk.clustersolutions(WBig)
+		if !quiet
+			info("Cluster assignments:")
+			display(clusterassignments)
+			info("Cluster centroids:")
+			display(M)
+		end
+		Wa, clustersilhouettes, Wv = NMFk.finalize(WBig, clusterassignments)
+		minsilhouette = minimum(clustersilhouettes)
+		if !quiet
+			info("Silhouettes for each of the $(length(clustersilhouettes)) clusters:" )
+			display(clustersilhouettes')
+			println("Mean silhouette = ", mean(clustersilhouettes))
+			println("Min  silhouette = ", minimum(clustersilhouettes))
+		end
+	else
+		minsilhouette = NaN
+	end
+	imin = indmin(residues)
+	csize = length(cpi[imin].lambdas)
+	X_esta = TensorDecompositions.compose(cpi[imin])
+	correlations = mincorrelations(X_esta, X)
+	println("$(trank): residual $(residues[imin]) worst tensor correlations $(correlations) rank $(csize) silhouette $(minsilhouette)")
+	return cpi[imin], csize, residues[imin], correlations, minsilhouette
+end
+
+function analysis{T,N}(X::Array{T,N}, tranks::Vector{Int}, nTF=1; seed::Number=-1, resultdir::String=".", prefix::String="", kw...)
+	seed >= 0 && srand(seed)
+	tsize = size(X)
+	ndimensons = length(tsize)
 	nruns = length(tranks)
 	residues = Array{T}(nruns)
 	correlations = Array{T}(nruns, ndimensons)
-	X_esta = Array{Array{T,N}}(nruns)
 	cpf = Array{TensorDecompositions.CANDECOMP{T,N}}(nruns)
 	minsilhouette = Array{Float64}(nruns)
 	for i in 1:nruns
-		info("CP core rank: $(tranks[i])")
-		residues2 = Array{T}(nTF)
-		cpi = Array{TensorDecompositions.CANDECOMP{T,N}}(nTF)
-		WBig = Vector{Matrix}(nTF)
-		cpbest = nothing
-		for n = 1:nTF
-			@time cpi[n] = NTFk.candecomp(X, tranks[i]; verbose=verbose, maxiter=max_iter, method=method, tol=tol, kw...)
-			residues2[n] = TensorDecompositions.rel_residue(cpi[n], X)
-			normalizelambdas!(cpi[n])
-			f = map(k->abs.(cpi[n].factors[k]'), 1:ndimensons)
-			# p = NTFk.plotmatrix(cpi[n].factors[1]')
-			# display(p); println()
-			# p = NTFk.plotmatrix(f)
-			# display(p); println()
-			# @show minimum(cpi[n].lambdas), maximum(cpi[n].lambdas)
-			WBig[n] = hcat(f...)
-		end
-		if nTF > 1
-			clusterassignments, M = NMFk.clustersolutions(WBig)
-			if !quiet
-				info("Cluster assignments:")
-				display(clusterassignments)
-				info("Cluster centroids:")
-				display(M)
-			end
-			Wa, clustersilhouettes, Wv = NMFk.finalize(WBig, clusterassignments)
-			minsilhouette[i] = minimum(clustersilhouettes)
-			if !quiet
-				info("Silhouettes for each of the $(length(clustersilhouettes)) clusters:" )
-				display(clustersilhouettes')
-				println("Mean silhouette = ", mean(clustersilhouettes))
-				println("Min  silhouette = ", minimum(clustersilhouettes))
-			end
-		else
-			minsilhouette[i] = NaN
-		end
-		imin = indmin(residues2)
-		cpf[i] = cpi[imin]
-		X_esta[i] = TensorDecompositions.compose(cpf[i])
-		residues[i] = TensorDecompositions.rel_residue(X_esta[i], X)
-		correlations[i,:] = mincorrelations(X_esta[i], X)
-		println("$i - $(tranks[i]): residual $(residues[i]) worst tensor correlations $(correlations[i,:]) silhouette $(minsilhouette[i])")
+		cpf[i], csize, residues[i], correlations[i, :], minsilhouette[i] = analysis(X, tranks[i], nTF; resultdir=resultdir, prefix=prefix, kw...)
 	end
 	info("Decompositions:")
 	ibest = 1
