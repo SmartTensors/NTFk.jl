@@ -144,7 +144,7 @@ end
 """
 methods: spnntucker, tucker_als, tucker_sym
 """
-function analysis{T,N}(X::Array{T,N}, csize::NTuple{N,Int}=size(X), nTF::Integer=1; clusterdim::Integer=1, resultdir::String=".", prefix::String="spnn", seed::Integer=0, tol::Number=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter::Integer=DMAXITER, lambda::Number=0.1, lambdas=fill(lambda, length(size(X)) + 1), eigmethod=trues(N), progressbar::Bool=false, quiet::Bool=true, saveall::Bool=false)
+function analysis{T,N}(X::Array{T,N}, csize::NTuple{N,Int}=size(X), nTF::Integer=1; clusterdim::Integer=1, resultdir::String=".", prefix::String="spnn", seed::Integer=0, tol::Number=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter::Integer=DMAXITER, lambda::Number=0.1, lambdas=fill(lambda, length(size(X)) + 1), eigmethod=trues(N), progressbar::Bool=false, quiet::Bool=true, serial::Bool=false, saveall::Bool=false)
 	info("TensorDecompositions Tucker analysis ...")
 	@assert clusterdim <= N || clusterdim > 1
 	warn("Clustering Dimension: $clusterdim")
@@ -156,8 +156,14 @@ function analysis{T,N}(X::Array{T,N}, csize::NTuple{N,Int}=size(X), nTF::Integer
 	tsi = Vector{TensorDecompositions.Tucker{T,N}}(nTF)
 	WBig = Vector{Matrix}(nTF)
 	tsbest = nothing
+	if nprocs() > 1 && !serial
+		tsi = pmap(i->(srand(seed+i); TensorDecompositions.spnntucker(X, csize; eigmethod=eigmethod, tol=tol, ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=max_iter, lambdas=lambdas, progressbar=false)), 1:nTF)
+	else
+		for n = 1:nTF
+			@time tsi[n] = TensorDecompositions.spnntucker(X, csize; eigmethod=eigmethod, tol=tol, ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=max_iter, lambdas=lambdas, progressbar=progressbar)
+		end
+	end
 	for n = 1:nTF
-		@time tsi[n] = TensorDecompositions.spnntucker(X, csize; eigmethod=eigmethod, tol=tol, ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=max_iter, lambdas=lambdas, progressbar=progressbar)
 		residues[n] = TensorDecompositions.rel_residue(tsi[n], X)
 		normalizecore!(tsi[n])
 		f = tsi[n].factors[clusterdim]'
@@ -177,10 +183,10 @@ function analysis{T,N}(X::Array{T,N}, csize::NTuple{N,Int}=size(X), nTF::Integer
 	csize_new = TensorToolbox.mrank(tsi[imin].core)
 	println("$(csize): residual $(residues[imin]) worst tensor correlations $(correlations) rank $(csize_new) silhouette $(minsilhouette)")
 	saveall && JLD.save("$(resultdir)/$(prefix)-$(mapsize(csize))->$(mapsize(csize_new)).jld", "t", tsi[imin])
-	return tsi[imin], csize_new, residues[imin], correlations, minsilhouette
+	return tsi[imin], residues[imin], correlations, minsilhouette
 end
 
-function analysis{T,N}(X::Array{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Integer=1; clusterdim::Integer=1, resultdir::String=".", prefix::String="spnn", seed::Integer=0, kw...)
+function analysis{T,N}(X::Array{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Integer=1; clusterdim::Integer=1, resultdir::String=".", prefix::String="spnn", serial::Bool=false, seed::Integer=0, kw...)
 	info("TensorDecompositions Tucker analysis ...")
 	@assert clusterdim <= N || clusterdim > 1
 	warn("Clustering Dimension: $clusterdim")
@@ -192,8 +198,16 @@ function analysis{T,N}(X::Array{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Intege
 	correlations = Array{T}(nruns, ndimensons)
 	tucker_spnn = Vector{TensorDecompositions.Tucker{T,N}}(nruns)
 	minsilhouette = Vector{T}(nruns)
-	for i in 1:nruns
-		tucker_spnn[i], csize, residues[i], correlations[i, :], minsilhouette[i] = analysis(X, csizes[i], nTF; clusterdim=clusterdim, resultdir=resultdir, prefix=prefix, kw...)
+	if nprocs() > 1 && !serial
+		r = pmap(i->(srand(seed+i); analysis(X, csizes[i], nTF; clusterdim=clusterdim, resultdir=resultdir, prefix=prefix, kw..., serial=true, quiet=true)), 1:nruns)
+		tucker_spnn = map(i->(r[i][1]), 1:nruns)
+		residues = map(i->(r[i][2]), 1:nruns)
+		correlations = map(i->(r[i][3]), 1:nruns)
+		minsilhouette = map(i->(r[i][4]), 1:nruns)
+	else
+		for i in 1:nruns
+			tucker_spnn[i], residues[i], correlations[i,:], minsilhouette[i] = analysis(X, csizes[i], nTF; clusterdim=clusterdim, resultdir=resultdir, prefix=prefix, kw...)
+		end
 	end
 	info("Decompositions (clustering dimension: $clusterdim)")
 	ibest = 1
@@ -215,7 +229,7 @@ end
 """
 methods: ALS, SGSD, cp_als, cp_apr, cp_nmu, cp_opt, cp_sym, cp_wopt
 """
-function analysis{T,N}(X::Array{T,N}, trank::Integer, nTF=1; seed::Number=-1, tol=1e-8, verbose=false, max_iter=DMAXITER, method=:ALS, resultdir::String=".", prefix::String="$(string(method))", quiet=true, saveall=false, kw...)
+function analysis{T,N}(X::Array{T,N}, trank::Integer, nTF=1; seed::Number=-1, tol=1e-8, verbose=false, max_iter=DMAXITER, method=:ALS, resultdir::String=".", prefix::String="$(string(method))", quiet=true, serial::Bool=false, saveall=false, kw...)
 	if contains(string(method), "cp_")
 		info("TensorToolbox CanDecomp analysis using $(string(method)) ...")
 	elseif contains(string(method), "bcu_")
@@ -231,8 +245,14 @@ function analysis{T,N}(X::Array{T,N}, trank::Integer, nTF=1; seed::Number=-1, to
 	cpi = Array{TensorDecompositions.CANDECOMP{T,N}}(nTF)
 	WBig = Vector{Matrix}(nTF)
 	cpbest = nothing
+	if nprocs() > 1 && !serial
+		cpi = pmap(i->(srand(seed+i); NTFk.candecomp(X, trank; verbose=verbose, maxiter=max_iter, method=method, tol=tol, kw...)), 1:nTF)
+	else
+		for n = 1:nTF
+			@time cpi[n] = NTFk.candecomp(X, trank; verbose=verbose, maxiter=max_iter, method=method, tol=tol, kw...)
+		end
+	end
 	for n = 1:nTF
-		@time cpi[n] = NTFk.candecomp(X, trank; verbose=verbose, maxiter=max_iter, method=method, tol=tol, kw...)
 		residues[n] = TensorDecompositions.rel_residue(cpi[n], X)
 		normalizelambdas!(cpi[n])
 		f = map(k->cpi[n].factors[k]', 1:ndimensons)
@@ -250,10 +270,10 @@ function analysis{T,N}(X::Array{T,N}, trank::Integer, nTF=1; seed::Number=-1, to
 	correlations = mincorrelations(X_esta, X)
 	println("$(trank): residual $(residues[imin]) worst tensor correlations $(correlations) rank $(csize) silhouette $(minsilhouette)")
 	saveall && JLD.save("$(resultdir)/$(prefix)-$(mapsize(csize)).jld", "t", cpi[imin])
-	return cpi[imin], csize, residues[imin], correlations, minsilhouette
+	return cpi[imin], residues[imin], correlations, minsilhouette
 end
 
-function analysis{T,N}(X::Array{T,N}, tranks::Vector{Int}, nTF=1; seed::Number=-1, method=:ALS, resultdir::String=".", prefix::String="$(string(method))", kw...)
+function analysis{T,N}(X::Array{T,N}, tranks::Vector{Int}, nTF=1; seed::Number=-1, method=:ALS, resultdir::String=".", prefix::String="$(string(method))", serial::Bool=false, kw...)
 	seed >= 0 && srand(seed)
 	tsize = size(X)
 	ndimensons = length(tsize)
@@ -262,8 +282,16 @@ function analysis{T,N}(X::Array{T,N}, tranks::Vector{Int}, nTF=1; seed::Number=-
 	correlations = Array{T}(nruns, ndimensons)
 	cpf = Array{TensorDecompositions.CANDECOMP{T,N}}(nruns)
 	minsilhouette = Array{Float64}(nruns)
-	for i in 1:nruns
-		cpf[i], csize, residues[i], correlations[i, :], minsilhouette[i] = analysis(X, tranks[i], nTF; method=method,resultdir=resultdir, prefix=prefix, kw...)
+	if nprocs() > 1 && !serial
+		r = pmap(i->(srand(seed+i); analysis(X, tranks[i], nTF; method=method, resultdir=resultdir, prefix=prefix, kw..., serial=true, quiet=true)), 1:nruns)
+		cpf = map(i->(r[i][1]), 1:nruns)
+		residues = map(i->(r[i][2]), 1:nruns)
+		correlations = map(i->(r[i][3]), 1:nruns)
+		minsilhouette = map(i->(r[i][4]), 1:nruns)
+	else
+		for i in 1:nruns
+			cpf[i], residues[i], correlations[i, :], minsilhouette[i] = analysis(X, tranks[i], nTF; method=method, resultdir=resultdir, prefix=prefix, kw...)
+		end
 	end
 	info("Decompositions:")
 	ibest = 1
