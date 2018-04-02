@@ -205,8 +205,9 @@ function analysis{T,N}(X::Array{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Intege
 		correlations = map(i->(r[i][3]), 1:nruns)
 		minsilhouette = map(i->(r[i][4]), 1:nruns)
 	else
+		s = nprocs() > 1 ? false : true
 		for i in 1:nruns
-			tucker_spnn[i], residues[i], correlations[i,:], minsilhouette[i] = analysis(X, csizes[i], nTF; clusterdim=clusterdim, resultdir=resultdir, prefix=prefix, kw...)
+			tucker_spnn[i], residues[i], correlations[i,:], minsilhouette[i] = analysis(X, csizes[i], nTF; clusterdim=clusterdim, resultdir=resultdir, prefix=prefix, serial=s, kw...)
 		end
 	end
 	info("Decompositions (clustering dimension: $clusterdim)")
@@ -289,8 +290,9 @@ function analysis{T,N}(X::Array{T,N}, tranks::Vector{Int}, nTF=1; seed::Number=-
 		correlations = map(i->(r[i][3]), 1:nruns)
 		minsilhouette = map(i->(r[i][4]), 1:nruns)
 	else
+		s = nprocs() > 1 ? false : true
 		for i in 1:nruns
-			cpf[i], residues[i], correlations[i, :], minsilhouette[i] = analysis(X, tranks[i], nTF; method=method, resultdir=resultdir, prefix=prefix, kw...)
+			cpf[i], residues[i], correlations[i, :], minsilhouette[i] = analysis(X, tranks[i], nTF; method=method, resultdir=resultdir, prefix=prefix, serial=s, kw...)
 		end
 	end
 	info("Decompositions:")
