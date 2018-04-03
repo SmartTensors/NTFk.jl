@@ -409,15 +409,15 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.CANDECOMP; pre
 	end
 end
 
-function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String="", filter=(), kw...)
+function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=true, csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String="", filter=(), kw...)
 	ndimensons = length(size(X1))
 	@assert dim >= 1 && dim <= ndimensons
 	@assert ndimensons == length(csize)
 	dimname = namedimension(ndimensons)
 	crank = csize[dim]
 	pt = Vector{Int64}(0)
-	if pdim > 1
-		push!(pt, pdim)
+	push!(pt, pdim)
+	if transpose
 		for i = ndimensons:-1:1
 			if i != pdim
 				push!(pt, i)
@@ -425,7 +425,9 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::I
 		end
 	else
 		for i = 1:ndimensons
-			push!(pt, i)
+			if i != pdim
+				push!(pt, i)
+			end
 		end
 	end
 	tt = deepcopy(t2)
@@ -448,15 +450,15 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::I
 	end
 end
 
-function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), kw...)
+function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=true,csize::Tuple=TensorToolbox.mrank(t.core), mask=nothing, offset=0, prefix::String="", filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), kw...)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	dimname = namedimension(ndimensons)
 	crank = csize[dim]
 	@assert crank > 1
 	pt = Vector{Int64}(0)
-	if pdim > 1
-		push!(pt, pdim)
+	push!(pt, pdim)
+	if transpose
 		for i = ndimensons:-1:1
 			if i != pdim
 				push!(pt, i)
@@ -464,7 +466,9 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		end
 	else
 		for i = 1:ndimensons
-			push!(pt, i)
+			if i != pdim
+				push!(pt, i)
+			end
 		end
 	end
 	tt = deepcopy(t)
@@ -482,12 +486,18 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		else
 			X[i] = TensorDecompositions.compose(tt)[filter...]
 		end
+		if mask != nothing
+			X[i][mask] = NaN
+		end
+		if offset != 0
+			X[i] .+ offset
+		end
 		tt.core .= t.core
 	end
 	plot2tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt); prefix=prefix, kw...)
 end
 
-function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String="", filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), kw...)
+function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=true, csize::Tuple=TensorToolbox.mrank(t2.core), mask=nothing, offset=0, prefix::String="", filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), kw...)
 	ndimensons = length(size(X1))
 	@assert dim >= 1 && dim <= ndimensons
 	@assert ndimensons == length(csize)
@@ -495,8 +505,8 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 	crank = csize[dim]
 	@assert crank > 1
 	pt = Vector{Int64}(0)
-	if pdim > 1
-		push!(pt, pdim)
+	push!(pt, pdim)
+	if transpose
 		for i = ndimensons:-1:1
 			if i != pdim
 				push!(pt, i)
@@ -504,7 +514,9 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 		end
 	else
 		for i = 1:ndimensons
-			push!(pt, i)
+			if i != pdim
+				push!(pt, i)
+			end
 		end
 	end
 	tt = deepcopy(t2)
@@ -521,6 +533,12 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 			X2[i] = TensorDecompositions.compose(tt)
 		else
 			X2[i] = TensorDecompositions.compose(tt)[filter...]
+		end
+		if mask != nothing
+			X2[i][mask] = NaN
+		end
+		if offset != 0
+			X2[i] .+ offset
 		end
 		tt.core .= t2.core
 	end
