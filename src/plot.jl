@@ -108,7 +108,7 @@ function getinterpolatedtensor{T,N}(t::TensorDecompositions.Tucker{T,N}, v; sp=[
 	return tn
 end
 
-function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core)
+function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core, quiet=true)
 	cs = size(t.core)[dim]
 	csize = TensorToolbox.mrank(t.core)
 	ndimensons = length(csize)
@@ -123,6 +123,7 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 			end
 		end
 		ifmax = sortperm(fmax; rev=true)[1:crank]
+		!quiet && info("Max factor magnitudes: $fmax")
 		imax = map(i->indmax(t.factors[dim][:, ifmax[i]]), 1:crank)
 		order = ifmax[sortperm(imax)]
 	else
@@ -148,10 +149,74 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 				tt.factors[dim] .= t.factors[dim]
 			end
 		end
+		!quiet && info("Max core magnitudes: $maxXe")
 		imax = sortperm(maxXe; rev=true)
 		order = imax[1:crank]
 	end
 	return order
+end
+
+function gettensorminmax(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core)
+	cs = size(t.core)[dim]
+	csize = TensorToolbox.mrank(t.core)
+	ndimensons = length(csize)
+	@assert dim >= 1 && dim <= ndimensons
+	crank = csize[dim]
+	if method == :factormagnitude
+		fmin = vec(minimum(t.factors[dim], 1))
+		fmax = vec(maximum(t.factors[dim], 1))
+		@assert cs == length(fmax)
+		for i = 1:cs
+			if fmax[i] == 0
+				warn("Maximum of component $i is equal to zero!")
+			end
+		end
+		info("Max factor magnitudes: $fmax")
+		info("Min factor magnitudes: $fmin")
+	elseif method == :all
+		Te = TensorDecompositions.compose(t)
+		tsize = size(Te)
+		ts = tsize[dim]
+		maxTe = Vector{Float64}(ts)
+		minTe = Vector{Float64}(ts)
+		for i = 1:tsize[dim]
+			nt = ntuple(k->(k == dim ? i : Colon()), ndimensons)
+			minTe[i] = minimum(Te[nt...])
+			maxTe[i] = maximum(Te[nt...])
+		end
+		info("Max all magnitudes: $maxTe")
+		info("Min all magnitudes: $minTe")
+	else
+		maxXe = Vector{Float64}(cs)
+		minXe = Vector{Float64}(cs)
+		tt = deepcopy(t)
+		for i = 1:cs
+			if method == :core
+				for j = 1:cs
+					if i !== j
+						nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
+						tt.core[nt...] .= 0
+					end
+				end
+				Te = TensorDecompositions.compose(tt)
+				minXe[i] = minimum(Te)
+				maxXe[i] = maximum(Te)
+				tt.core .= t.core
+			else
+				for j = 1:cs
+					if i !== j
+						tt.factors[dim][:, j] .= 0
+					end
+				end
+				Te = TensorDecompositions.compose(tt)
+				minXe[i] = minimum(Te)
+				maxXe[i] = maximum(Te)
+				tt.factors[dim] .= t.factors[dim]
+			end
+		end
+		info("Max core magnitudes: $maxXe")
+		info("Min core magnitudes: $minXe")
+	end
 end
 
 function gettensorcomponentgroups(t::TensorDecompositions.Tucker, dim::Integer=1; cutvalue::Number=0.9)
@@ -290,7 +355,7 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	return ff
 end
 
-function plotmatrix(X::Matrix; minvalue=minimum(X), maxvalue=maximum(X), label="", title="", xlabel="", ylabel="", gm=[Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing)], masize::Int64=0, colormap=colormap_gyr, filename::String="", hsize=6Compose.inch, vsize=6Compose.inch, figuredir::String=".")
+function plotmatrix(X::Matrix; minvalue=minimumnan(X), maxvalue=maximumnan(X), label="", title="", xlabel="", ylabel="", gm=[Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing)], masize::Int64=0, colormap=colormap_gyr, filename::String="", hsize=6Compose.inch, vsize=6Compose.inch, figuredir::String=".")
 	Xp = min.(max.(movingaverage(X, masize), minvalue), maxvalue)
 	p = Gadfly.spy(Xp, Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Guide.ColorKey(title=label), Gadfly.Scale.ContinuousColorScale(colormap..., minvalue=minvalue, maxvalue=maxvalue), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt, bar_spacing=0Gadfly.mm), gm...)
 	if filename != ""
@@ -326,7 +391,7 @@ function plottensor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CA
 	plottensor(X, dim; kw...)
 end
 
-function plottensor{T,N}(X::Array{T,N}, dim::Integer=1; minvalue=minimum(X), maxvalue=maximum(X), prefix::String="", keyword="frame", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timescale::Bool=true, timestep=1/sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr, cutoff::Bool=false, cutvalue::Number=0)
+function plottensor{T,N}(X::Array{T,N}, dim::Integer=1; minvalue=minimumnan(X), maxvalue=maximumnan(X), prefix::String="", keyword="frame", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timescale::Bool=true, timestep=1/sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr, cutoff::Bool=false, cutvalue::Number=0)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -339,7 +404,7 @@ function plottensor{T,N}(X::Array{T,N}, dim::Integer=1; minvalue=minimum(X), max
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
 		M = X[nt...]
-		if cutoff && maximum(M[.!isnan.(M)]) .<= cutvalue
+		if cutoff && maximumnan(M) .<= cutvalue
 			continue
 		end
 		g = plotmatrix(M, minvalue=minvalue, maxvalue=maxvalue, title=title, colormap=colormap)
@@ -545,7 +610,7 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 	plot3tensors(permutedims(X1, pt), permutedims(X2[order[1]], pt), permutedims(X2[order[2]], pt); prefix=prefix, kw...)
 end
 
-function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t.core), sizes=size(X), timescale::Bool=true, timestep=1/sizes[dim], cleanup::Bool=true, movie::Bool=false, moviedir=".", prefix::String="", keyword="frame", title="", quiet::Bool=false, filter=(), minvalue=minimum(X), maxvalue=maximum(X), hsize=12Compose.inch, vsize=12Compose.inch, colormap=colormap_gyr, kw...)
+function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t.core), sizes=size(X), timescale::Bool=true, timestep=1/sizes[dim], cleanup::Bool=true, movie::Bool=false, moviedir=".", prefix::String="", keyword="frame", title="", quiet::Bool=false, filter=(), minvalue=minimumnan(X), maxvalue=maximumnan(X), hsize=12Compose.inch, vsize=12Compose.inch, colormap=colormap_gyr, kw...)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -627,11 +692,11 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		else
 			X[i] = TensorDecompositions.compose(tt)[filter...]
 		end
-		if mask != nothing
-			X[i][mask] = NaN
-		end
 		if offset != 0
 			X[i] .+ offset
+		end
+		if mask != nothing
+			X[i][mask] = NaN
 		end
 		tt.core .= t.core
 	end
@@ -643,7 +708,7 @@ function plot2tensors(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDec
 	plot2tensors(X1, X2, dim; kw...)
 end
 
-function plot2tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", prefix::String = "", keyword="frame", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr)
+function plot2tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", prefix::String = "", keyword="frame", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -699,7 +764,15 @@ end
 
 plotcmptensors = plot2tensors
 
-function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integer=1; minvalue=minimum([X1 X2 X3]), maxvalue=maximum([X1 X2 X3]), minvalue3=minvalue, maxvalue3=maxvalue, prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr, kw...)
+function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integer=1; minvalue=minimumnan([X1 X2 X3]), maxvalue=maximumnan([X1 X2 X3]), minvalue2=minvalue, maxvalue2=maxvalue, minvalue3=minvalue, maxvalue3=maxvalue, prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], progressbar::Bool=true, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr, uniformscaling=true, kw...)
+	if !uniformscaling
+		minvalue=minimumnan(X1)
+		maxvalue=maximumnan(X1)
+		minvalue2=minimumnan(X2)
+		maxvalue2=maximumnan(X2)
+		minvalue3=minimumnan(X3)
+		maxvalue3=maximumnan(X3)
+	end
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -714,7 +787,7 @@ function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
 		g1 = plotmatrix(X1[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ltitle, colormap=colormap, kw...)
-		g2 = plotmatrix(X2[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ctitle, colormap=colormap, kw...)
+		g2 = plotmatrix(X2[nt...]; minvalue=minvalue2, maxvalue=maxvalue2, title=ctitle, colormap=colormap, kw...)
 		g3 = plotmatrix(X3[nt...]; minvalue=minvalue3, maxvalue=maxvalue3, title=rtitle, colormap=colormap, kw...)
 		if progressbar
 			s = timescale ? sprintf("%6.4f", i * timestep) : sprintf("%6d", i)
@@ -749,25 +822,25 @@ function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::
 	end
 end
 
-function plotlefttensor(X1::Array, X2::Array, dim::Integer=1; center=true, kw...)
+function plotlefttensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), center=true, kw...)
 	D=X2-X1
-	min3 = minimum(D)
-	max3 = maximum(D)
+	min3 = minimumnan(D)
+	max3 = maximumnan(D)
 	if center
 		min3, max3 = min(min3, -max3), max(max3, -min3)
 	end
-	plot3tensors(X1, X2, D, dim; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), minvalue3=min3, maxvalue3=max3, kw...)
+	plot3tensors(X1, X2, D, dim; minvalue=minvalue, maxvalue=maxvalue, minvalue3=min3, maxvalue3=max3, kw...)
 end
 
 function plotlefttensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; center=true, kw...)
 	X2 = TensorDecompositions.compose(T2)
 	D=X2-X1
-	min3 = minimum(D)
-	max3 = maximum(D)
+	min3 = minimumnan(D)
+	max3 = maximumnan(D)
 	if center
 		min3, max3 = min(min3, -max3), max(max3, -min3)
 	end
-	plot3tensors(X1, X2, D, dim; minvalue=minimum([X1 X2]), maxvalue=maximum([X1 X2]), minvalue3=min3, maxvalue3=max3, kw...)
+	plot3tensors(X1, X2, D, dim; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), minvalue3=min3, maxvalue3=max3, kw...)
 end
 
 function setnewfilename(filename::String, frame::Integer=0; keyword::String="frame")
@@ -856,3 +929,11 @@ end
 
 "Convert `@sprintf` macro into `sprintf` function"
 sprintf(args...) = eval(:@sprintf($(args...)))
+
+function maximumnan(X; kw...)
+	maximum(X[.!isnan.(X)]; kw...)
+end
+
+function minimumnan(X; kw...)
+	minimum(X[.!isnan.(X)]; kw...)
+end
