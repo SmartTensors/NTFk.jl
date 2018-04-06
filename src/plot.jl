@@ -661,13 +661,8 @@ function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::
 	end
 end
 
-function plot3tensorsandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t.core), xtitle="Time", ytitle="Max concentrations", timescale::Bool=true, cleanup::Bool=true, movie::Bool=false, moviedir=".", prefix::String="", keyword="frame", title="", quiet::Bool=false, filter=(), hsize=12Compose.inch, vsize=12Compose.inch, colormap=colormap_gyr, mask=nothing, transpose=false, kw...)
-	if !isdir(moviedir)
-		mkdir(moviedir)
-	end
-	Te =  TensorDecompositions.compose(t)
-	sizes = size(Te)
-	ndimensons = length(sizes)
+function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; xtitle="Time", ytitle="Max concentrations", timescale::Bool=true, kw...)
+	ndimensons = length(t.factors)
 	if dim > ndimensons || dim < 1
 		warn("Dimension should be >=1 or <=$(length(sizes))")
 		return
@@ -676,39 +671,10 @@ function plot3tensorsandcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 		warn("Dimension should be >=1 or <=$(length(sizes))")
 		return
 	end
-	timestep = 1 / sizes[dim]
-	dimname = namedimension(ndimensons; char="D", names=("Row", "Column", "Layer"))
-	# s2 = plot2dmodtensorcomponents(X, t, dim, "mean"; xtitle="Time", ytitle="Mean concentrations", quiet=true, code=true)
+	timestep = 1 / size(t.factors[dim], 1)
 	s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, quiet=true, code=true)
 	progressbar_2d = make_progressbar_2d(s2)
-	# s2 = plot2dtensorcomponents(t, dim; xtitle="Time", ytitle="Component", quiet=true, code=true)
-	for i = 1:sizes[dim]
-		framename = "$(dimname[dim]) $i"
-		nt = ntuple(k->(k == dim ? i : Colon()), ndimensons)
-		p1 = plot3tensorcomponents(t, dim; title=title, transpose=transpose, colormap=colormap, mask=mask, timescale=timescale, quiet=false, progressbar=progressbar_2d, largebar=true)
-		Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=150), Gadfly.plot(s2...)); println()
-		Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=150), p2); println()
-		!quiet && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=150), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 2/3), Gadfly.render(p1)), Compose.compose(Compose.context(0, 0, 1, 1/3), Gadfly.render(p2)))); println())
-		if prefix != ""
-			filename = setnewfilename(prefix, i; keyword=keyword)
-			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=150), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 2/3), Gadfly.render(p1)), Compose.compose(Compose.context(0, 0, 1, 1/3), Gadfly.render(p2))))
-		end
-	end
-	if movie && prefix != ""
-		c = `ffmpeg -i $moviedir/$prefix-$(keyword)%06d.png -vcodec libx264 -pix_fmt yuv420p -f mp4 -y $moviedir/$prefix.mp4`
-		if quiet
-			run(pipeline(c, stdout=DevNull, stderr=DevNull))
-		else
-			run(c)
-		end
-		if moviedir == "."
-			moviedir, prefix = splitdir(prefix)
-			if moviedir == ""
-				moviedir = "."
-			end
-		end
-		cleanup && run(`find $moviedir -name $prefix-"frame*".png -delete`)
-	end
+	plot3tensorcomponents(t, dim; timescale=timescale, quiet=false, progressbar=progressbar_2d, hsize=14Compose.inch, vsize=6Compose.inch, kw...)
 end
 
 function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=true,csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, offset=0, order=gettensorcomponentorder(t, dim; method=:factormagnitude), kw...)
@@ -854,14 +820,18 @@ function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::
 		if !quiet
 			println(framename)
 			if largebar
-				Gadfly.draw(Gadfly.PNG(hsize, vsize), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 2/3), Compose.hstack(g1, g2, g3)), Compose.compose(Compose.context(0, 0, 1, 1/3), Gadfly.render(f)))); println()
+				Gadfly.draw(Gadfly.PNG(hsize, vsize), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 3/4), Compose.hstack(g1, g2, g3)), Compose.compose(Compose.context(0, 0, 1, 1/4), Gadfly.render(f)))); println()
 			else
 				Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(Compose.hstack(g1, g2, g3), f)); println()
 			end
 		end
 		if prefix != ""
 			filename = setnewfilename(prefix, i; keyword=keyword)
-			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=150), Compose.vstack(Compose.hstack(g1, g2, g3), f))
+			if largebar
+				Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=150), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 3/4), Compose.hstack(g1, g2, g3)), Compose.compose(Compose.context(0, 0, 1, 1/4), Gadfly.render(f))))
+			else
+				Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=150), Compose.vstack(Compose.hstack(g1, g2, g3), f))
+			end
 		end
 	end
 	if movie && prefix != ""
