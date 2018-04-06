@@ -9,6 +9,10 @@ import Interpolations
 colors = ["red", "blue", "green", "orange", "magenta", "cyan", "brown", "pink", "lime", "navy", "maroon", "yellow", "olive", "springgreen", "teal", "coral", "lavender", "beige"]
 ncolors = length(colors)
 
+colormap_hsv2 = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "brown4"), parse(Colors.Colorant, "coral"), parse(Colors.Colorant, "darkmagenta"), parse(Colors.Colorant, "peachpuff"), parse(Colors.Colorant, "blue"), parse(Colors.Colorant, "cyan"), parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"), parse(Colors.Colorant, "red"))]
+colormap_hsv = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "magenta"), parse(Colors.Colorant, "peachpuff"), parse(Colors.Colorant, "blue"), parse(Colors.Colorant, "cyan"), parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"), parse(Colors.Colorant, "red"))]
+colormap_rbw2 = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "blue"), parse(Colors.Colorant, "cyan"), parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"), parse(Colors.Colorant, "red"), parse(Colors.Colorant, "darkmagenta"))]
+colormap_rbw = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "blue"), parse(Colors.Colorant, "cyan"), parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"), parse(Colors.Colorant, "red"))]
 colormap_gyr = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"), parse(Colors.Colorant, "red"))]
 colormap_gy = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"))]
 colormap_wb = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "white"), parse(Colors.Colorant, "black"))]
@@ -115,7 +119,7 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 	@assert dim >= 1 && dim <= ndimensons
 	crank = csize[dim]
 	if method == :factormagnitude
-		fmax = vec(maximum(t.factors[dim], 1))
+		fmax = vec(maximum(t.factors[dim], 1)) .- vec(minimum(t.factors[dim], 1))
 		@assert cs == length(fmax)
 		for i = 1:cs
 			if fmax[i] == 0
@@ -137,7 +141,8 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 						tt.core[nt...] .= 0
 					end
 				end
-				maxXe[i] = maximum(TensorDecompositions.compose(tt))
+				Te = TensorDecompositions.compose(tt)
+				maxXe[i] = maximum(Te) - minimum(Te)
 				tt.core .= t.core
 			else
 				for j = 1:cs
@@ -145,7 +150,8 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 						tt.factors[dim][:, j] .= 0
 					end
 				end
-				maxXe[i] = maximum(TensorDecompositions.compose(tt))
+				Te = TensorDecompositions.compose(tt)
+				maxXe[i] = maximum(Te) - minimum(Te)
 				tt.factors[dim] .= t.factors[dim]
 			end
 		end
