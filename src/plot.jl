@@ -115,7 +115,7 @@ function getinterpolatedtensor{T,N}(t::TensorDecompositions.Tucker{T,N}, v; sp=[
 	return tn
 end
 
-function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core, quiet=true)
+function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core, firstpeak::Bool=true, quiet=true)
 	cs = size(t.core)[dim]
 	csize = TensorToolbox.mrank(t.core)
 	ndimensons = length(csize)
@@ -131,8 +131,12 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 		end
 		ifmax = sortperm(fmax; rev=true)[1:crank]
 		!quiet && info("Max factor magnitudes: $fmax")
-		imax = map(i->indmax(t.factors[dim][:, ifmax[i]]), 1:crank)
-		order = ifmax[sortperm(imax)]
+		if firstpeak
+			imax = map(i->indmax(t.factors[dim][:, ifmax[i]]), 1:crank)
+			order = ifmax[sortperm(imax)]
+		else
+			order = ifmax[1:crank]
+		end
 	else
 		maxXe = Vector{Float64}(cs)
 		tt = deepcopy(t)
@@ -674,7 +678,7 @@ function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	timestep = 1 / size(t.factors[dim], 1)
 	s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, quiet=true, code=true)
 	progressbar_2d = make_progressbar_2d(s2)
-	plot3tensorcomponents(t, dim; timescale=timescale, quiet=false, progressbar=progressbar_2d, hsize=14Compose.inch, vsize=6Compose.inch, kw...)
+	plot3tensorcomponents(t, dim; timescale=timescale, quiet=false, progressbar=progressbar_2d, hsize=1Compose.inch, vsize=6Compose.inch, kw...)
 end
 
 function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=true,csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, offset=0, order=gettensorcomponentorder(t, dim; method=:factormagnitude), kw...)
