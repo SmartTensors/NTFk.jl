@@ -399,8 +399,14 @@ function plotcore(t::TensorDecompositions.Tucker, dim::Integer=1, cuttoff::Numbe
 	plottensor(t.core, dim; progressbar=nothing, cutoff=true, cutvalue=cuttoff, kw...)
 end
 
-function plottensor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
+function plottensor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; mask=nothing, offset=0, kw...)
 	X = TensorDecompositions.compose(t)
+	if mask != nothing
+		X[mask] = NaN
+	end
+	if offset != 0
+		X .+ offset
+	end
 	plottensor(X, dim; kw...)
 end
 
@@ -678,7 +684,7 @@ function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	timestep = 1 / size(t.factors[dim], 1)
 	s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, quiet=true, code=true)
 	progressbar_2d = make_progressbar_2d(s2)
-	plot3tensorcomponents(t, dim; timescale=timescale, quiet=false, progressbar=progressbar_2d, hsize=1Compose.inch, vsize=6Compose.inch, kw...)
+	plot3tensorcomponents(t, dim; timescale=timescale, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, kw...)
 end
 
 function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=true,csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, offset=0, order=gettensorcomponentorder(t, dim; method=:factormagnitude), kw...)
@@ -824,7 +830,7 @@ function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::
 		if !quiet
 			println(framename)
 			if largebar
-				Gadfly.draw(Gadfly.PNG(hsize, vsize), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 3/4), Compose.hstack(g1, g2, g3)), Compose.compose(Compose.context(0, 0, 1, 1/4), Gadfly.render(f)))); println()
+				Gadfly.draw(Gadfly.PNG(hsize, vsize), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 2/3), Compose.hstack(g1, g2, g3)), Compose.compose(Compose.context(0, 0, 1, 1/3), Gadfly.render(f)))); println()
 			else
 				Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(Compose.hstack(g1, g2, g3), f)); println()
 			end
@@ -832,7 +838,7 @@ function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::
 		if prefix != ""
 			filename = setnewfilename(prefix, i; keyword=keyword)
 			if largebar
-				Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=150), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 3/4), Compose.hstack(g1, g2, g3)), Compose.compose(Compose.context(0, 0, 1, 1/4), Gadfly.render(f))))
+				Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=150), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 2/3), Compose.hstack(g1, g2, g3)), Compose.compose(Compose.context(0, 0, 1, 1/3), Gadfly.render(f))))
 			else
 				Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=150), Compose.vstack(Compose.hstack(g1, g2, g3), f))
 			end
@@ -973,10 +979,10 @@ end
 
 function progressbar_regular(i::Number, timescale::Bool=false, timestep::Number=1)
 	s = timescale ? sprintf("%6.4f", i * timestep) : sprintf("%6d", i)
-	return Compose.compose(Compose.context(0, 0, 1Compose.w, 0.001Compose.h),
-		(Compose.context(), Compose.fill("gray"), Compose.fontsize(10Compose.pt), Compose.text(0.01, -20000.0, s, Compose.hleft, Compose.vtop)),
-		(Compose.context(), Compose.fill("tomato"), Compose.rectangle(0.75, -10000.0, i * timestep * 0.45, 15000.0)),
-		(Compose.context(), Compose.fill("gray"), Compose.rectangle(0.75, -10000.0, 0.45, 15000.0)))
+	return Compose.compose(Compose.context(0, 0, 1Compose.w, 0.05Compose.h),
+		(Compose.context(), Compose.fill("gray"), Compose.fontsize(10Compose.pt), Compose.text(0.01, 0.0, s, Compose.hleft, Compose.vtop)),
+		(Compose.context(), Compose.fill("tomato"), Compose.rectangle(0.75, 0.0, i * timestep * 0.2, 5)),
+		(Compose.context(), Compose.fill("gray"), Compose.rectangle(0.75, 0.0, 0.2, 5)))
 end
 
 function make_progressbar_2d(s)
