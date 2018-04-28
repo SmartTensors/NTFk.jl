@@ -717,9 +717,18 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 			end
 		end
 	end
-	tt = deepcopy(t)
 	if static
-		tt.factors[dim] .= maximum(t.factors[3], 1)
+		factors = []
+		for i = 1:ndimensons
+			if i == dim
+				push!(factors, maximum(t.factors[3], 1))
+			else
+				push!(factors, t.factors[i])
+			end
+		end
+		tt = deepcopy(TensorDecompositions.Tucker((factors...), t.core))
+	else
+		tt = deepcopy(t)
 	end
 	X = Vector{Any}(crank)
 	for i = 1:crank
@@ -743,11 +752,8 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		end
 		tt.core .= t.core
 	end
-	if static
-		plot3tensors(permutedims(X[order[1]], pt)[1:1, :, :], permutedims(X[order[2]], pt)[1:1, :, :], permutedims(X[order[3]], pt)[1:1, :, :]; prefix=prefix, kw..., movie=false)
-	else
-		plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt); prefix=prefix, barratio=1/3, kw...)
-	end
+	barratio = (static) ? 1/2 : 1/3
+	plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt); prefix=prefix, barratio=barratio, kw...)
 end
 
 function plot2tensors(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
