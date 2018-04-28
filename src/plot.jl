@@ -408,7 +408,7 @@ end
 function plottensor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; mask=nothing, offset=0, kw...)
 	X = TensorDecompositions.compose(t)
 	if mask != nothing
-		X[mask] = NaN
+		X[remask(mask, size(X, 3))] = NaN
 	end
 	if offset != 0
 		X .+ offset
@@ -577,7 +577,7 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 			X[i] = TensorDecompositions.compose(tt)[filter...]
 		end
 		if mask != nothing
-			X[i][mask] = NaN
+			X[i][remask(mask, size(X[i], 3))] = NaN
 		end
 		if offset != 0
 			X[i] .+ offset
@@ -625,7 +625,7 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 			X2[i] = TensorDecompositions.compose(tt)[filter...]
 		end
 		if mask != nothing
-			X2[i][mask] = NaN
+			X2[i][remask(mask, size(X2[i], 3))] = NaN
 		end
 		if offset != 0
 			X2[i] .+ offset
@@ -748,7 +748,7 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 			X[i] .+ offset
 		end
 		if mask != nothing
-			X[i][mask] = NaN
+			X[i][remask(mask, size(X[i], 3))] = NaN
 		end
 		tt.core .= t.core
 	end
@@ -1021,4 +1021,8 @@ function make_progressbar_2d(s)
 		end
 	end
 	return progressbar_2d
+end
+
+function remask(sm, repeats=1)
+	return reshape(repmat(sm, 1, repeats), (size(sm)..., repeats))
 end
