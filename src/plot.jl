@@ -438,7 +438,7 @@ function plottensor{T,N}(X::Array{T,N}, dim::Integer=1; minvalue=minimumnan(X), 
 		else
 			f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0Compose.h))
 		end
-		!quiet && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(g, f)); println())
+		!quiet && ((sizes[dim] > 1) && println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(g, f)); println())
 		if prefix != ""
 			filename = setnewfilename(prefix, i; keyword=keyword)
 			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=150), Compose.vstack(g, f))
@@ -658,7 +658,7 @@ function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::
 		nt = ntuple(k->(k == dim ? i : Colon()), ndimensons)
 		p1 = plotmatrix(X[nt...], minvalue=minvalue, maxvalue=maxvalue, title=title, colormap=colormap)
 		p2 = progressbar_2d(i, timescale, timestep)
-		!quiet && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=150), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 2/3), Gadfly.render(p1)), Compose.compose(Compose.context(0, 0, 1, 1/3), Gadfly.render(p2)))); println())
+		!quiet && ((sizes[dim] > 1) && println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=150), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 2/3), Gadfly.render(p1)), Compose.compose(Compose.context(0, 0, 1, 1/3), Gadfly.render(p2)))); println())
 		if prefix != ""
 			filename = setnewfilename(prefix, i; keyword=keyword)
 			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=150), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 2/3), Gadfly.render(p1)), Compose.compose(Compose.context(0, 0, 1, 1/3), Gadfly.render(p2))))
@@ -696,7 +696,11 @@ function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	plot3tensorcomponents(t, dim; timescale=timescale, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], kw...)
 end
 
-function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, offset=0, order=gettensorcomponentorder(t, dim; method=:factormagnitude), static::Bool=false, kw...)
+function plot3maxtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; kw...)
+	plot3tensorcomponents(t, dim, pdim; kw..., maxcomponent=true)
+end
+
+function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, offset=0, order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, kw...)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	dimname = namedimension(ndimensons)
@@ -717,7 +721,7 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 			end
 		end
 	end
-	if static
+	if maxcomponent
 		factors = []
 		for i = 1:ndimensons
 			if i == dim
@@ -752,7 +756,7 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		end
 		tt.core .= t.core
 	end
-	barratio = (static) ? 1/2 : 1/3
+	barratio = (maxcomponent) ? 1/2 : 1/3
 	plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt); prefix=prefix, barratio=barratio, kw...)
 end
 
@@ -793,7 +797,7 @@ function plot2tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minva
 		else
 			f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0Compose.h))
 		end
-		!quiet && println(framename)
+		!quiet && (sizes[dim] > 1) && println(framename)
 		!quiet && (Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(t, Compose.hstack(g1, g2), f)); println())
 		if prefix != ""
 			filename = setnewfilename(prefix, i; keyword=keyword)
@@ -854,8 +858,8 @@ function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::
 			f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0Compose.h))
 		end
 		if !quiet
-			println(framename)
-			if barratio != 1/2
+			(sizes[dim] > 1) && println(framename)
+			if typeof(f) != Compose.Context
 				Gadfly.draw(Gadfly.PNG(hsize, vsize), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), Compose.hstack(g1, g2, g3)), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f)))); println()
 			else
 				Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(Compose.hstack(g1, g2, g3), f)); println()
@@ -863,7 +867,7 @@ function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::
 		end
 		if prefix != ""
 			filename = setnewfilename(prefix, i; keyword=keyword)
-			if barratio != 1/2
+			if typeof(f) != Compose.Context
 				Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=150), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), Compose.hstack(g1, g2, g3)), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f))))
 			else
 				Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=150), Compose.vstack(Compose.hstack(g1, g2, g3), f))
