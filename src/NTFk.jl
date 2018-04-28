@@ -58,8 +58,11 @@ import PyPlot
 import Gadfly
 @tryimport MATLAB
 
+modules = ["NTFk", "NMFk", "CanDecomp"]
+
 const dntfdir = splitdir(Base.source_path())[1]
 
+include("NTFkHelp.jl")
 include("analysis.jl")
 include("plot.jl")
 include("tensordecompositions-helpers.jl")
