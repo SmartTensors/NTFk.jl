@@ -122,20 +122,25 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 	@assert dim >= 1 && dim <= ndimensons
 	crank = csize[dim]
 	if method == :factormagnitude
-		fmax = vec(maximum(t.factors[dim], 1)) .- vec(minimum(t.factors[dim], 1))
+		fmin = vec(minimum(t.factors[dim], 1))
+		fmax = vec(maximum(t.factors[dim], 1))
 		@assert cs == length(fmax)
+		fdx = fmax .- fmin
 		for i = 1:cs
 			if fmax[i] == 0
 				warn("Maximum of component $i is equal to zero!")
 			end
+			if fdx[i] == 0
+				warn("Component $i has zero variability!")
+			end
 		end
-		ifmax = sortperm(fmax; rev=true)[1:crank]
-		!quiet && info("Max factor magnitudes: $fmax")
+		ifdx = sortperm(fdx; rev=true)[1:crank]
+		!quiet && info("Factor magnitudes (max - min): $fdx")
 		if firstpeak
-			imax = map(i->indmax(t.factors[dim][:, ifmax[i]]), 1:crank)
-			order = ifmax[sortperm(imax)]
+			imax = map(i->indmax(t.factors[dim][:, ifdx[i]]), 1:crank)
+			order = ifdx[sortperm(imax)]
 		else
-			order = ifmax[1:crank]
+			order = ifdx[1:crank]
 		end
 	else
 		maxXe = Vector{Float64}(cs)
@@ -378,26 +383,26 @@ function plotmatrix(X::Matrix; minvalue=minimumnan(X), maxvalue=maximumnan(X), l
 	return p
 end
 
-function plotfactor(t::TensorDecompositions.Tucker, dim::Integer=1, cuttoff::Number=0; kw...)
-	plotmatrix(getfactor(t, dim, cuttoff); kw...)
+function plotfactor(t::TensorDecompositions.Tucker, dim::Integer=1, cutoff::Number=0; kw...)
+	plotmatrix(getfactor(t, dim, cutoff); kw...)
 end
 
-function getfactor(t::TensorDecompositions.Tucker, dim::Integer=1, cuttoff::Number=0)
-	i = vec(maximum(t.factors[dim], 1) .> cuttoff)
+function getfactor(t::TensorDecompositions.Tucker, dim::Integer=1, cutoff::Number=0)
+	i = vec(maximum(t.factors[dim], 1) .> cutoff)
 	s = size(t.factors[dim])
 	println("Factor $dim: size $s -> ($(s[1]), $(sum(i)))")
 	t.factors[dim][:, i]
 end
 
-function plotfactors(t::TensorDecompositions.Tucker, cuttoff::Number=0; prefix="", kw...)
+function plotfactors(t::TensorDecompositions.Tucker, cutoff::Number=0; prefix="", kw...)
 	for i = 1:length(t.factors)
-		display(plotfactor(t, i, cuttoff; filename="$(prefix)_factor$(i).png", kw...))
+		display(plotfactor(t, i, cutoff; filename="$(prefix)_factor$(i).png", kw...))
 		println()
 	end
 end
 
-function plotcore(t::TensorDecompositions.Tucker, dim::Integer=1, cuttoff::Number=0; kw...)
-	plottensor(t.core, dim; progressbar=nothing, cutoff=true, cutvalue=cuttoff, kw...)
+function plotcore(t::TensorDecompositions.Tucker, dim::Integer=1, cutoff::Number=0; kw...)
+	plottensor(t.core, dim; progressbar=nothing, cutoff=true, cutvalue=cutoff, kw...)
 end
 
 function plottensor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; mask=nothing, offset=0, kw...)
@@ -452,15 +457,19 @@ function plottensor{T,N}(X::Array{T,N}, dim::Integer=1; minvalue=minimumnan(X), 
 				moviedir = "."
 			end
 		end
-		cleanup && run(`find $moviedir -name $prefix-"frame*".png -delete`)
+		cleanup && run(`find $moviedir -name $prefix-$(keyword)"*".png -delete`)
 	end
 end
 
-function zerotensorcomponents(t::TensorDecompositions.Tucker, d::Int)
+function zerotensorcomponents!(t::TensorDecompositions.Tucker, dim::Int)
+	ndimensons = length(size(t.core))
+	nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
 	t.core[nt...] .= 0
 end
 
-function zerotensorcomponents(t::TensorDecompositions.CANDECOMP, d::Int)
+function zerotensorcomponents!(t::TensorDecompositions.CANDECOMP, dim::Int)
+	ndimensons = length(size(t.core))
+	nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
 	t.lambdas[nt...] .= 0
 end
 
@@ -668,11 +677,11 @@ function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::
 				moviedir = "."
 			end
 		end
-		cleanup && run(`find $moviedir -name $prefix-"frame*".png -delete`)
+		cleanup && run(`find $moviedir -name $prefix-$(keyword)"*".png -delete`)
 	end
 end
 
-function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; xtitle="Time", ytitle="Max concentrations", timescale::Bool=true, functionname="mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), kw...)
+function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; xtitle="Time", ytitle="Magnitude", timescale::Bool=true, functionname="mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), kw...)
 	ndimensons = length(t.factors)
 	if dim > ndimensons || dim < 1
 		warn("Dimension should be >=1 or <=$(length(sizes))")
@@ -682,13 +691,12 @@ function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 		warn("Dimension should be >=1 or <=$(length(sizes))")
 		return
 	end
-	timestep = 1 / size(t.factors[dim], 1)
 	s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, quiet=true, code=true, order=order, filter=filter)
 	progressbar_2d = make_progressbar_2d(s2)
 	plot3tensorcomponents(t, dim; timescale=timescale, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], kw...)
 end
 
-function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, offset=0, order=gettensorcomponentorder(t, dim; method=:factormagnitude), kw...)
+function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, offset=0, order=gettensorcomponentorder(t, dim; method=:factormagnitude), static::Bool=false, kw...)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	dimname = namedimension(ndimensons)
@@ -710,6 +718,9 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		end
 	end
 	tt = deepcopy(t)
+	if static
+		tt.factors[dim] .= maximum(t.factors[3], 1)
+	end
 	X = Vector{Any}(crank)
 	for i = 1:crank
 		info("Making component $(dimname[dim])-$i movie ...")
@@ -732,7 +743,11 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		end
 		tt.core .= t.core
 	end
-	plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt); prefix=prefix, kw...)
+	if static
+		plot3tensors(permutedims(X[order[1]], pt)[1:1, :, :], permutedims(X[order[2]], pt)[1:1, :, :], permutedims(X[order[3]], pt)[1:1, :, :]; prefix=prefix, kw..., movie=false)
+	else
+		plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt); prefix=prefix, kw...)
+	end
 end
 
 function plot2tensors(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
@@ -792,7 +807,7 @@ function plot2tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minva
 				moviedir = "."
 			end
 		end
-		cleanup && run(`find $moviedir -name $prefix-"frame*.png" -delete`)
+		cleanup && run(`find $moviedir -name $prefix-$(keyword)"*.png" -delete`)
 	end
 end
 
@@ -824,7 +839,11 @@ function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::
 		g2 = plotmatrix(X2[nt...]; minvalue=minvalue2, maxvalue=maxvalue2, title=ctitle, colormap=colormap, kw...)
 		g3 = plotmatrix(X3[nt...]; minvalue=minvalue3, maxvalue=maxvalue3, title=rtitle, colormap=colormap, kw...)
 		if progressbar != nothing
-			f = progressbar(i, timescale, timestep)
+			if sizes[dim] == 1
+				f = progressbar(0, timescale, timestep)
+			else
+				f = progressbar(i, timescale, timestep)
+			end
 		else
 			f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0Compose.h))
 		end
@@ -858,7 +877,7 @@ function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::
 				moviedir = "."
 			end
 		end
-		cleanup && run(`find $moviedir -name $prefix-"frame*.png" -delete`)
+		cleanup && run(`find $moviedir -name $prefix-$(keyword)"*.png" -delete`)
 	end
 end
 
@@ -988,8 +1007,12 @@ end
 
 function make_progressbar_2d(s)
 	function progressbar_2d(i::Number, timescale::Bool=false, timestep::Number=1)
-		xi = timescale ? i * timestep : i
-		return Gadfly.plot(s..., Gadfly.layer(xintercept=[xi], Gadfly.Geom.vline(color=["gray"], size=[2Gadfly.pt])))
+		if i > 0
+			xi = timescale ? i * timestep : i
+			return Gadfly.plot(s..., Gadfly.layer(xintercept=[xi], Gadfly.Geom.vline(color=["gray"], size=[2Gadfly.pt])))
+		else
+			return Gadfly.plot(s...)
+		end
 	end
 	return progressbar_2d
 end
