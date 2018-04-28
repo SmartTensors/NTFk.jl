@@ -247,23 +247,24 @@ function gettensorcomponentgroups(t::TensorDecompositions.Tucker, dim::Integer=1
 	return g
 end
 
-function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude))
+function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)))
 	csize = TensorToolbox.mrank(t.core)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	crank = csize[dim]
-	loopcolors = crank > ncolors ? true : false
 	nx, ny = size(t.factors[dim])
 	xvalues = timescale ? vec(collect(1/nx:1/nx:1)) : vec(collect(1:nx))
-	componentnames = map(i->"T$i", 1:crank)
+	ncomponents = length(filter)
+	loopcolors = ncomponents > ncolors ? true : false
+	componentnames = map(i->"T$i", filter)
 	p = t.factors[dim]
-	pl = Vector{Any}(crank)
-	for i = 1:crank
+	pl = Vector{Any}(ncomponents)
+	for i = 1:ncomponents
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
-		pl[i] = Gadfly.layer(x=xvalues, y=p[:, order[i]], Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
+		pl[i] = Gadfly.layer(x=xvalues, y=p[:, order[filter[i]]], Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
 	end
 	tx = timescale ? [] : [Gadfly.Coord.Cartesian(xmin=minimum(xvalues), xmax=maximum(xvalues))]
-	tc = loopcolors ? [] : [Gadfly.Guide.manual_color_key("", componentnames, colors[1:crank])]
+	tc = loopcolors ? [] : [Gadfly.Guide.manual_color_key("", componentnames, colors[1:ncomponents])]
 	tm = (ymin == nothing && ymax == nothing) ? [] : [Gadfly.Coord.Cartesian(ymin=ymin, ymax=ymax)]
 	if code
 		return [pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., tc..., tm...]
@@ -671,7 +672,7 @@ function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::
 	end
 end
 
-function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; xtitle="Time", ytitle="Max concentrations", timescale::Bool=true, functionname="mean", kw...)
+function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; xtitle="Time", ytitle="Max concentrations", timescale::Bool=true, functionname="mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), kw...)
 	ndimensons = length(t.factors)
 	if dim > ndimensons || dim < 1
 		warn("Dimension should be >=1 or <=$(length(sizes))")
@@ -682,9 +683,9 @@ function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 		return
 	end
 	timestep = 1 / size(t.factors[dim], 1)
-	s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, quiet=true, code=true, functionname=functionname)
+	s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, quiet=true, code=true, order=order, filter=filter)
 	progressbar_2d = make_progressbar_2d(s2)
-	plot3tensorcomponents(t, dim; timescale=timescale, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, kw...)
+	plot3tensorcomponents(t, dim; timescale=timescale, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], kw...)
 end
 
 function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, offset=0, order=gettensorcomponentorder(t, dim; method=:factormagnitude), kw...)
