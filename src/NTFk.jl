@@ -63,14 +63,14 @@ modules = ["NTFk", "NMFk", "CanDecomp"]
 const dntfdir = splitdir(Base.source_path())[1]
 
 include("NTFkHelp.jl")
-include("NTFkAnaysis.jl")
 include("NTFkPlot.jl")
-include("NTFkAnaysis-tensordecompositions-helpers.jl")
-include("NTFkAnaysis-tensordecompositions-memory.jl")
-include("NTFkAnaysis-tensordecompositions-analysis.jl")
-include("NTFkAnaysis-tensordecompositions-decomposition.jl")
+include("NTFkAnalysis.jl")
+include("NTFkAnalysis-tensordecompositions.jl")
+include("NTFkAnalysis-tensordecompositions-helpers.jl")
+include("NTFkAnalysis-tensordecompositions-memory.jl")
+include("NTFkAnalysis-tensordecompositions-decomposition.jl")
 if isdefined(:MATLAB)
-    include("NTFkAnaysis-tensortoolbox-matlab.jl")
+    include("NTFkAnalysis-tensortoolbox-matlab.jl")
 end
 
 end
