@@ -252,13 +252,14 @@ function gettensorcomponentgroups(t::TensorDecompositions.Tucker, dim::Integer=1
 	return g
 end
 
-function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)))
+function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, datestart=nothing, code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)))
 	csize = TensorToolbox.mrank(t.core)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	crank = csize[dim]
 	nx, ny = size(t.factors[dim])
 	xvalues = timescale ? vec(collect(1/nx:1/nx:1)) : vec(collect(1:nx))
+	xvalues = datestart == nothing ? xvalues : datestart .+ vec(collect(Dates.Day(0):Dates.Day(1):Dates.Day(nx-1)))
 	ncomponents = length(filter)
 	loopcolors = ncomponents > ncolors ? true : false
 	componentnames = map(i->"T$i", filter)
@@ -282,7 +283,7 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	return ff
 end
 
-function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, functionname::String="mean"; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude))
+function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, functionname::String="mean"; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, datestart=nothing, code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude))
 	csize = TensorToolbox.mrank(t.core)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
@@ -290,6 +291,7 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	loopcolors = crank > ncolors ? true : false
 	nx, ny = size(t.factors[dim])
 	xvalues = timescale ? vec(collect(1/nx:1/nx:1)) : vec(collect(1:nx))
+	xvalues = datestart == nothing ? xvalues : datestart .+ vec(collect(Dates.Day(0):Dates.Day(1):Dates.Day(nx-1)))
 	componentnames = map(i->"T$i", 1:crank)
 	dp = Vector{Int64}(0)
 	for i = 1:ndimensons
@@ -326,7 +328,7 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	return ff
 end
 
-function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, functionname1::String="mean", functionname2::String="mean"; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude))
+function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, functionname1::String="mean", functionname2::String="mean"; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, datestart=nothing, code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude))
 	csize = TensorToolbox.mrank(t.core)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
@@ -334,6 +336,7 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	loopcolors = crank > ncolors ? true : false
 	nx, ny = size(t.factors[dim])
 	xvalues = timescale ? vec(collect(1/nx:1/nx:1)) : vec(collect(1:nx))
+	xvalues = datestart == nothing ? xvalues : datestart .+ vec(collect(Dates.Day(0):Dates.Day(1):Dates.Day(nx-1)))
 	componentnames = map(i->"T$i", 1:crank)
 	dp = Vector{Int64}(0)
 	for i = 1:ndimensons
@@ -374,9 +377,10 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	return ff
 end
 
-function plotmatrix(X::Matrix; minvalue=minimumnan(X), maxvalue=maximumnan(X), label="", title="", xlabel="", ylabel="", gm=[Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing)], masize::Int64=0, colormap=colormap_gyr, filename::String="", hsize=6Compose.inch, vsize=6Compose.inch, figuredir::String=".")
+function plotmatrix(X::Matrix; minvalue=minimumnan(X), maxvalue=maximumnan(X), label="", title="", xlabel="", ylabel="", gm=[Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing)], masize::Int64=0, colormap=colormap_gyr, filename::String="", hsize=6Compose.inch, vsize=6Compose.inch, figuredir::String=".", colorkey::Bool=true)
 	Xp = min.(max.(movingaverage(X, masize), minvalue), maxvalue)
-	p = Gadfly.spy(Xp, Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Guide.ColorKey(title=label), Gadfly.Scale.ContinuousColorScale(colormap..., minvalue=minvalue, maxvalue=maxvalue), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt, bar_spacing=0Gadfly.mm), gm...)
+	cs = colorkey ? [] : [Gadfly.Theme(key_position = :none)]
+	p = Gadfly.spy(Xp, Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Guide.ColorKey(title=label), Gadfly.Scale.ContinuousColorScale(colormap..., minvalue=minvalue, maxvalue=maxvalue), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt, bar_spacing=0Gadfly.mm), cs..., gm...)
 	if filename != ""
 		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize, dpi=300), p)
 	end
@@ -405,18 +409,18 @@ function plotcore(t::TensorDecompositions.Tucker, dim::Integer=1, cutoff::Number
 	plottensor(t.core, dim; progressbar=nothing, cutoff=true, cutvalue=cutoff, kw...)
 end
 
-function plottensor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; mask=nothing, offset=0, kw...)
+function plottensor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; mask=nothing, transform=nothing, kw...)
 	X = TensorDecompositions.compose(t)
 	if mask != nothing
 		X[remask(mask, size(X, 3))] = NaN
 	end
-	if offset != 0
-		X .+ offset
+	if transform != nothing
+		X = transform.(X)
 	end
 	plottensor(X, dim; kw...)
 end
 
-function plottensor{T,N}(X::Array{T,N}, dim::Integer=1; minvalue=minimumnan(X), maxvalue=maximumnan(X), prefix::String="", keyword="frame", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timescale::Bool=true, timestep=1/sizes[dim], progressbar=progressbar_regular, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr, cutoff::Bool=false, cutvalue::Number=0)
+function plottensor{T,N}(X::Array{T,N}, dim::Integer=1; minvalue=minimumnan(X), maxvalue=maximumnan(X), prefix::String="", keyword="frame", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timescale::Bool=true, timestep=1/sizes[dim], datestart=datestart, progressbar=progressbar_regular, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr, cutoff::Bool=false, cutvalue::Number=0)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -434,7 +438,7 @@ function plottensor{T,N}(X::Array{T,N}, dim::Integer=1; minvalue=minimumnan(X), 
 		end
 		g = plotmatrix(M, minvalue=minvalue, maxvalue=maxvalue, title=title, colormap=colormap)
 		if progressbar != nothing
-			f = progressbar(i, timescale, timestep)
+			f = progressbar(i, timescale, timestep, datestart)
 		else
 			f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0Compose.h))
 		end
@@ -540,7 +544,7 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::I
 	end
 end
 
-function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), mask=nothing, offset=0, prefix::String="", filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), kw...)
+function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), mask=nothing, transform=nothing, prefix::String="", filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), kw...)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	dimname = namedimension(ndimensons)
@@ -579,15 +583,15 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		if mask != nothing
 			X[i][remask(mask, size(X[i], 3))] = NaN
 		end
-		if offset != 0
-			X[i] .+ offset
+		if transform != nothing
+			X[i] = transform.(X[i])
 		end
 		tt.core .= t.core
 	end
 	plot2tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt); prefix=prefix, kw...)
 end
 
-function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t2.core), mask=nothing, offset=0, prefix::String="", filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), kw...)
+function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t2.core), mask=nothing, transform=nothing, prefix::String="", filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), kw...)
 	ndimensons = length(size(X1))
 	@assert dim >= 1 && dim <= ndimensons
 	@assert ndimensons == length(csize)
@@ -627,15 +631,15 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 		if mask != nothing
 			X2[i][remask(mask, size(X2[i], 3))] = NaN
 		end
-		if offset != 0
-			X2[i] .+ offset
+		if transform != nothing
+			X2[i] = transform.(X2[i])
 		end
 		tt.core .= t2.core
 	end
 	plot3tensors(permutedims(X1, pt), permutedims(X2[order[1]], pt), permutedims(X2[order[2]], pt); prefix=prefix, kw...)
 end
 
-function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t.core), sizes=size(X), xtitle="Time", ytitle="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], cleanup::Bool=true, movie::Bool=false, moviedir=".", prefix::String="", keyword="frame", title="", quiet::Bool=false, filter=(), minvalue=minimumnan(X), maxvalue=maximumnan(X), hsize=12Compose.inch, vsize=12Compose.inch, colormap=colormap_gyr, functionname="mean", kw...)
+function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t.core), sizes=size(X), xtitle="Time", ytitle="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=datestart, cleanup::Bool=true, movie::Bool=false, moviedir=".", prefix::String="", keyword="frame", title="", quiet::Bool=false, filter=(), minvalue=minimumnan(X), maxvalue=maximumnan(X), hsize=12Compose.inch, vsize=12Compose.inch, colormap=colormap_gyr, functionname="mean", kw...)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -657,7 +661,7 @@ function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : Colon()), ndimensons)
 		p1 = plotmatrix(X[nt...], minvalue=minvalue, maxvalue=maxvalue, title=title, colormap=colormap)
-		p2 = progressbar_2d(i, timescale, timestep)
+		p2 = progressbar_2d(i, timescale, timestep, datestart)
 		!quiet && ((sizes[dim] > 1) && println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=150), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 2/3), Gadfly.render(p1)), Compose.compose(Compose.context(0, 0, 1, 1/3), Gadfly.render(p2)))); println())
 		if prefix != ""
 			filename = setnewfilename(prefix, i; keyword=keyword)
@@ -681,7 +685,7 @@ function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::
 	end
 end
 
-function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; xtitle="Time", ytitle="Magnitude", timescale::Bool=true, functionname="mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), kw...)
+function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; xtitle="Time", ytitle="Magnitude", timescale::Bool=true, datestart=nothing, functionname="mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), kw...)
 	ndimensons = length(t.factors)
 	if dim > ndimensons || dim < 1
 		warn("Dimension should be >=1 or <=$(length(sizes))")
@@ -691,16 +695,16 @@ function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 		warn("Dimension should be >=1 or <=$(length(sizes))")
 		return
 	end
-	s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, quiet=true, code=true, order=order, filter=filter)
+	s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, quiet=true, code=true, order=order, filter=filter)
 	progressbar_2d = make_progressbar_2d(s2)
-	plot3tensorcomponents(t, dim; timescale=timescale, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], kw...)
+	plot3tensorcomponents(t, dim; timescale=timescale, datestart=datestart, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], kw...)
 end
 
 function plot3maxtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; kw...)
 	plot3tensorcomponents(t, dim, pdim; kw..., maxcomponent=true)
 end
 
-function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, offset=0, order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, kw...)
+function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, transform=nothing, order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, kw...)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	dimname = namedimension(ndimensons)
@@ -748,8 +752,8 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		else
 			X[i] = TensorDecompositions.compose(tt)[filter...]
 		end
-		if offset != 0
-			X[i] .+ offset
+		if transform != nothing
+			X[i] = transform.(X[i])
 		end
 		if mask != nothing
 			X[i][remask(mask, size(X[i], 3))] = NaN
@@ -765,7 +769,7 @@ function plot2tensors(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDec
 	plot2tensors(X1, X2, dim; kw...)
 end
 
-function plot2tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), minvalue2=minvalue, maxvalue2=maxvalue, movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", prefix::String = "", keyword="frame", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], progressbar=progressbar_regular, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), uniformscaling::Bool=true, colormap=colormap_gyr)
+function plot2tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), minvalue2=minvalue, maxvalue2=maxvalue, movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", prefix::String = "", keyword="frame", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, progressbar=progressbar_regular, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), uniformscaling::Bool=true, colormap=colormap_gyr)
 	if !uniformscaling
 		minvalue=minimumnan(X1)
 		maxvalue=maximumnan(X1)
@@ -793,7 +797,7 @@ function plot2tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minva
 			t = Compose.compose(Compose.context(0, 0, 1Compose.w, 0Compose.h))
 		end
 		if progressbar != nothing
-			f = progressbar(i, timescale, timestep)
+			f = progressbar(i, timescale, timestep, datestart)
 		else
 			f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0Compose.h))
 		end
@@ -823,7 +827,7 @@ end
 
 plotcmptensors = plot2tensors
 
-function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integer=1; minvalue=minimumnan([X1 X2 X3]), maxvalue=maximumnan([X1 X2 X3]), minvalue2=minvalue, maxvalue2=maxvalue, minvalue3=minvalue, maxvalue3=maxvalue, prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], progressbar=progressbar_regular, barratio::Number=1/2, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr, uniformscaling::Bool=true, kw...)
+function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integer=1; minvalue=minimumnan([X1 X2 X3]), maxvalue=maximumnan([X1 X2 X3]), minvalue2=minvalue, maxvalue2=maxvalue, minvalue3=minvalue, maxvalue3=maxvalue, prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, progressbar=progressbar_regular, barratio::Number=1/2, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr, uniformscaling::Bool=true, kw...)
 	if !uniformscaling
 		minvalue=minimumnan(X1)
 		maxvalue=maximumnan(X1)
@@ -850,9 +854,9 @@ function plot3tensors{T,N}(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::
 		g3 = plotmatrix(X3[nt...]; minvalue=minvalue3, maxvalue=maxvalue3, title=rtitle, colormap=colormap, kw...)
 		if progressbar != nothing
 			if sizes[dim] == 1
-				f = progressbar(0, timescale, timestep)
+				f = progressbar(0, timescale, timestep, datestart)
 			else
-				f = progressbar(i, timescale, timestep)
+				f = progressbar(i, timescale, timestep, datestart)
 			end
 		else
 			f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0Compose.h))
@@ -999,16 +1003,17 @@ end
 "Convert `@sprintf` macro into `sprintf` function"
 sprintf(args...) = eval(:@sprintf($(args...)))
 
-function maximumnan(X; kw...)
-	maximum(X[.!isnan.(X)]; kw...)
+function maximumnan(X, c...; kw...)
+	maximum(X[.!isnan.(X)], c...; kw...)
 end
 
-function minimumnan(X; kw...)
-	minimum(X[.!isnan.(X)]; kw...)
+function minimumnan(X, c...; kw...)
+	minimum(X[.!isnan.(X)], c...; kw...)
 end
 
-function progressbar_regular(i::Number, timescale::Bool=false, timestep::Number=1)
+function progressbar_regular(i::Number, timescale::Bool=false, timestep::Number=1, datestart=nothing)
 	s = timescale ? sprintf("%6.4f", i * timestep) : sprintf("%6d", i)
+	s = datestart == nothing ? s : datestart + Dates.Day(i-1)
 	return Compose.compose(Compose.context(0, 0, 1Compose.w, 0.05Compose.h),
 		(Compose.context(), Compose.fill("gray"), Compose.fontsize(10Compose.pt), Compose.text(0.01, 0.0, s, Compose.hleft, Compose.vtop)),
 		(Compose.context(), Compose.fill("tomato"), Compose.rectangle(0.75, 0.0, i * timestep * 0.2, 5)),
@@ -1016,9 +1021,10 @@ function progressbar_regular(i::Number, timescale::Bool=false, timestep::Number=
 end
 
 function make_progressbar_2d(s)
-	function progressbar_2d(i::Number, timescale::Bool=false, timestep::Number=1)
+	function progressbar_2d(i::Number, timescale::Bool=false, timestep::Number=1, datestart=nothing)
 		if i > 0
 			xi = timescale ? i * timestep : i
+			xi = datestart == nothing ? s : datestart + Dates.Day(i-1)
 			return Gadfly.plot(s..., Gadfly.layer(xintercept=[xi], Gadfly.Geom.vline(color=["gray"], size=[2Gadfly.pt])))
 		else
 			return Gadfly.plot(s...)
