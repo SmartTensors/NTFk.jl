@@ -964,6 +964,9 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 	end
 	barratio = (maxcomponent) ? 1/2 : 1/3
 	plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt); prefix=prefix, barratio=barratio, kw...)
+	if maxcomponent
+		mv("$prefix-frame000001.png", "$prefix-max.png"; remove_destination=true)
+	end
 end
 
 function plot2tensors(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
