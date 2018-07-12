@@ -622,7 +622,7 @@ function plottensor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CA
 	plottensor(X, dim; kw...)
 end
 
-function plottensor(X::Array{T,N}, dim::Integer=1; minvalue=minimumnan(X), maxvalue=maximumnan(X), prefix::String="", keyword="frame", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, progressbar=progressbar_regular, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr, cutoff::Bool=false, cutvalue::Number=0) where {T,N}
+function plottensor(X::Array{T,N}, dim::Integer=1; minvalue=minimumnan(X), maxvalue=maximumnan(X), prefix::String="", keyword="frame", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr, cutoff::Bool=false, cutvalue::Number=0) where {T,N}
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -640,7 +640,7 @@ function plottensor(X::Array{T,N}, dim::Integer=1; minvalue=minimumnan(X), maxva
 		end
 		g = plotmatrix(M, minvalue=minvalue, maxvalue=maxvalue, title=title, colormap=colormap)
 		if progressbar != nothing
-			f = progressbar(i, timescale, timestep, datestart)
+			f = progressbar(i, timescale, timestep, datestart, dateincrement)
 		else
 			f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0Compose.h))
 		end
@@ -1223,9 +1223,9 @@ function minimumnan(X, c...; kw...)
 	minimum(X[.!isnan.(X)], c...; kw...)
 end
 
-function progressbar_regular(i::Number, timescale::Bool=false, timestep::Number=1, datestart=nothing)
+function progressbar_regular(i::Number, timescale::Bool=false, timestep::Number=1, datestart=nothing, dateincrement::String="Dates.Day")
 	s = timescale ? sprintf("%6.4f", i * timestep) : sprintf("%6d", i)
-	s = datestart == nothing ? s : datestart + Dates.Day(i-1)
+	s = datestart == nothing ? s : datestart + eval(parse(dateincrement))(i-1)
 	return Compose.compose(Compose.context(0, 0, 1Compose.w, 0.05Compose.h),
 		(Compose.context(), Compose.fill("gray"), Compose.fontsize(10Compose.pt), Compose.text(0.01, 0.0, s, Compose.hleft, Compose.vtop)),
 		(Compose.context(), Compose.fill("tomato"), Compose.rectangle(0.75, 0.0, i * timestep * 0.2, 5)),
@@ -1233,10 +1233,10 @@ function progressbar_regular(i::Number, timescale::Bool=false, timestep::Number=
 end
 
 function make_progressbar_2d(s)
-	function progressbar_2d(i::Number, timescale::Bool=false, timestep::Number=1, datestart=nothing)
+	function progressbar_2d(i::Number, timescale::Bool=false, timestep::Number=1, datestart=nothing, dateincrement::String="Dates.Day")
 		if i > 0
 			xi = timescale ? i * timestep : i
-			xi = datestart == nothing ? s : datestart + Dates.Day(i-1)
+			xi = datestart == nothing ? s : datestart + eval(parse(dateincrement))(i-1)
 			return Gadfly.plot(s..., Gadfly.layer(xintercept=[xi], Gadfly.Geom.vline(color=["gray"], size=[2Gadfly.pt])))
 		else
 			return Gadfly.plot(s...)
