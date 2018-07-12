@@ -1,3 +1,6 @@
+# __precompile__()
+
+"Non-negative Tensor Factorization + k-means Clustering"
 module NTFk
 
 "Checks if package is available"
