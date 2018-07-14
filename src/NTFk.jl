@@ -66,6 +66,7 @@ modules = ["NTFk", "NMFk", "CanDecomp"]
 const dntfdir = splitdir(Base.source_path())[1]
 
 include("NTFkHelp.jl")
+include("NTFkHelpers.jl")
 include("NTFkPlot.jl")
 include("NTFkAnalysis.jl")
 include("NTFkAnalysis-tensordecompositions.jl")
