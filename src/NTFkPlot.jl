@@ -223,6 +223,9 @@ colormap_gy = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse(
 colormap_wb = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "white"), parse(Colors.Colorant, "black"))]
 
 function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, datestart=nothing, code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)))
+	if !isdir(figuredir)
+		mkdir(figuredir)
+	end
 	csize = TensorToolbox.mrank(t.core)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
@@ -254,6 +257,9 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 end
 
 function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, functionname::String="mean"; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, datestart=nothing, code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude))
+	if !isdir(figuredir)
+		mkdir(figuredir)
+	end
 	csize = TensorToolbox.mrank(t.core)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
@@ -300,6 +306,9 @@ end
 
 function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, functionname1::String="mean", functionname2::String="mean"; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, datestart=nothing, code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude))
 	csize = TensorToolbox.mrank(t.core)
+	if !isdir(figuredir)
+		mkdir(figuredir)
+	end
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	crank = csize[dim]
@@ -348,6 +357,9 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 end
 
 function plotmatrix(X::Matrix; minvalue=minimumnan(X), maxvalue=maximumnan(X), label="", title="", xlabel="", ylabel="", gm=[Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing)], masize::Int64=0, colormap=colormap_gyr, filename::String="", hsize=6Compose.inch, vsize=6Compose.inch, figuredir::String=".", colorkey::Bool=true)
+	if !isdir(figuredir)
+		mkdir(figuredir)
+	end
 	Xp = min.(max.(movingaverage(X, masize), minvalue), maxvalue)
 	cs = colorkey ? [] : [Gadfly.Theme(key_position = :none)]
 	p = Gadfly.spy(Xp, Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Guide.ColorKey(title=label), Gadfly.Scale.ContinuousColorScale(colormap..., minvalue=minvalue, maxvalue=maxvalue), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt, bar_spacing=0Gadfly.mm), cs..., gm...)
@@ -933,6 +945,9 @@ function setnewfilename(filename::String, frame::Integer=0; keyword::String="fra
 end
 
 function plot2d(T::Array, Te::Array; quiet::Bool=false, ymin=nothing, ymax=nothing, wellnames=nothing, Tmax=nothing, Tmin=nothing, xtitle::String="x", ytitle::String="y", figuredir="results", hsize=8Gadfly.inch, vsize=4Gadfly.inch, keyword="", dimname="Well", colors=[parse(Colors.Colorant, "green"), parse(Colors.Colorant, "orange"), parse(Colors.Colorant, "blue"), parse(Colors.Colorant, "gray")], gm=[Gadfly.Guide.manual_color_key("", ["Oil", "Gas", "Water"], colors[1:3]), Gadfly.Theme(major_label_font_size=16Gadfly.pt, key_label_font_size=14Gadfly.pt, minor_label_font_size=12Gadfly.pt)])
+	if !isdir(figuredir)
+		mkdir(figuredir)
+	end
 	c = size(T)
 	if wellnames != nothing
 		@assert length(wellnames) == c[1]
