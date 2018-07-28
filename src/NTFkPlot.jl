@@ -955,6 +955,8 @@ function plot2d(T::Array, Te::Array; quiet::Bool=false, ymin=nothing, ymax=nothi
 	@assert c == size(Te)
 	if Tmax != nothing && Tmin != nothing
 		@assert size(Tmax) == size(Tmin)
+		@assert size(Tmax, 1) == c[1]
+		@assert size(Tmax, 2) == c[3]
 		append = ""
 	else
 		append = "_normalized"
