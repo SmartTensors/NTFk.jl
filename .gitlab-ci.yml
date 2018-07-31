@@ -1,0 +1,67 @@
+# Install required NTFk, Ipopt && Mads tools
+before_script:
+  - apt-get update
+  - apt-get install -y wget git gcc gfortran g++ make patch bzip2 hdf5-tools zlib1g-dev
+  
+stages:
+  - test
+  - postprocess
+
+variables:
+  JULIA_PKGDIR: "$CI_PROJECT_DIR/"
+  package: 'NTFk'
+
+# Define a testing template to use against various images
+.test_template: &test_definition
+  script:
+    # These private packages need special handling.
+    # Perhaps there's a more elegant way?
+    - julia -e "Pkg.init();
+                Pkg.clone(\"https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.com/science/NMFk.jl.git\");
+                Pkg.clone(\"https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.com/TensorFactorization/TensorDecompositions.jl.git\");
+                Pkg.clone(\"https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.com/TensorFactorization/CanDecomp.jl.git\")"
+    
+    # Issues with PyPlot below. See Pull Request details.
+    - julia -e "Pkg.clone(\"https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.com/TensorFactorization/NTFk.jl.git\");
+                Pkg.resolve();
+                Pkg.build(\"$package\");
+                ENV[\"PYTHON\"]=\"\";
+                Pkg.update();
+                Pkg.build(\"PyCall\");
+                using PyPlot;
+                Pkg.test(\"$package\",coverage = true)"
+                
+  # Keep coverage files for postprocess stage
+  artifacts:
+    paths:
+      - $JULIA_PKGDIR/METADATA
+      - $JULIA_PKGDIR/$package
+      #- src/*.cov
+
+# Run test on stable image
+test:0.6.2:
+  stage: test
+  image: julia:0.6.2
+  <<: *test_definition
+
+# Run test on development image
+test:dev:
+  stage: test
+  image: julia:latest
+  allow_failure: true
+  <<: *test_definition
+
+# Get code coverage and optionally push
+coverage:
+  stage: postprocess
+  allow_failure: true
+  image: julia:0.6.2
+  dependencies:
+    - test:0.6.2
+  script:
+    - julia -e 'Pkg.add("Coverage");'
+    - julia -e "using Coverage;
+                cl, tl = get_summary(process_folder());
+                println(\"(\", cl/tl*100, \"%) covered\")"
+  coverage: '/\(\d+.\d+\%\) covered/'
+  

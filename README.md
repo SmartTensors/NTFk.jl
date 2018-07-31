@@ -1,7 +1,16 @@
 NTFk: Nonnegative Tensor Factorization + custom k-means clustering
 ===============
+
+[![][gitlab-img]][gitlab-url] [![][codecov-img]][codecov-url]
+
+[gitlab-img]: https://gitlab.com/TensorFactorization/NTFk.jl/badges/master/pipeline.svg
+[gitlab-url]: https://gitlab.com/TensorFactorization/NTFk.jl/pipelines
+
+[codecov-img]: https://gitlab.com/TensorFactorization/NTFk.jl/badges/master/coverage.svg
+[codecov-url]: https://gitlab.com/TensorFactorization/NTFk.jl
+
 Documentation
-=============
+===============
 
 
 Installation
