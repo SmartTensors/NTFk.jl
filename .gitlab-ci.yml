@@ -23,12 +23,12 @@ variables:
     
     # Issues with PyPlot below. See Pull Request details.
     - julia -e "Pkg.clone(\"https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.com/TensorFactorization/NTFk.jl.git\");
-                Pkg.resolve();
-                Pkg.build(\"$package\");
                 ENV[\"PYTHON\"]=\"\";
                 Pkg.update();
                 Pkg.build(\"PyCall\");
                 using PyPlot;
+                Pkg.resolve();
+                Pkg.build(\"$package\");
                 Pkg.test(\"$package\",coverage = true)"
                 
   # Keep coverage files for postprocess stage
