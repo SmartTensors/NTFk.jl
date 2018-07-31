@@ -621,7 +621,7 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 	plot3tensors(permutedims(X1, pt), permutedims(X2[order[1]], pt), permutedims(X2[order[2]], pt); prefix=prefix, kw...)
 end
 
-function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t.core), sizes=size(X), xtitle="Time", ytitle="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, cleanup::Bool=true, movie::Bool=false, moviedir=".", prefix::String="", keyword="frame", title="", quiet::Bool=false, filter=(), minvalue=minimumnan(X), maxvalue=maximumnan(X), hsize=12Compose.inch, vsize=12Compose.inch, colormap=colormap_gyr, functionname="mean", kw...)
+function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t.core), sizes=size(X), xtitle="Time", ytitle="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::String="Dates.Day", sscleanup::Bool=true, movie::Bool=false, moviedir=".", prefix::String="", keyword="frame", title="", quiet::Bool=false, filter=(), minvalue=minimumnan(X), maxvalue=maximumnan(X), hsize=12Compose.inch, vsize=12Compose.inch, colormap=colormap_gyr, functionname="mean", kw...)
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -643,7 +643,7 @@ function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : Colon()), ndimensons)
 		p1 = plotmatrix(X[nt...], minvalue=minvalue, maxvalue=maxvalue, title=title, colormap=colormap)
-		p2 = progressbar_2d(i, timescale, timestep, datestart)
+		p2 = progressbar_2d(i, timescale, timestep, datestart, dateincrement)
 		!quiet && ((sizes[dim] > 1) && println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=150), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 2/3), Gadfly.render(p1)), Compose.compose(Compose.context(0, 0, 1, 1/3), Gadfly.render(p2)))); println())
 		if prefix != ""
 			filename = setnewfilename(prefix, i; keyword=keyword)
@@ -667,7 +667,7 @@ function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::
 	end
 end
 
-function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; xtitle="Time", ytitle="Magnitude", timescale::Bool=true, datestart=nothing, functionname="mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), kw...)
+function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; xtitle="Time", ytitle="Magnitude", timescale::Bool=true, datestart=nothing, dateincrement::String="Dates.Day", functionname="mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), kw...)
 	ndimensons = length(t.factors)
 	if dim > ndimensons || dim < 1
 		warn("Dimension should be >=1 or <=$(length(sizes))")
@@ -679,7 +679,7 @@ function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	end
 	s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, quiet=true, code=true, order=order, filter=filter)
 	progressbar_2d = make_progressbar_2d(s2)
-	plot3tensorcomponents(t, dim; timescale=timescale, datestart=datestart, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], kw...)
+	plot3tensorcomponents(t, dim; timescale=timescale, datestart=datestart, dateincrement=dateincrement, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], kw...)
 end
 
 function plot3maxtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; kw...)
@@ -782,7 +782,7 @@ function plot2tensors(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minvalue=m
 			t = Compose.compose(Compose.context(0, 0, 1Compose.w, 0Compose.h))
 		end
 		if progressbar != nothing
-			f = progressbar(i, timescale, timestep, datestart)
+			f = progressbar(i, timescale, timestep, datestart, dateincrement)
 		else
 			f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0Compose.h))
 		end
@@ -812,7 +812,7 @@ end
 
 plotcmptensors = plot2tensors
 
-function plot3tensors(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integer=1; minvalue=minimumnan([X1 X2 X3]), maxvalue=maximumnan([X1 X2 X3]), minvalue2=minvalue, maxvalue2=maxvalue, minvalue3=minvalue, maxvalue3=maxvalue, prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, progressbar=progressbar_regular, barratio::Number=1/2, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr, uniformscaling::Bool=true, kw...) where {T,N}
+function plot3tensors(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integer=1; minvalue=minimumnan([X1 X2 X3]), maxvalue=maximumnan([X1 X2 X3]), minvalue2=minvalue, maxvalue2=maxvalue, minvalue3=minvalue, maxvalue3=maxvalue, prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, barratio::Number=1/2, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr, uniformscaling::Bool=true, kw...) where {T,N}
 	if !uniformscaling
 		minvalue = minimumnan(X1)
 		maxvalue = maximumnan(X1)
@@ -839,9 +839,9 @@ function plot3tensors(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integ
 		g3 = plotmatrix(X3[nt...]; minvalue=minvalue3, maxvalue=maxvalue3, title=rtitle, colormap=colormap, kw...)
 		if progressbar != nothing
 			if sizes[dim] == 1
-				f = progressbar(0, timescale, timestep, datestart)
+				f = progressbar(0, timescale, timestep, datestart, dateincrement)
 			else
-				f = progressbar(i, timescale, timestep, datestart)
+				f = progressbar(i, timescale, timestep, datestart, dateincrement)
 			end
 		else
 			f = Compose.compose(Compose.context(0, 0, 1Compose.w, 0Compose.h))
