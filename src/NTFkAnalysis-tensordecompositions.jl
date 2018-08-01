@@ -145,13 +145,13 @@ end
 methods: spnntucker, tucker_als, tucker_sym
 """
 function analysis(X::Array{T,N}, csize::NTuple{N,Int}=size(X), nTF::Integer=1; clusterdim::Integer=1, resultdir::String=".", prefix::String="spnn", seed::Integer=0, tol::Number=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter::Integer=DMAXITER, lambda::Number=0.1, lambdas=fill(lambda, length(size(X)) + 1), eigmethod=trues(N), progressbar::Bool=false, quiet::Bool=true, serial::Bool=false, saveall::Bool=false) where {T,N}
-	info("TensorDecompositions Tucker analysis ...")
+	info("TensorDecompositions Tucker analysis with core size $(csize)...")
 	@assert clusterdim <= N || clusterdim > 1
 	warn("Clustering Dimension: $clusterdim")
 	seed > 0 && srand(seed)
 	tsize = size(X)
 	ndimensons = length(tsize)
-	info("Core size: $(tsize)")
+	info("Tensor size: $(tsize)")
 	residues = Vector{Float64}(nTF)
 	tsi = Vector{TensorDecompositions.Tucker{T,N}}(nTF)
 	WBig = Vector{Matrix}(nTF)
@@ -187,7 +187,7 @@ function analysis(X::Array{T,N}, csize::NTuple{N,Int}=size(X), nTF::Integer=1; c
 end
 
 function analysis(X::Array{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Integer=1; clusterdim::Integer=1, resultdir::String=".", prefix::String="spnn", serial::Bool=false, seed::Integer=0, kw...) where {T,N}
-	info("TensorDecompositions Tucker analysis ...")
+	info("TensorDecompositions Tucker analysis for a series of $(length(csizes)) core sizes ...")
 	@assert clusterdim <= N || clusterdim > 1
 	warn("Clustering Dimension: $clusterdim")
 	seed > 0 && srand(seed)
