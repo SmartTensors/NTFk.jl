@@ -151,7 +151,7 @@ function analysis(X::Array{T,N}, csize::NTuple{N,Int}=size(X), nTF::Integer=1; c
 	seed > 0 && srand(seed)
 	tsize = size(X)
 	ndimensons = length(tsize)
-	info("Core size: $(size)")
+	info("Core size: $(tsize)")
 	residues = Vector{Float64}(nTF)
 	tsi = Vector{TensorDecompositions.Tucker{T,N}}(nTF)
 	WBig = Vector{Matrix}(nTF)
