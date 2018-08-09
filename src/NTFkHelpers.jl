@@ -251,3 +251,18 @@ function gettensorcomponentgroups(t::TensorDecompositions.Tucker, dim::Integer=1
 	info("Number of component groups in dimension $dim is $(gi)")
 	return g
 end
+
+function gettensormaximums(t::TensorDecompositions.Tucker{T,N}) where {T,N}
+	for i=1:N
+		info("D$i factor: $(maximum(t.factors[i], 1))")
+	end
+	for i=1:N
+		dp = Vector{Int64}(0)
+		for j = 1:N
+			if j != i
+				push!(dp, j)
+			end
+		end
+		info("D$i core slice: $(vec(maximum(t.core, dp)))")
+	end
+end

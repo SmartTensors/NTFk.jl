@@ -382,10 +382,10 @@ function atensor(X::Array)
 	return mask
 end
 
-function normalizefactors!{T,N}(X::TensorDecompositions.Tucker{T,N})
-	# Xi = TensorDecompositions.compose(X)
+function normalizefactors!{T,N}(X::TensorDecompositions.Tucker{T,N}, order=1:N)
+	Xi = TensorDecompositions.compose(X)
 	l = size(X.core)
-	for i = 1:N
+	for i = order
 		m = maximum(X.factors[i], 1)
 		@assert length(m) == l[i]
 		for j = 1:l[i]
@@ -395,50 +395,52 @@ function normalizefactors!{T,N}(X::TensorDecompositions.Tucker{T,N})
 		m[m.==0] = 1.0
 		X.factors[i] ./= m
 	end
-	# Xe = TensorDecompositions.compose(X)
-	# vecnorm(Xi .- Xe)
+	Xe = TensorDecompositions.compose(X)
+	info("Normalization error: $(vecnorm(Xi .- Xe))")
 end
 
-function normalizefactors!{T,N}(X::TensorDecompositions.CANDECOMP{T,N})
-	# Xi = TensorDecompositions.compose(X)
-	for i = 1:N
-		m = maximum(X.factors[i], 1)
-		X.lambdas .*= vec(m)
-		m[m.==0] = 1.0
-		X.factors[i] ./= m
-	end
-	# Xe = TensorDecompositions.compose(X)
-	# vecnorm(Xi .- Xe)
-end
-
-function normalizecore!{T,N}(X::TensorDecompositions.Tucker{T,N})
-	# Xi = TensorDecompositions.compose(X)
+function normalizecore!{T,N}(X::TensorDecompositions.Tucker{T,N}, order=1:N)
+	Xi = TensorDecompositions.compose(X)
 	l = size(X.core)
 	v = collect(1:N)
-	for i = 1:N
+	for i = order
 		m = vec(maximum(X.core, v[v.!=i]))
 		X.factors[i] .*= m'
 		m[m.==0] = 1.0
 		for j = 1:l[i]
 			ind = map(k->((i==k) ? j : Colon()), 1:N)
 			X.core[ind...] ./= m[j]
+			# @show m[j]
 		end
+		m = vec(maximum(X.core, v[v.!=i]))
 	end
-	# Xe = TensorDecompositions.compose(X)
-	# vecnorm(Xi .- Xe)
+	Xe = TensorDecompositions.compose(X)
+	info("Normalization error: $(vecnorm(Xi .- Xe))")
 end
 
-function normalizelambdas!{T,N}(X::TensorDecompositions.CANDECOMP{T,N})
-	# Xi = TensorDecompositions.compose(X)
+function normalizefactors!{T,N}(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N)
+	Xi = TensorDecompositions.compose(X)
+	for i = order
+		m = maximum(X.factors[i], 1)
+		X.lambdas .*= vec(m)
+		m[m.==0] = 1.0
+		X.factors[i] ./= m
+	end
+	Xe = TensorDecompositions.compose(X)
+	info("Normalization error: $(vecnorm(Xi .- Xe))")
+end
+
+function normalizelambdas!{T,N}(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N)
+	Xi = TensorDecompositions.compose(X)
 	m = vec(X.lambdas)' .^ (1/N)
-	for i = 1:N
+	for i = order
 		X.factors[i] .*= m
 	end
 	m = copy(X.lambdas)
 	m[m.==0] = 1.0
 	X.lambdas ./= m
-	# Xe = TensorDecompositions.compose(X)
-	# vecnorm(Xi .- Xe)
+	Xe = TensorDecompositions.compose(X)
+	info("Normalization error: $(vecnorm(Xi .- Xe))")
 end
 
 function mincorrelations(X1::Array{T,N}, X2::Array{T,N}) where {T,N}
