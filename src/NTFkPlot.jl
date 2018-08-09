@@ -729,7 +729,6 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		end
 	end
 	if maxcomponent
-		@show "maxcomponent"
 		factors = []
 		for i = 1:ndimensons
 			if i == dim
