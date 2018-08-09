@@ -254,7 +254,8 @@ end
 
 function gettensormaximums(t::TensorDecompositions.Tucker{T,N}) where {T,N}
 	for i=1:N
-		info("D$i factor: $(maximum(t.factors[i], 1))")
+		v = maximum(t.factors[i], 1)
+		info("D$i factor: $(v) Max: $(maximum(v))")
 	end
 	for i=1:N
 		dp = Vector{Int64}(0)
@@ -263,6 +264,7 @@ function gettensormaximums(t::TensorDecompositions.Tucker{T,N}) where {T,N}
 				push!(dp, j)
 			end
 		end
-		info("D$i core slice: $(vec(maximum(t.core, dp)))")
+		v = vec(maximum(t.core, dp))
+		info("D$i core slice: $(v) Max: $(maximum(v))")
 	end
 end
