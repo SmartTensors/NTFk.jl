@@ -729,6 +729,7 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		end
 	end
 	if maxcomponent
+		@show "maxcomponent"
 		factors = []
 		for i = 1:ndimensons
 			if i == dim
@@ -764,6 +765,11 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		tt.core .= t.core
 	end
 	barratio = (maxcomponent) ? 1/2 : 1/3
+	# if true
+	# 	JLD.save("matrix-$(order[1]).jld", "X", X[order[1]])
+	# 	JLD.save("matrix-$(order[2]).jld", "X", X[order[2]])
+	# 	JLD.save("matrix-$(order[3]).jld", "X", X[order[3]])
+	# end
 	plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt), 1; prefix=prefix, barratio=barratio, kw...)
 	if maxcomponent
 		mv("$prefix-frame000001.png", "$prefix-max.png"; remove_destination=true)

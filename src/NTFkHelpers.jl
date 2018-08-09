@@ -115,7 +115,7 @@ function getinterpolatedtensor(t::TensorDecompositions.Tucker{T,N}, v; sp=[Inter
 	return tn
 end
 
-function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core, firstpeak::Bool=true, quiet=true)
+function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core, firstpeak::Bool=true, reverse=true, quiet=true)
 	cs = size(t.core)[dim]
 	csize = TensorToolbox.mrank(t.core)
 	ndimensons = length(csize)
@@ -134,7 +134,7 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 				warn("Component $i has zero variability!")
 			end
 		end
-		ifdx = sortperm(fdx; rev=true)[1:crank]
+		ifdx = sortperm(fdx; rev=reverse)[1:crank]
 		!quiet && info("Factor magnitudes (max - min): $fdx")
 		if firstpeak
 			imax = map(i->indmax(t.factors[dim][:, ifdx[i]]), 1:crank)
@@ -168,7 +168,7 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 			end
 		end
 		!quiet && info("Max core magnitudes: $maxXe")
-		imax = sortperm(maxXe; rev=true)
+		imax = sortperm(maxXe; rev=reverse)
 		order = imax[1:crank]
 	end
 	return order
