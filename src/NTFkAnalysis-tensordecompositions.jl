@@ -137,7 +137,7 @@ function analysis(X::Array{T,N}, dsizes::Vector{Int64}, dim, nTF; kw...) where {
 		nt = ntuple(k->(k == dim ? i : csize[k]), ndimensons)
 		push!(sizes, nt)
 	end
-	@show sizes
+	info("Sizes: $(sizes)")
 	analysis(X, sizes, nTF; kw...)
 end
 

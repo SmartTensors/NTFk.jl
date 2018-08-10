@@ -222,7 +222,7 @@ colormap_gyr = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse
 colormap_gy = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"))]
 colormap_wb = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "white"), parse(Colors.Colorant, "black"))]
 
-function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true,  datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), xmin=datestart, xmax=dateend)
+function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true,  datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), xmin=datestart, xmax=dateend, transform=nothing)
 	if !isdir(figuredir)
 		mkdir(figuredir)
 	end
@@ -243,6 +243,9 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	loopcolors = ncomponents > ncolors ? true : false
 	componentnames = map(i->"T$i", filter)
 	p = t.factors[dim]
+	if transform != nothing
+		p = transform.(p)
+	end
 	pl = Vector{Any}(ncomponents)
 	for i = 1:ncomponents
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
@@ -688,7 +691,7 @@ function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::
 	end
 end
 
-function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; xtitle="Time", ytitle="Magnitude", timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", functionname="mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), xmin=datestart, xmax=dateend, kw...)
+function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; xtitle="Time", ytitle="Magnitude", timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", functionname="mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), xmin=datestart, xmax=dateend, transform2d=nothing, kw...)
 	ndimensons = length(t.factors)
 	if dim > ndimensons || dim < 1
 		warn("Dimension should be >=1 or <=$(length(sizes))")
@@ -698,7 +701,7 @@ function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 		warn("Dimension should be >=1 or <=$(length(sizes))")
 		return
 	end
-	s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, dateend=dateend,dateincrement=dateincrement, quiet=true, code=true, order=order, filter=filter, xmin=xmin, xmax=xmax)
+	s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, dateend=dateend,dateincrement=dateincrement, quiet=true, code=true, order=order, filter=filter, xmin=xmin, xmax=xmax, transform=transform2d)
 	progressbar_2d = make_progressbar_2d(s2)
 	plot3tensorcomponents(t, dim, pdim; timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], kw...)
 end
