@@ -405,6 +405,7 @@ function getfactor(t::TensorDecompositions.Tucker, dim::Integer=1, cutoff::Numbe
 end
 
 function plotfactors(t::TensorDecompositions.Tucker, cutoff::Number=0; prefix="", kw...)
+	recursivemkdir(prefix)
 	for i = 1:length(t.factors)
 		display(plotfactor(t, i, cutoff; filename="$(prefix)_factor$(i).png", kw...))
 		println()
@@ -430,6 +431,7 @@ function plottensor(X::Array{T,N}, dim::Integer=1; minvalue=minimumnan(X), maxva
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
+	recursivemkdir(prefix)
 	if dim > N || dim < 1
 		warn("Dimension should be >=1 or <=$(length(sizes))")
 		return
@@ -493,6 +495,7 @@ function namedimension(ndimensons::Int; char="C", names=("T", "X", "Y"))
 end
 
 function plottensorcomponents(X1::Array, t2::TensorDecompositions.CANDECOMP; prefix::String="", filter=(), kw...)
+	recursivemkdir(prefix)
 	ndimensons = length(size(X1))
 	crank = length(t2.lambdas)
 	tt = deepcopy(t2)
@@ -510,6 +513,7 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.CANDECOMP; pre
 end
 
 function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String="", filter=(), kw...)
+	recursivemkdir(prefix)
 	ndimensons = length(size(X1))
 	@assert dim >= 1 && dim <= ndimensons
 	@assert ndimensons == length(csize)
@@ -551,6 +555,7 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::I
 end
 
 function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), mask=nothing, transform=nothing, prefix::String="", filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), kw...)
+	recursivemkdir(prefix)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	dimname = namedimension(ndimensons)
@@ -598,6 +603,7 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 end
 
 function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t2.core), mask=nothing, transform=nothing, prefix::String="", filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), kw...)
+	recursivemkdir(prefix)
 	ndimensons = length(size(X1))
 	@assert dim >= 1 && dim <= ndimensons
 	@assert ndimensons == length(csize)
@@ -649,6 +655,7 @@ function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
+	recursivemkdir(prefix)
 	ndimensons = length(sizes)
 	if dim > ndimensons || dim < 1
 		warn("Dimension should be >=1 or <=$(length(sizes))")
@@ -711,6 +718,7 @@ function plot3maxtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1
 end
 
 function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, transform=nothing, order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, kw...)
+	recursivemkdir(prefix)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	dimname = namedimension(ndimensons)
@@ -784,6 +792,7 @@ function plot2tensors(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDec
 end
 
 function plot2tensors(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), minvalue2=minvalue, maxvalue2=maxvalue, movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", prefix::String = "", keyword="frame", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), uniformscaling::Bool=true, colormap=colormap_gyr) where {T,N}
+	recursivemkdir(prefix)
 	if !uniformscaling
 		minvalue = minimumnan(X1)
 		maxvalue = maximumnan(X1)
@@ -842,6 +851,7 @@ end
 plotcmptensors = plot2tensors
 
 function plot3tensors(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integer=1; minvalue=minimumnan([X1 X2 X3]), maxvalue=maximumnan([X1 X2 X3]), minvalue2=minvalue, maxvalue2=maxvalue, minvalue3=minvalue, maxvalue3=maxvalue, prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, barratio::Number=1/2, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr, uniformscaling::Bool=true, kw...) where {T,N}
+	recursivemkdir(prefix)
 	if !uniformscaling
 		minvalue = minimumnan(X1)
 		maxvalue = maximumnan(X1)

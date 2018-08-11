@@ -268,3 +268,34 @@ function gettensormaximums(t::TensorDecompositions.Tucker{T,N}) where {T,N}
 		info("D$i core slice: $(v) Max: $(maximum(v))")
 	end
 end
+
+function recursivemkdir(s::String)
+	d = Vector{String}()
+	sc = deepcopy(s)
+	while splitdir(sc)[1] != ""
+		push!(d, splitdir(sc)[1])
+		sc = splitdir(sc)[1]
+	end
+	for i = length(d):-1:1
+		if isfile(d[i])
+			warn("File $d[i] exists!")
+		elseif !isdir(d[i])
+			mkdir(d[i])
+		end
+	end
+end
+
+function recursivermdir(s::String)
+	d = Vector{String}()
+	sc = deepcopy(s)
+	while splitdir(sc)[1] != ""
+		push!(d, splitdir(sc)[1])
+		sc = splitdir(sc)[1]
+	end
+	for i = 1:length(d)
+		if isdir(d[i])
+			rm(d[i]; force=true, recursive=true)
+		end
+	end
+end
+
