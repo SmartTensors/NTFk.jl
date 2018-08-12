@@ -419,7 +419,11 @@ end
 function plottensor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; mask=nothing, transform=nothing, kw...)
 	X = TensorDecompositions.compose(t)
 	if mask != nothing
-		X[remask(mask, size(X, 3))] = NaN
+		if length(size(mask)) == length(size(X))
+			X[mask] = NaN
+		else
+			X[remask(mask, size(X, 3))] = NaN
+		end
 	end
 	if transform != nothing
 		X = transform.(X)
@@ -592,7 +596,11 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 			X[i] = TensorDecompositions.compose(tt)[filter...]
 		end
 		if mask != nothing
-			X[i][remask(mask, size(X[i], 3))] = NaN
+			if length(size(mask)) == length(size(X))
+				X[mask] = NaN
+			else
+				X[remask(mask, size(X, 3))] = NaN
+			end
 		end
 		if transform != nothing
 			X[i] = transform.(X[i])
@@ -641,7 +649,11 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 			X2[i] = TensorDecompositions.compose(tt)[filter...]
 		end
 		if mask != nothing
-			X2[i][remask(mask, size(X2[i], 3))] = NaN
+			if length(size(mask)) == length(size(X2))
+				X2[mask] = NaN
+			else
+				X2[remask(mask, size(X2, 3))] = NaN
+			end
 		end
 		if transform != nothing
 			X2[i] = transform.(X2[i])
@@ -770,7 +782,11 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 			X[i] = transform.(X[i])
 		end
 		if mask != nothing
-			X[i][remask(mask, size(X[i], 3))] = NaN
+			if length(size(mask)) == length(size(X))
+				X[mask] = NaN
+			else
+				X[remask(mask, size(X, 3))] = NaN
+			end
 		end
 		tt.core .= t.core
 	end
@@ -936,8 +952,13 @@ function plotlefttensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorD
 	end
 	D = X2 - X1
 	if mask != nothing
-		X2[remask(mask, size(X2, 3))] = NaN
-		D[remask(mask, size(D, 3))] = NaN
+		if length(size(mask)) == length(size(X))
+			X2[mask] = NaN
+			D[mask] = NaN
+		else
+			X2[remask(mask, size(X2, 3))] = NaN
+			D[remask(mask, size(D, 3))] = NaN
+		end
 	end
 	min3 = minimumnan(D)
 	max3 = maximumnan(D)
