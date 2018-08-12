@@ -649,7 +649,7 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 			X2[i] = TensorDecompositions.compose(tt)[filter...]
 		end
 		if mask != nothing
-			if length(size(mask)) == length(size(X[i]2))
+			if length(size(mask)) == length(size(X2[i]))
 				X2[i][mask] = NaN
 			else
 				X2[i][remask(mask, size(X2[i], 3))] = NaN
