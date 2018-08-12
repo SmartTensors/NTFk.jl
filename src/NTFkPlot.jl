@@ -596,10 +596,10 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 			X[i] = TensorDecompositions.compose(tt)[filter...]
 		end
 		if mask != nothing
-			if length(size(mask)) == length(size(X))
-				X[mask] = NaN
+			if length(size(mask)) == length(size(X[i]))
+				X[i][mask] = NaN
 			else
-				X[remask(mask, size(X, 3))] = NaN
+				X[i][remask(mask, size(X[i], 3))] = NaN
 			end
 		end
 		if transform != nothing
@@ -649,10 +649,10 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 			X2[i] = TensorDecompositions.compose(tt)[filter...]
 		end
 		if mask != nothing
-			if length(size(mask)) == length(size(X2))
-				X2[mask] = NaN
+			if length(size(mask)) == length(size(X[i]2))
+				X2[i][mask] = NaN
 			else
-				X2[remask(mask, size(X2, 3))] = NaN
+				X2[i][remask(mask, size(X2[i], 3))] = NaN
 			end
 		end
 		if transform != nothing
@@ -782,10 +782,10 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 			X[i] = transform.(X[i])
 		end
 		if mask != nothing
-			if length(size(mask)) == length(size(X))
-				X[mask] = NaN
+			if length(size(mask)) == length(size(X[i]))
+				X[i][mask] = NaN
 			else
-				X[remask(mask, size(X, 3))] = NaN
+				X[i][remask(mask, size(X[i], 3))] = NaN
 			end
 		end
 		tt.core .= t.core
