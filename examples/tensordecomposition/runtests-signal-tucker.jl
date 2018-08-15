@@ -15,7 +15,7 @@ T_orig .*= 100
 T = T_orig
 
 t, c, ibest = NTFk.analysis(T, [tsize], 5; progressbar=true, tol=1e-16, max_iter=10000)
-NTFk.plotcmptensor(T, t[ibest], 3; progressbar=false)
+NTFk.plotcmptensors(T, t[ibest], 3; progressbar=false)
 NTFk.plotmatrix(t[ibest].factors[1])
 NTFk.plotmatrix(t[ibest].factors[2])
 NTFk.plotmatrix(t[ibest].factors[3])

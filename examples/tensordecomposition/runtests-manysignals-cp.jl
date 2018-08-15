@@ -32,7 +32,7 @@ NTFk.plottensor(T)
 
 # tranks = [20]
 # tc, c, ibest = NTFk.analysis(T, tranks; method=:cp_als)
-# NTFk.plotcmptensor(T, tc[ibest]; minvalue=0, maxvalue=1000000)
+# NTFk.plotcmptensors(T, tc[ibest]; minvalue=0, maxvalue=1000000)
 # tt, c, ibest = NTFk.analysis(T, [tsize]; progressbar=true, tol=1e-16, max_iter=100000, lambda=1e-12)
 th = TensorDecompositions.hosvd(T, tsize)
-NTFk.plotcmptensor(T, th; minvalue=0, maxvalue=1)
+NTFk.plotcmptensors(T, th; minvalue=0, maxvalue=1)

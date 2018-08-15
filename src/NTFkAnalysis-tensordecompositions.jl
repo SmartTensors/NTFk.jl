@@ -109,7 +109,7 @@ function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, x
 		if !skipmaketimemovies
 			info("Making $(problemname) problem comparison movie for $(case) ...")
 			nt = TensorDecompositions.compose(t[1])
-			NTFk.plotcmptensor(X[timeindex, xindex, yindex], nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$((mapsize(csize)))", quiet=quiet)
+			NTFk.plotcmptensors(X[timeindex, xindex, yindex], nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$((mapsize(csize)))", quiet=quiet)
 			info("Making $(problemname) problem leftover movie for $(case) ...")
 			NTFk.plotlefttensor(X[timeindex, xindex, yindex], nt, X[timeindex, xindex, yindex] .- nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$((mapsize(csize)))-left", quiet=quiet)
 			info("Making $(problemname) problem component T movie for $(case) ...")

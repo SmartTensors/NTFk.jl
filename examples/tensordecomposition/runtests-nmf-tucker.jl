@@ -25,7 +25,7 @@ if ibest != 3
 	info("Estimated core size = $csize; best result is #$ibest; the correct core size should be (2,2,1)")
 end
 
-NTFk.plotcmptensor(T_orig, tsf[ibest], 3; progressbar=false)
+NTFk.plotcmptensors(T_orig, tsf[ibest], 3; progressbar=false)
 @show cor(W[:,1], tsf[ibest].factors[1][:,1])
 @show cor(W[:,2], tsf[ibest].factors[1][:,2])
 @show cor(H[1,:], tsf[ibest].factors[2][:,1])

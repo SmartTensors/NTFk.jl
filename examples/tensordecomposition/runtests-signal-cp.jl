@@ -14,4 +14,4 @@ T = T_orig
 
 tranks = [1, 2, 3, 4, 5]
 t, c, ibest = NTFk.analysis(T, tranks, 10; method=:cp_nmu)
-NTFk.plotcmptensor(T, t[ibest], 3; progressbar=false)
+NTFk.plotcmptensors(T, t[ibest], 3; progressbar=false)

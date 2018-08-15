@@ -79,4 +79,4 @@ for i in 1:nruns
 	println("$i - $(sizes[i]): residual $(residues[i]) tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core))")
 end
 
-NTFk.plotcmptensor(T_orig, T_esta[ibest], 3)
+NTFk.plotcmptensors(T_orig, T_esta[ibest], 3)
