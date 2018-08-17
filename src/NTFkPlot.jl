@@ -226,6 +226,7 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	if !isdir(figuredir)
 		mkdir(figuredir)
 	end
+	recursivemkdir(filename)
 	csize = TensorToolbox.mrank(t.core)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
@@ -270,6 +271,7 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	if !isdir(figuredir)
 		mkdir(figuredir)
 	end
+	recursivemkdir(filename)
 	csize = TensorToolbox.mrank(t.core)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
@@ -326,6 +328,7 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	if !isdir(figuredir)
 		mkdir(figuredir)
 	end
+	recursivemkdir(filename)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	crank = csize[dim]
@@ -384,6 +387,7 @@ function plotmatrix(X::Matrix; minvalue=minimumnan(X), maxvalue=maximumnan(X), l
 	if !isdir(figuredir)
 		mkdir(figuredir)
 	end
+	recursivemkdir(filename)
 	Xp = min.(max.(movingaverage(X, masize), minvalue), maxvalue)
 	cs = colorkey ? [] : [Gadfly.Theme(key_position = :none)]
 	p = Gadfly.spy(Xp, Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Guide.ColorKey(title=label), Gadfly.Scale.ContinuousColorScale(colormap..., minvalue=minvalue, maxvalue=maxvalue), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt, bar_spacing=0Gadfly.mm), cs..., gm...)
