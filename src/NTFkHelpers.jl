@@ -117,10 +117,12 @@ end
 
 function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core, firstpeak::Bool=true, reverse=true, quiet=true)
 	cs = size(t.core)[dim]
+	!quiet && info("Core size: $(size(t.core))")
 	csize = TensorToolbox.mrank(t.core)
+	!quiet && info("Core mrank: $csize")
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
-	crank = csize[dim]
+	crank = cs
 	if method == :factormagnitude
 		fmin = vec(minimum(t.factors[dim], 1))
 		fmax = vec(maximum(t.factors[dim], 1))
@@ -132,15 +134,20 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 			end
 			if fdx[i] == 0
 				warn("Component $i has zero variability!")
+				crank -= 1
 			end
 		end
-		ifdx = sortperm(fdx; rev=reverse)[1:crank]
+		if reverse
+			ifdx = sortperm(fdx; rev=reverse)[1:crank]
+		else
+			ifdx = sortperm(fdx; rev=reverse)[crank:end]
+		end
 		!quiet && info("Factor magnitudes (max - min): $fdx")
 		if firstpeak
 			imax = map(i->indmax(t.factors[dim][:, ifdx[i]]), 1:crank)
 			order = ifdx[sortperm(imax)]
 		else
-			order = ifdx[1:crank]
+			order = ifdx
 		end
 	else
 		maxXe = Vector{Float64}(cs)
@@ -169,7 +176,7 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 		end
 		!quiet && info("Max core magnitudes: $maxXe")
 		imax = sortperm(maxXe; rev=reverse)
-		order = imax[1:crank]
+		order = imax[1:cs]
 	end
 	return order
 end

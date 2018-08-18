@@ -422,13 +422,7 @@ end
 
 function plottensor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; mask=nothing, transform=nothing, kw...)
 	X = TensorDecompositions.compose(t)
-	if mask != nothing
-		if length(size(mask)) == length(size(X))
-			X[mask] = NaN
-		else
-			X[remask(mask, size(X, 3))] = NaN
-		end
-	end
+	nanmask(X, mask, 3)
 	if transform != nothing
 		X = transform.(X)
 	end
@@ -599,13 +593,7 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		else
 			X[i] = TensorDecompositions.compose(tt)[filter...]
 		end
-		if mask != nothing
-			if length(size(mask)) == length(size(X[i]))
-				X[i][mask] = NaN
-			else
-				X[i][remask(mask, size(X[i], 3))] = NaN
-			end
-		end
+		nanmask(X[i], mask, 3)
 		if transform != nothing
 			X[i] = transform.(X[i])
 		end
@@ -652,13 +640,7 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 		else
 			X2[i] = TensorDecompositions.compose(tt)[filter...]
 		end
-		if mask != nothing
-			if length(size(mask)) == length(size(X2[i]))
-				X2[i][mask] = NaN
-			else
-				X2[i][remask(mask, size(X2[i], 3))] = NaN
-			end
-		end
+		nanmask(X2[i], mask, 3)
 		if transform != nothing
 			X2[i] = transform.(X2[i])
 		end
@@ -739,7 +721,7 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 	@assert dim >= 1 && dim <= ndimensons
 	dimname = namedimension(ndimensons)
 	crank = csize[dim]
-	@assert crank > 2
+	# @assert crank > 2
 	pt = Vector{Int64}(0)
 	push!(pt, pdim)
 	if transpose
@@ -759,6 +741,7 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		factors = []
 		for i = 1:ndimensons
 			if i == dim
+				@show maximum(t.factors[i])
 				push!(factors, maximum(t.factors[i], 1))
 			else
 				push!(factors, t.factors[i])
@@ -785,13 +768,8 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		if transform != nothing
 			X[i] = transform.(X[i])
 		end
-		if mask != nothing
-			if length(size(mask)) == length(size(X[i]))
-				X[i][mask] = NaN
-			else
-				X[i][remask(mask, size(X[i], 3))] = NaN
-			end
-		end
+		@show i, maximum(X[i]), minimum(X[i])
+		nanmask(X[i], mask, 3)
 		tt.core .= t.core
 	end
 	barratio = (maxcomponent) ? 1/2 : 1/3
@@ -955,15 +933,8 @@ function plotlefttensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorD
 		X2 = transform.(X2)
 	end
 	D = X2 - X1
-	if mask != nothing
-		if length(size(mask)) == length(size(X))
-			X2[mask] = NaN
-			D[mask] = NaN
-		else
-			X2[remask(mask, size(X2, 3))] = NaN
-			D[remask(mask, size(D, 3))] = NaN
-		end
-	end
+	nanmask(X2, mask, 3)
+	nanmask(D, mask, 3)
 	min3 = minimumnan(D)
 	max3 = maximumnan(D)
 	if center
@@ -1095,6 +1066,32 @@ function make_progressbar_2d(s)
 	return progressbar_2d
 end
 
-function remask(sm, repeats=1)
+function nanmask(X::Array, mask, dim)
+	if mask != nothing
+		if length(size(mask)) == length(size(X))
+			X[mask] = NaN
+		else
+			X[remask(mask, size(X, dim))] = NaN
+		end
+	end
+end
+
+function nanmask(X::Array, mask)
+	mszie = vec(size(mask))
+	xsize = vec(size(X))
+	if mask != nothing
+		if length(mszie) == length(xsize)
+			X[mask] = NaN
+		else
+			X[remask(mask, size(X, dim))] = NaN
+		end
+	end
+end
+
+function remask(sm, repeats::Integer=1)
 	return reshape(repmat(sm, 1, repeats), (size(sm)..., repeats))
+end
+
+function remask(sm, repeats::Tuple)
+	return reshape(repmat(sm, 1, *(repeats...)), (size(sm)..., repeats...))
 end
