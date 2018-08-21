@@ -262,7 +262,12 @@ end
 function gettensormaximums(t::TensorDecompositions.Tucker{T,N}) where {T,N}
 	for i=1:N
 		v = maximum(t.factors[i], 1)
-		info("D$i factor: $(v) Max: $(maximum(v))")
+		if length(v) > 10
+			vv = "[$(v[1]), $(v[2]), $(v[3]), ..., $(v[end])]"
+		else
+			vv = v
+		end
+		info("D$i factor: $(vv) Max: $(maximum(v))")
 	end
 	for i=1:N
 		dp = Vector{Int64}(0)
@@ -272,7 +277,12 @@ function gettensormaximums(t::TensorDecompositions.Tucker{T,N}) where {T,N}
 			end
 		end
 		v = vec(maximum(t.core, dp))
-		info("D$i core slice: $(v) Max: $(maximum(v))")
+		if length(v) > 10
+			vv = "[$(v[1]), $(v[2]), $(v[3]), ..., $(v[end])]"
+		else
+			vv = v
+		end
+		info("D$i core slice: $(vv) Max: $(maximum(v))")
 	end
 end
 
@@ -318,10 +328,10 @@ function nanmask(X::Array, mask, dim)
 end
 
 function nanmask(X::Array, mask)
-	mszie = vec(collect(size(mask)))
-	xsize = vec(collect(size(X)))
 	if mask != nothing
-		if length(mszie) == length(xsize)
+		msize = vec(collect(size(mask)))
+		xsize = vec(collect(size(X)))
+		if length(msize) == length(xsize)
 			X[mask] .= NaN
 		else
 			X[remask(mask, xsize[3:end])] .= NaN

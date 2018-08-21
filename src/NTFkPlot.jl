@@ -422,7 +422,7 @@ end
 
 function plottensor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; mask=nothing, transform=nothing, kw...)
 	X = TensorDecompositions.compose(t)
-	nanmask(X, mask, 3)
+	nanmask(X, mask)
 	if transform != nothing
 		X = transform.(X)
 	end
@@ -593,7 +593,7 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		else
 			X[i] = TensorDecompositions.compose(tt)[filter...]
 		end
-		nanmask(X[i], mask, 3)
+		nanmask(X[i], mask)
 		if transform != nothing
 			X[i] = transform.(X[i])
 		end
@@ -640,7 +640,7 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 		else
 			X2[i] = TensorDecompositions.compose(tt)[filter...]
 		end
-		nanmask(X2[i], mask, 3)
+		nanmask(X2[i], mask)
 		if transform != nothing
 			X2[i] = transform.(X2[i])
 		end
@@ -741,7 +741,6 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		factors = []
 		for i = 1:ndimensons
 			if i == dim
-				@show maximum(t.factors[i])
 				push!(factors, maximum(t.factors[i], 1))
 			else
 				push!(factors, t.factors[i])
@@ -750,6 +749,15 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		tt = deepcopy(TensorDecompositions.Tucker((factors...), t.core))
 	else
 		tt = deepcopy(t)
+	end
+	if crank < 3
+		warn("Mrank of the tensor ($(crank)) is less than 3!")
+		for i = 1:length(order)
+			if order[i] > crank
+				order[i] = crank
+			end
+		end
+		push!(order, crank)
 	end
 	X = Vector{Any}(crank)
 	for i = 1:crank
@@ -768,8 +776,7 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		if transform != nothing
 			X[i] = transform.(X[i])
 		end
-		@show i, maximum(X[i]), minimum(X[i])
-		nanmask(X[i], mask, 3)
+		nanmask(X[i], mask)
 		tt.core .= t.core
 	end
 	barratio = (maxcomponent) ? 1/2 : 1/3
@@ -933,8 +940,8 @@ function plotlefttensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorD
 		X2 = transform.(X2)
 	end
 	D = X2 - X1
-	nanmask(X2, mask, 3)
-	nanmask(D, mask, 3)
+	nanmask(X2, mask)
+	nanmask(D, mask)
 	min3 = minimumnan(D)
 	max3 = maximumnan(D)
 	if center

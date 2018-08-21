@@ -382,8 +382,8 @@ function atensor(X::Array)
 	return mask
 end
 
-function normalizefactors!(X::TensorDecompositions.Tucker{T,N}, order=1:N) where {T,N}
-	Xi = TensorDecompositions.compose(X)
+function normalizefactors!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::Bool=false) where {T,N}
+	check && (Xi = TensorDecompositions.compose(X))
 	l = size(X.core)
 	for i = order
 		m = maximum(X.factors[i], 1)
@@ -395,12 +395,15 @@ function normalizefactors!(X::TensorDecompositions.Tucker{T,N}, order=1:N) where
 		m[m.==0] = 1.0
 		X.factors[i] ./= m
 	end
-	Xe = TensorDecompositions.compose(X)
-	info("Normalization error: $(vecnorm(Xi .- Xe))")
+	if check
+		Xe = TensorDecompositions.compose(X)
+		info("Normalization error: $(vecnorm(Xi .- Xe))")
+	end
+	return nothing
 end
 
-function normalizecore!(X::TensorDecompositions.Tucker{T,N}, order=1:N) where {T,N}
-	Xi = TensorDecompositions.compose(X)
+function normalizecore!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::Bool=false) where {T,N}
+	check && (Xi = TensorDecompositions.compose(X))
 	l = size(X.core)
 	v = collect(1:N)
 	for i = order
@@ -414,24 +417,30 @@ function normalizecore!(X::TensorDecompositions.Tucker{T,N}, order=1:N) where {T
 		end
 		m = vec(maximum(X.core, v[v.!=i]))
 	end
-	Xe = TensorDecompositions.compose(X)
-	info("Normalization error: $(vecnorm(Xi .- Xe))")
+	if check
+		Xe = TensorDecompositions.compose(X)
+		info("Normalization error: $(vecnorm(Xi .- Xe))")
+	end
+	return nothing
 end
 
-function normalizefactors!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N) where {T,N}
-	Xi = TensorDecompositions.compose(X)
+function normalizefactors!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; check::Bool=false) where {T,N}
+	check && (Xi = TensorDecompositions.compose(X))
 	for i = order
 		m = maximum(X.factors[i], 1)
 		X.lambdas .*= vec(m)
 		m[m.==0] = 1.0
 		X.factors[i] ./= m
 	end
-	Xe = TensorDecompositions.compose(X)
-	info("Normalization error: $(vecnorm(Xi .- Xe))")
+	if check
+		Xe = TensorDecompositions.compose(X)
+		info("Normalization error: $(vecnorm(Xi .- Xe))")
+	end
+	return nothing
 end
 
-function normalizelambdas!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N) where {T,N}
-	Xi = TensorDecompositions.compose(X)
+function normalizelambdas!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; check::Bool=false) where {T,N}
+	check && (Xi = TensorDecompositions.compose(X))
 	m = vec(X.lambdas)' .^ (1/N)
 	for i = order
 		X.factors[i] .*= m
@@ -439,8 +448,11 @@ function normalizelambdas!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N) wh
 	m = copy(X.lambdas)
 	m[m.==0] = 1.0
 	X.lambdas ./= m
-	Xe = TensorDecompositions.compose(X)
-	info("Normalization error: $(vecnorm(Xi .- Xe))")
+	if check
+		Xe = TensorDecompositions.compose(X)
+		info("Normalization error: $(vecnorm(Xi .- Xe))")
+	end
+	return nothing
 end
 
 function mincorrelations(X1::Array{T,N}, X2::Array{T,N}) where {T,N}
