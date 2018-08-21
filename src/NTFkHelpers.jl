@@ -309,23 +309,25 @@ end
 function nanmask(X::Array, mask, dim)
 	if mask != nothing
 		if length(size(mask)) == length(size(X))
-			X[mask] = NaN
+			X[mask] .= NaN
 		else
-			X[remask(mask, size(X, dim))] = NaN
+			X[remask(mask, size(X, dim))] .= NaN
 		end
 	end
+	return nothing
 end
 
 function nanmask(X::Array, mask)
-	mszie = vec(size(mask))
-	xsize = vec(size(X))
+	mszie = vec(collect(size(mask)))
+	xsize = vec(collect(size(X)))
 	if mask != nothing
 		if length(mszie) == length(xsize)
-			X[mask] = NaN
+			X[mask] .= NaN
 		else
-			X[remask(mask, size(X, dim))] = NaN
+			X[remask(mask, xsize[3:end])] .= NaN
 		end
 	end
+	return nothing
 end
 
 function remask(sm, repeats::Integer=1)
@@ -333,6 +335,10 @@ function remask(sm, repeats::Integer=1)
 end
 
 function remask(sm, repeats::Tuple)
+	return reshape(repmat(sm, 1, *(repeats...)), (size(sm)..., repeats...))
+end
+
+function remask(sm, repeats::Vector{Int64})
 	return reshape(repmat(sm, 1, *(repeats...)), (size(sm)..., repeats...))
 end
 
