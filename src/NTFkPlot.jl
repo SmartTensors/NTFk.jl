@@ -429,7 +429,7 @@ function plottensor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CA
 	plottensor(X, dim; kw...)
 end
 
-function plottensor(X::Array{T,N}, dim::Integer=1; minvalue=minimumnan(X), maxvalue=maximumnan(X), prefix::String="", keyword="frame", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr, cutoff::Bool=false, cutvalue::Number=0) where {T,N}
+function plottensor(X::Array{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan(X[mdfilter...]), maxvalue=maximumnan(X[mdfilter...]), prefix::String="", keyword="frame", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, colormap=colormap_gyr, cutoff::Bool=false, cutvalue::Number=0) where {T,N}
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -796,13 +796,13 @@ function plot2tensors(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDec
 	plot2tensors(X1, X2, dim; kw...)
 end
 
-function plot2tensors(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), minvalue2=minvalue, maxvalue2=maxvalue, movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", prefix::String = "", keyword="frame", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), uniformscaling::Bool=true, colormap=colormap_gyr) where {T,N}
+function plot2tensors(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan([X1[mdfilter...] X2[mdfilter...]]), maxvalue=maximumnan([X1[mdfilter...] X2[mdfilter...]]), minvalue2=minvalue, maxvalue2=maxvalue, movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", prefix::String = "", keyword="frame", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, uniformscaling::Bool=true, colormap=colormap_gyr) where {T,N}
 	recursivemkdir(prefix)
 	if !uniformscaling
-		minvalue = minimumnan(X1)
-		maxvalue = maximumnan(X1)
-		minvalue2 = minimumnan(X2)
-		maxvalue2 = maximumnan(X2)
+		minvalue = minimumnan(X1[mdfilter...])
+		maxvalue = maximumnan(X1[mdfilter...])
+		minvalue2 = minimumnan(X2[mdfilter...])
+		maxvalue2 = maximumnan(X2[mdfilter...])
 	end
 	if !isdir(moviedir)
 		mkdir(moviedir)
@@ -855,15 +855,15 @@ end
 
 plotcmptensors = plot2tensors
 
-function plot3tensors(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integer=1; minvalue=minimumnan([X1 X2 X3]), maxvalue=maximumnan([X1 X2 X3]), minvalue2=minvalue, maxvalue2=maxvalue, minvalue3=minvalue, maxvalue3=maxvalue, prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, barratio::Number=1/2, mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), colormap=colormap_gyr, uniformscaling::Bool=true, kw...) where {T,N}
+function plot3tensors(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan([X1[mdfilter...] X2[mdfilter...] X3[mdfilter...]]), maxvalue=maximumnan([X1[mdfilter...] X2[mdfilter...] X3[mdfilter...]]), minvalue2=minvalue, maxvalue2=maxvalue, minvalue3=minvalue, maxvalue3=maxvalue, prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, barratio::Number=1/2, colormap=colormap_gyr, uniformscaling::Bool=true, kw...) where {T,N}
 	recursivemkdir(prefix)
 	if !uniformscaling
-		minvalue = minimumnan(X1)
-		maxvalue = maximumnan(X1)
-		minvalue2 = minimumnan(X2)
-		maxvalue2 = maximumnan(X2)
-		minvalue3 = minimumnan(X3)
-		maxvalue3 = maximumnan(X3)
+		minvalue = minimumnan(X1[mdfilter...])
+		maxvalue = maximumnan(X1[mdfilter...])
+		minvalue2 = minimumnan(X2[mdfilter...])
+		maxvalue2 = maximumnan(X2[mdfilter...])
+		minvalue3 = minimumnan(X3[mdfilter...])
+		maxvalue3 = maximumnan(X3[mdfilter...])
 	end
 	if !isdir(moviedir)
 		mkdir(moviedir)
