@@ -2,7 +2,7 @@
 before_script:
   - apt-get update
   - apt-get install -y wget git gcc gfortran g++ make patch bzip2 hdf5-tools zlib1g-dev
-  
+
 stages:
   - test
   - postprocess
@@ -17,20 +17,18 @@ variables:
     # These private packages need special handling.
     # Perhaps there's a more elegant way?
     - julia -e "Pkg.init();
-                Pkg.clone(\"https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.com/science/NMFk.jl.git\");
+                Pkg.clone(\"https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.com/TensorFactorization/NMFk.jl.git\");
                 Pkg.clone(\"https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.com/TensorFactorization/TensorDecompositions.jl.git\");
                 Pkg.clone(\"https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.com/TensorFactorization/CanDecomp.jl.git\")"
-    
+
     # Issues with PyPlot below. See Pull Request details.
     - julia -e "Pkg.clone(\"https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.com/TensorFactorization/NTFk.jl.git\");
                 ENV[\"PYTHON\"]=\"\";
-                Pkg.update();
                 Pkg.build(\"PyCall\");
                 using PyPlot;
                 Pkg.resolve();
-                Pkg.build(\"$package\");
                 Pkg.test(\"$package\",coverage = true)"
-                
+
   # Keep coverage files for postprocess stage
   artifacts:
     paths:
@@ -55,13 +53,12 @@ test:dev:
 coverage:
   stage: postprocess
   allow_failure: true
-  image: julia:0.6.2
+  image: julia:0.6.4
   dependencies:
-    - test:0.6.2
+    - test:0.6.4
   script:
     - julia -e 'Pkg.add("Coverage");'
     - julia -e "using Coverage;
                 cl, tl = get_summary(process_folder());
                 println(\"(\", cl/tl*100, \"%) covered\")"
   coverage: '/\(\d+.\d+\%\) covered/'
-  
