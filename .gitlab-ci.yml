@@ -37,9 +37,9 @@ variables:
       #- src/*.cov
 
 # Run test on stable image
-test:0.6.2:
+test:0.6.4:
   stage: test
-  image: julia:0.6.2
+  image: julia:0.6.4
   <<: *test_definition
 
 # Run test on development image
