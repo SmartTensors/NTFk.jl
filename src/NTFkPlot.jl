@@ -751,13 +751,15 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		tt = deepcopy(t)
 	end
 	if crank < 3
-		warn("Mrank of the tensor ($(crank)) is less than 3!")
+		warn("Multilinear rank of the tensor ($(crank)) is less than 3!")
 		for i = 1:length(order)
 			if order[i] > crank
 				order[i] = crank
 			end
 		end
-		push!(order, crank)
+		for i = 1:(3-crank)
+			push!(order, crank)
+		end
 	end
 	X = Vector{Any}(crank)
 	for i = 1:crank
