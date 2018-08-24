@@ -397,18 +397,18 @@ function plotmatrix(X::Matrix; minvalue=minimumnan(X), maxvalue=maximumnan(X), l
 	return p
 end
 
-function plotfactor(t::TensorDecompositions.Tucker, dim::Integer=1, cutoff::Number=0; kw...)
+function plotfactor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1, cutoff::Number=0; kw...)
 	plotmatrix(getfactor(t, dim, cutoff); kw...)
 end
 
-function getfactor(t::TensorDecompositions.Tucker, dim::Integer=1, cutoff::Number=0)
+function getfactor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1, cutoff::Number=0)
 	i = vec(maximum(t.factors[dim], 1) .> cutoff)
 	s = size(t.factors[dim])
 	println("Factor $dim: size $s -> ($(s[1]), $(sum(i)))")
 	t.factors[dim][:, i]
 end
 
-function plotfactors(t::TensorDecompositions.Tucker, cutoff::Number=0; prefix="", kw...)
+function plotfactors(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, cutoff::Number=0; prefix="", kw...)
 	recursivemkdir(prefix)
 	for i = 1:length(t.factors)
 		display(plotfactor(t, i, cutoff; filename="$(prefix)_factor$(i).png", kw...))
