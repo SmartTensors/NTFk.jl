@@ -25,7 +25,7 @@ t, csize, ibest = NTFk.analysis(T, [(3, 3, 3)])
 T_est = TensorDecompositions.compose(t[ibest])
 NTFk.plotlefttensor(T, T_est; progressbar=nothing)
 
-info("MATLAB CanDecomp cp_als")
+info("MATLAB TensorToolBox CanDecomp cp_als")
 trank = 3
 @time mt = NTFk.ttanalysis(T, trank)
 NTFk.plotlefttensor(T, mt; progressbar=nothing)

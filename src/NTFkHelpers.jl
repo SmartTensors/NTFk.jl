@@ -181,6 +181,10 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 	return order
 end
 
+function mrank(t::TensorDecompositions.Tucker)
+   TensorToolbox.mrank(t.core)
+end
+
 function gettensorminmax(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core)
 	cs = size(t.core)[dim]
 	csize = TensorToolbox.mrank(t.core)

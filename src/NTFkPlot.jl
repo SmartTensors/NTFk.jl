@@ -1,4 +1,5 @@
 import Gadfly
+import Measures
 import Colors
 import Compose
 import TensorToolbox
@@ -988,7 +989,7 @@ function setnewfilename(filename::String, frame::Integer=0; keyword::String="fra
 	end
 end
 
-function plot2d(T::Array, Te::Array; quiet::Bool=false, ymin=nothing, ymax=nothing, wellnames=nothing, Tmax=nothing, Tmin=nothing, xtitle::String="x", ytitle::String="y", figuredir="results", hsize=8Gadfly.inch, vsize=4Gadfly.inch, keyword="", dimname="Well", colors=[parse(Colors.Colorant, "green"), parse(Colors.Colorant, "orange"), parse(Colors.Colorant, "blue"), parse(Colors.Colorant, "gray")], gm=[Gadfly.Guide.manual_color_key("", ["Oil", "Gas", "Water"], colors[1:3]), Gadfly.Theme(major_label_font_size=16Gadfly.pt, key_label_font_size=14Gadfly.pt, minor_label_font_size=12Gadfly.pt)])
+function plot2d(T::Array, Te::Array; quiet::Bool=false, wellnames=nothing, Tmax=nothing, Tmin=nothing, xtitle::String="x", ytitle::String="y", figuredir="results", hsize=8Gadfly.inch, vsize=4Gadfly.inch, keyword="", dimname="Well", colors=[parse(Colors.Colorant, "green"), parse(Colors.Colorant, "orange"), parse(Colors.Colorant, "blue"), parse(Colors.Colorant, "gray")], gm=[Gadfly.Guide.manual_color_key("", ["Oil", "Gas", "Water"], colors[1:3]), Gadfly.Theme(major_label_font_size=16Gadfly.pt, key_label_font_size=14Gadfly.pt, minor_label_font_size=12Gadfly.pt)], linewidth::Measures.Length{:mm,Float64}=2Gadfly.pt, xaxis=1:size(Te,2), xmin=nothing, xmax=nothing, ymin=nothing, ymax=nothing)
 	if !isdir(figuredir)
 		mkdir(figuredir)
 	end
@@ -1023,19 +1024,19 @@ function plot2d(T::Array, Te::Array; quiet::Bool=false, ymin=nothing, ymax=nothi
 				y = y * (Tmax[w,i] - Tmin[w,i]) + Tmin[w,i]
 				ye = ye * (Tmax[w,i] - Tmin[w,i]) + Tmin[w,i]
 			end
-			p[pc] = Gadfly.layer(x=1:c[2], y=y, Gadfly.Geom.line, Gadfly.Theme(line_width=2Gadfly.pt, default_color=colors[i]))
+			p[pc] = Gadfly.layer(x=xaxis, y=y, Gadfly.Geom.line, Gadfly.Theme(line_width=linewidth, default_color=colors[i]))
 			pc += 1
-			p[pc] = Gadfly.layer(x=1:c[2], y=ye, Gadfly.Geom.line, Gadfly.Theme(line_width=2Gadfly.pt, line_style=:dash, default_color=colors[i]))
+			p[pc] = Gadfly.layer(x=xaxis, y=ye, Gadfly.Geom.line, Gadfly.Theme(line_style=:dash, line_width=linewidth, default_color=colors[i]))
 			pc += 1
 		end
-		tm = (ymin == nothing && ymax == nothing) ? [] : [Gadfly.Coord.Cartesian(ymin=ymin, ymax=ymax)]
 		if wellnames != nothing
-			tm = [tm..., Gadfly.Guide.title("$dimname $(wellnames[w])")]
+			tm = [Gadfly.Guide.title("$dimname $(wellnames[w])")]
 			filename = "$(figuredir)/$(lowercase(dimname))_$(wellnames[w])$(append).png"
 		else
+			tm = []
 			filename = "$(figuredir)/$(lowercase(dimname))$(append).png"
 		end
-		f = Gadfly.plot(p..., tm..., Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm...)
+		f = Gadfly.plot(p..., tm..., Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., Gadfly.Coord.Cartesian(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax))
 		Gadfly.draw(Gadfly.PNG(filename, hsize, vsize, dpi=300), f)
 		!quiet && (display(f); println())
 	end
