@@ -154,8 +154,9 @@ function analysis(X::Array{T,N}, csize::NTuple{N,Int}=size(X), nTF::Integer=1; c
 	info("Tensor size: $(tsize)")
 	residues = Vector{Float64}(nTF)
 	tsi = Vector{TensorDecompositions.Tucker{T,N}}(nTF)
-	WBig = Vector{Matrix}(nTF)
+	WBig = Vector{Matrix{T}}(nTF)
 	tsbest = nothing
+	lambdas = convert(Vector{T}, lambdas)
 	if nprocs() > 1 && !serial
 		tsi = pmap(i->(srand(seed+i); TensorDecompositions.spnntucker(X, csize; eigmethod=eigmethod, tol=tol, ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=max_iter, lambdas=lambdas, progressbar=false)), 1:nTF)
 	else
