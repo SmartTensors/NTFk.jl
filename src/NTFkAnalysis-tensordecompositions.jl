@@ -155,6 +155,11 @@ function analysis(X::Array{T,N}, csize::NTuple{N,Int}=size(X), nTF::Integer=1; c
 	residues = Vector{Float64}(nTF)
 	tsi = Vector{TensorDecompositions.Tucker{T,N}}(nTF)
 	WBig = Vector{Matrix{T}}(nTF)
+	nans = isnan.(X)
+	if sum(nans) > 0
+		warn("The tensor has NaN's; they will be zeroed temporarily.")
+		X[nans] .= 0
+	end
 	tsbest = nothing
 	# lambdas = convert(Vector{T}, lambdas)
 	if nprocs() > 1 && !serial
@@ -182,8 +187,13 @@ function analysis(X::Array{T,N}, csize::NTuple{N,Int}=size(X), nTF::Integer=1; c
 	correlations = mincorrelations(X_esta, X)
 	# NTFk.atensor(tsi[imin].core)
 	csize_new = TensorToolbox.mrank(tsi[imin].core)
-	println("$(csize): residual $(residues[imin]) worst tensor correlations $(correlations) rank $(csize_new) silhouette $(minsilhouette)")
+	println("$(csize): relative residual $(residues[imin]) worst tensor correlations $(correlations) rank $(csize_new) silhouette $(minsilhouette)")
 	saveall && JLD.save("$(resultdir)/$(prefix)-$(mapsize(csize))->$(mapsize(csize_new)).jld", "t", tsi[imin])
+
+	if sum(nans) > 0
+		X[nans] .= NaN
+	end
+
 	return tsi[imin], residues[imin], correlations, minsilhouette
 end
 
