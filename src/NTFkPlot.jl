@@ -366,7 +366,7 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 		pl[i] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=cc))
 	end
 	tm = map(j->eval(parse(functionname2))(vec(X[ntuple(k->(k == dim ? j : Colon()), ndimensons)...])), 1:nx)
-	pl[crank+1] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=3Gadfly.pt, line_style=:dash, default_color=parse(Colors.Colorant, "gray")))
+	pl[crank+1] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=3Gadfly.pt, line_style=:dot, default_color=parse(Colors.Colorant, "gray")))
 	Xe = TensorDecompositions.compose(t)
 	tm = map(j->eval(parse(functionname2))(vec(Xe[ntuple(k->(k == dim ? j : Colon()), ndimensons)...])), 1:nx)
 	pl[crank+2] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=2Gadfly.pt, default_color=parse(Colors.Colorant, "gray85")))
@@ -1037,7 +1037,7 @@ function plot2d(T::Array, Te::Array; quiet::Bool=false, wellnames=nothing, Tmax=
 			end
 			p[pc] = Gadfly.layer(x=xaxis, y=y, Gadfly.Geom.line, Gadfly.Theme(line_width=linewidth, default_color=colors[i]))
 			pc += 1
-			p[pc] = Gadfly.layer(x=xaxis, y=ye, Gadfly.Geom.line, Gadfly.Theme(line_style=:dash, line_width=linewidth, default_color=colors[i]))
+			p[pc] = Gadfly.layer(x=xaxis, y=ye, Gadfly.Geom.line, Gadfly.Theme(line_style=:dot, line_width=linewidth, default_color=colors[i]))
 			pc += 1
 		end
 		if wellnames != nothing
