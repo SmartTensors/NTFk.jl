@@ -1010,7 +1010,11 @@ function plot2d(T::Array, Te::Array; quiet::Bool=false, wellnames=nothing, Tmax=
 		@assert size(Tmax, 2) == c[3]
 		append = ""
 	else
-		append = "_normalized"
+		if maximum(T) <= 1. && maximum(Te) <= 1.
+			append = "_normalized"
+		else
+			append = ""
+		end
 	end
 	if keyword != ""
 		append *= "_$(keyword)"
