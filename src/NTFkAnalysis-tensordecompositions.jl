@@ -357,6 +357,10 @@ function getsizes(csize::Tuple, tsize::Tuple=csize .+ 1)
 	return sizes
 end
 
+function atensor(X::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP})
+	atensor(TensorDecompositions.compose(X))
+end
+
 function atensor(X::Array)
 	nd = ndims(X)
 	info("Number of dimensions: $nd")

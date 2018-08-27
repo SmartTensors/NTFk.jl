@@ -994,10 +994,16 @@ function plot2d(T::Array, Te::Array; quiet::Bool=false, wellnames=nothing, Tmax=
 		mkdir(figuredir)
 	end
 	c = size(T)
+	if length(c) == 2
+		nlayers = 1
+	else
+		nlayers = c[3]
+	end
 	if wellnames != nothing
 		@assert length(wellnames) == c[1]
 	end
 	@assert c == size(Te)
+	@assert length(vec(collect(xaxis))) == c[2]
 	if Tmax != nothing && Tmin != nothing
 		@assert size(Tmax) == size(Tmin)
 		@assert size(Tmax, 1) == c[1]
@@ -1015,11 +1021,16 @@ function plot2d(T::Array, Te::Array; quiet::Bool=false, wellnames=nothing, Tmax=
 		else
 			println("$dimname $w")
 		end)
-		p = Vector{Any}(c[3] * 2)
+		p = Vector{Any}(nlayers * 2)
 		pc = 1
-		for i = 1:c[3]
-			y = T[w,:,i]
-			ye = Te[w,:,i]
+		for i = 1:nlayers
+			if nlayers == 1
+				y = T[w,:]
+				ye = Te[w,:]
+			else
+				y = T[w,:,i]
+				ye = Te[w,:,i]
+			end
 			if Tmax != nothing && Tmin != nothing
 				y = y * (Tmax[w,i] - Tmin[w,i]) + Tmin[w,i]
 				ye = ye * (Tmax[w,i] - Tmin[w,i]) + Tmin[w,i]
