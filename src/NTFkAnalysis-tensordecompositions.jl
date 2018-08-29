@@ -489,16 +489,3 @@ function corinf(v1::Vector{T}, v2::Vector{T}) where {T}
 	c = abs.(cor(v1, v2))
 	c = isnan(c) ? Inf : c
 end
-
-function mapsize(csize)
-	c = length(csize)
-	s = ""
-	for i = 1:c
-		if i == c
-			s *= "$(csize[i])"
-		else
-			s *= "$(csize[i])_"
-		end
-	end
-	return s
-end

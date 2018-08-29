@@ -356,3 +356,16 @@ function remask(sm, repeats::Vector{Int64})
 	return reshape(repmat(sm, 1, *(repeats...)), (size(sm)..., repeats...))
 end
 
+function mapsize(csize)
+	c = length(csize)
+	s = ""
+	for i = 1:c
+		if i == c
+			s *= "$(csize[i])"
+		else
+			s *= "$(csize[i])_"
+		end
+	end
+	return s
+end
+
