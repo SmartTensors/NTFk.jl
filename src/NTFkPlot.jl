@@ -1060,12 +1060,28 @@ function plot2d(T::Array, Te::Array; quiet::Bool=false, wellnames=nothing, Tmax=
 		end
 		if wellnames != nothing
 			tm = [Gadfly.Guide.title("$dimname $(wellnames[w])")]
-			filename = "$(figuredir)/$(lowercase(dimname))_$(wellnames[w])$(append).png"
+			if dimname != ""
+				filename = "$(figuredir)/$(lowercase(dimname))_$(wellnames[w])$(append).png"
+			else
+				filename = "$(figuredir)/$(wellnames[w])$(append).png"
+			end
 		else
 			tm = []
-			filename = "$(figuredir)/$(lowercase(dimname))$(append).png"
+			if dimname != ""
+				filename = "$(figuredir)/$(lowercase(dimname))$(append).png"
+			else
+				filename = "$(figuredir)/$(append[2:end]).png"
+			end
 		end
-		f = Gadfly.plot(p..., tm..., Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., Gadfly.Coord.Cartesian(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax))
+		yming = ymin
+		ymaxg = ymax
+		if ymin != nothing && length(ymin) > 1
+			yming = ymin[w]
+		end
+		if ymax != nothing && length(ymax) > 1
+			ymaxg = ymax[w]
+		end
+		f = Gadfly.plot(p..., tm..., Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., Gadfly.Coord.Cartesian(xmin=xmin, xmax=xmax, ymin=yming, ymax=ymaxg))
 		Gadfly.draw(Gadfly.PNG(filename, hsize, vsize, dpi=300), f)
 		!quiet && (display(f); println())
 	end
