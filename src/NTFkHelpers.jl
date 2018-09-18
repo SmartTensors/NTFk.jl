@@ -23,6 +23,14 @@ function flatten(X::Array{T,N}, mask::BitArray{M}) where {T,N,M}
 	return A
 end
 
+function indicize(v, levels::Integer; rev=false)
+	iv = convert(Vector{Int64}, ceil.((v .- minimum(v)) ./ (maximum(v)-minimum(v)) .* (levels - 1 ) .+ 1))
+	if rev == true
+		iv = (levels + 1) .- iv
+	end
+	return iv
+end
+
 function getcsize(case::String; resultdir::String=".")
 	files = searchdir(case, resultdir)
 	csize = Array{Int64}(0, 3)
