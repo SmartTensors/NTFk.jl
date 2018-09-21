@@ -6,21 +6,21 @@ B = rand(50, 3)
 C = rand(100, 3)
 T = CanDecomp.totensor(A, B, C)
 
-Af = zeros(size(A));
-Bf = zeros(size(B));
-Cf = zeros(size(C));
+Af = rand(size(A));
+Bf = rand(size(B));
+Cf = rand(size(C));
 info("CanDecomp CP Jump")
 @time CanDecomp.candecomp!(StaticArrays.SVector(Af, Bf, Cf), T, Val{:nnjump}; regularization=0, print_level=0, max_cd_iters=25)
 
-Af = zeros(size(A));
-Bf = zeros(size(B));
-Cf = zeros(size(C));
+Af = rand(size(A));
+Bf = rand(size(B));
+Cf = rand(size(C));
 info("CanDecomp CP Optim")
 @time CanDecomp.candecomp!(StaticArrays.SVector(Af, Bf, Cf), T, Val{:nnoptim}; regularization=0, print_level=0, max_cd_iters=25)
 
-Af = zeros(size(A));
-Bf = zeros(size(B));
-Cf = zeros(size(C));
+Af = rand(size(A));
+Bf = rand(size(B));
+Cf = rand(size(C));
 info("CanDecomp CP Mads")
 @time CanDecomp.candecomp!(StaticArrays.SVector(Af, Bf, Cf), T, Val{:nnmads}; regularization=0, print_level=0, max_cd_iters=25)
 
