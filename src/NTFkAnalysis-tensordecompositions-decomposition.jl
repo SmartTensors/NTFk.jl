@@ -6,7 +6,7 @@ function candecomp(X::Array{T, N}, r::Integer; tsize=size(X), seed::Number=1, me
 	elseif contains(functionname, "bcu_")
 		c = bcuanalysis(X, r; seed=abs(rand(Int16)), functionname=split(functionname, "bcu_")[2], maxiter=maxiter, tol=tol, kw...)
 	else
-		factors_initial_guess = tuple([randn(T, d, r) for d in tsize...])
+		factors_initial_guess = tuple([randn(T, d, r) for d in tsize]...)
 		c = TensorDecompositions.candecomp(X, r, factors_initial_guess; verbose=verbose, compute_error=compute_error, maxiter=maxiter, method=method)
 	end
 	return c
