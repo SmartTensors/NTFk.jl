@@ -29,6 +29,7 @@ function ttanalysis(T::Array, crank::Number; seed::Number=1, functionname::Strin
 	return TT
 end
 
+"Block-Coordinate Update (BCU) CP"
 function bcuanalysis(T::Array, crank::Number; seed::Number=1, functionname::AbstractString="ncp", maxiter::Integer=DMAXITER, tol::Number=1e-4, matlabdir::String="/Users/monty/matlab")
 	@MATLAB.mput T crank seed
 	m = """
