@@ -440,7 +440,8 @@ function plottensor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CA
 	plottensor(X, dim; kw...)
 end
 
-function plottensor(X::Array{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan(X[mdfilter...]), maxvalue=maximumnan(X[mdfilter...]), prefix::String="", keyword="frame", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, colormap=colormap_gyr, cutoff::Bool=false, cutvalue::Number=0) where {T,N}
+function plottensor(X::Array{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan(X), maxvalue=maximumnan(X), prefix::String="", keyword="frame", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, colormap=colormap_gyr, cutoff::Bool=false, cutvalue::Number=0) where {T,N}
+	warn("$(mdfilter)")
 	if !isdir(moviedir)
 		mkdir(moviedir)
 	end
@@ -805,7 +806,7 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 end
 
 function plot2matrices(X1::Matrix, X2::Matrix; kw...)
-	plot2tensors([X1], [X2], 1; kw...)
+	plot2tensors([X1], [X2], 1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), kw...)
 end
 
 function plot2tensors(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
@@ -813,13 +814,13 @@ function plot2tensors(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDec
 	plot2tensors(X1, X2, dim; kw...)
 end
 
-function plot2tensors(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan([X1[mdfilter...] X2[mdfilter...]]), maxvalue=maximumnan([X1[mdfilter...] X2[mdfilter...]]), minvalue2=minvalue, maxvalue2=maxvalue, movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", prefix::String = "", keyword="frame", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, uniformscaling::Bool=true, colormap=colormap_gyr) where {T,N}
+function plot2tensors(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), minvalue2=minvalue, maxvalue2=maxvalue, movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", prefix::String = "", keyword="frame", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, uniformscaling::Bool=true, colormap=colormap_gyr) where {T,N}
 	recursivemkdir(prefix)
 	if !uniformscaling
-		minvalue = minimumnan(X1[mdfilter...])
-		maxvalue = maximumnan(X1[mdfilter...])
-		minvalue2 = minimumnan(X2[mdfilter...])
-		maxvalue2 = maximumnan(X2[mdfilter...])
+		minvalue = minimumnan(X1)
+		maxvalue = maximumnan(X1)
+		minvalue2 = minimumnan(X2)
+		maxvalue2 = maximumnan(X2)
 	end
 	if !isdir(moviedir)
 		mkdir(moviedir)
@@ -873,18 +874,18 @@ end
 plotcmptensors = plot2tensors
 
 function plot3matrices(X1::Matrix, X2::Matrix, X3::Matrix; kw...)
-	plot3tensors([X1], [X2], [X3], 1; kw...)
+	plot3tensors([X1], [X2], [X3], 1; minvalue=minimumnan([X1 X2 X3]), maxvalue=maximumnan([X1 X2 X3]), kw...)
 end
 
-function plot3tensors(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan([X1[mdfilter...] X2[mdfilter...] X3[mdfilter...]]), maxvalue=maximumnan([X1[mdfilter...] X2[mdfilter...] X3[mdfilter...]]), minvalue2=minvalue, maxvalue2=maxvalue, minvalue3=minvalue, maxvalue3=maxvalue, prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, barratio::Number=1/2, colormap=colormap_gyr, uniformscaling::Bool=true, kw...) where {T,N}
+function plot3tensors(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan([X1 X2 X3]), maxvalue=maximumnan([X1 X2 X3]), minvalue2=minvalue, maxvalue2=maxvalue, minvalue3=minvalue, maxvalue3=maxvalue, prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, barratio::Number=1/2, colormap=colormap_gyr, uniformscaling::Bool=true, kw...) where {T,N}
 	recursivemkdir(prefix)
 	if !uniformscaling
-		minvalue = minimumnan(X1[mdfilter...])
-		maxvalue = maximumnan(X1[mdfilter...])
-		minvalue2 = minimumnan(X2[mdfilter...])
-		maxvalue2 = maximumnan(X2[mdfilter...])
-		minvalue3 = minimumnan(X3[mdfilter...])
-		maxvalue3 = maximumnan(X3[mdfilter...])
+		minvalue = minimumnan(X1)
+		maxvalue = maximumnan(X1)
+		minvalue2 = minimumnan(X2)
+		maxvalue2 = maximumnan(X2)
+		minvalue3 = minimumnan(X3)
+		maxvalue3 = maximumnan(X3)
 	end
 	if !isdir(moviedir)
 		mkdir(moviedir)
@@ -946,7 +947,7 @@ function plot3tensors(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integ
 end
 
 function plotleftmatrix(X1::Matrix, X2::Matrix; kw...)
-	plot3tensors([X1], [X2], [X2.-X1], 1; kw...)
+	plot3tensors([X1], [X2], [X2.-X1], 1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), kw...)
 end
 
 function plotlefttensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), center=true, kw...)
@@ -1015,7 +1016,7 @@ end
 colors=[parse(Colors.Colorant, "green"), parse(Colors.Colorant, "orange"), parse(Colors.Colorant, "blue"), parse(Colors.Colorant, "gray")]
 gm=[Gadfly.Guide.manual_color_key("", ["Oil", "Gas", "Water"], colors[1:3]), Gadfly.Theme(major_label_font_size=16Gadfly.pt, key_label_font_size=14Gadfly.pt, minor_label_font_size=12Gadfly.pt)]
 """
-function plot2d(T::Array, Te::Array; quiet::Bool=false, wellnames=nothing, Tmax=nothing, Tmin=nothing, xtitle::String="x", ytitle::String="y", figuredir::String="results", hsize=8Gadfly.inch, vsize=4Gadfly.inch, keyword::String="", dimname::String="Well", colors=NTFk.colors, gm=[Gadfly.Theme(major_label_font_size=16Gadfly.pt, key_label_font_size=14Gadfly.pt, minor_label_font_size=12Gadfly.pt)], linewidth::Measures.Length{:mm,Float64}=2Gadfly.pt, xaxis=1:size(Te,2), xmin=nothing, xmax=nothing, ymin=nothing, ymax=nothing, xintercept=[])
+function plot2d(T::Array, Te::Array=T; quiet::Bool=false, wellnames=nothing, Tmax=nothing, Tmin=nothing, xtitle::String="", ytitle::String="", figuredir::String="results", hsize=8Gadfly.inch, vsize=4Gadfly.inch, keyword::String="", dimname::String="Column", colors=NTFk.colors, gm=[Gadfly.Theme(major_label_font_size=16Gadfly.pt, key_label_font_size=14Gadfly.pt, minor_label_font_size=12Gadfly.pt)], linewidth::Measures.Length{:mm,Float64}=2Gadfly.pt, xaxis=1:size(Te,2), xmin=nothing, xmax=nothing, ymin=nothing, ymax=nothing, xintercept=[])
 	if !isdir(figuredir)
 		mkdir(figuredir)
 	end
@@ -1071,7 +1072,7 @@ function plot2d(T::Array, Te::Array; quiet::Bool=false, wellnames=nothing, Tmax=
 			pc += 1
 		end
 		if wellnames != nothing
-			tm = [Gadfly.Guide.title("$dimname $(wellnames[w])")]
+			tm = [Gadfly.Guide.title("$dimname $w $(wellnames[w])")]
 			if dimname != ""
 				filename = "$(figuredir)/$(lowercase(dimname))_$(wellnames[w])$(append).png"
 			else

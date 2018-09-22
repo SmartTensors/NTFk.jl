@@ -154,7 +154,7 @@ function analysis(X::Array{T,N}, csize::NTuple{N,Int}=size(X), nTF::Integer=1; c
 	info("Tensor size: $(tsize)")
 	residues = Vector{Float64}(nTF)
 	tsi = Vector{TensorDecompositions.Tucker{T,N}}(nTF)
-	WBig = Vector{Matrix{T}}(nTF)
+	WBig = Vector{Matrix}(nTF)
 	nans = isnan.(X)
 	if sum(nans) > 0
 		warn("The tensor has NaN's; they will be zeroed temporarily.")
@@ -171,6 +171,7 @@ function analysis(X::Array{T,N}, csize::NTuple{N,Int}=size(X), nTF::Integer=1; c
 	end
 	for n = 1:nTF
 		residues[n] = TensorDecompositions.rel_residue(tsi[n], X)
+		println("$(n): relative residual $(residues[n])")
 		normalizecore!(tsi[n])
 		f = tsi[n].factors[clusterdim]'
 		# f[f.==0] = max(minimum(f), 1e-6)
