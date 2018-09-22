@@ -804,6 +804,10 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 	end
 end
 
+function plot2matrices(X1::Matrix, X2::Matrix; kw...)
+	plot2tensors([X1], [X2], 1; kw...)
+end
+
 function plot2tensors(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
 	X2 = TensorDecompositions.compose(T2)
 	plot2tensors(X1, X2, dim; kw...)
@@ -867,6 +871,10 @@ function plot2tensors(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; mdfilter=n
 end
 
 plotcmptensors = plot2tensors
+
+function plot3matrices(X1::Matrix, X2::Matrix, X3::Matrix; kw...)
+	plot3tensors([X1], [X2], [X3], 1; kw...)
+end
 
 function plot3tensors(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan([X1[mdfilter...] X2[mdfilter...] X3[mdfilter...]]), maxvalue=maximumnan([X1[mdfilter...] X2[mdfilter...] X3[mdfilter...]]), minvalue2=minvalue, maxvalue2=maxvalue, minvalue3=minvalue, maxvalue3=maxvalue, prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, barratio::Number=1/2, colormap=colormap_gyr, uniformscaling::Bool=true, kw...) where {T,N}
 	recursivemkdir(prefix)
@@ -935,6 +943,10 @@ function plot3tensors(X1::Array{T,N}, X2::Array{T,N}, X3::Array{T,N}, dim::Integ
 		end
 		cleanup && run(`find $moviedir -name $prefix-$(keyword)"*.png" -delete`)
 	end
+end
+
+function plotleftmatrix(X1::Matrix, X2::Matrix; kw...)
+	plot3tensors([X1], [X2], [X2.-X1], 1; kw...)
 end
 
 function plotlefttensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), center=true, kw...)

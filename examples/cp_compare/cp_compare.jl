@@ -1,6 +1,6 @@
 import NTFk
 
-quiet = true
+quiet = false
 
 srand(0)
 A = rand(2, 3)
@@ -17,9 +17,9 @@ T_est = CanDecomp.totensor(Af, Bf, Cf);
 info("Norm $(vecnorm(T_est .- T))")
 warn("Execution time $et")
 if !quiet
-	NTFk.plot2tensors([A],[Af])
-	NTFk.plot2tensors([B],[Bf])
-	NTFk.plot2tensors([C],[Cf])
+	NTFk.plot2matrices(A, Af)
+	NTFk.plot2matrices(B, Bf)
+	NTFk.plot2matrices(C, Cf)
 	NTFk.plotlefttensor(T, T_est; progressbar=nothing)
 end
 
@@ -30,10 +30,10 @@ T_est = TensorDecompositions.compose(t[ibest]);
 info("Norm $(vecnorm(T_est .- T))")
 warn("Execution time $et")
 if !quiet
-	NTFk.normalizefactors!(t[1])
-	NTFk.plot2tensors([A],[t[1].factors[1]])
-	NTFk.plot2tensors([B],[t[1].factors[2]])
-	NTFk.plot2tensors([C],[t[1].factors[3]])
+	NTFk.normalizefactors!(t[ibest])
+	NTFk.plot2matrices(A, t[ibest].factors[1])
+	NTFk.plot2matrices(B, t[ibest].factors[2])
+	NTFk.plot2matrices(C, t[ibest].factors[3])
 	NTFk.plotlefttensor(T, T_est; progressbar=nothing)
 end
 
@@ -43,10 +43,10 @@ T_est = TensorDecompositions.compose(t);
 info("Norm $(vecnorm(T_est .- T))")
 warn("Execution time $et")
 if !quiet
-	NTFk.plot2tensors([A],[t.factors[1]])
-	NTFk.plot2tensors([B],[t.factors[2]])
-	NTFk.plot2tensors([C],[t.factors[3]])
-	NTFk.plotlefttensor(T, mt; progressbar=nothing)
+	NTFk.plot2matrices(A, t.factors[1])
+	NTFk.plot2matrices(B, t.factors[2])
+	NTFk.plot2matrices(C, t.factors[3])
+	NTFk.plotlefttensor(T, t; progressbar=nothing)
 end
 
 info("MATLAB TensorToolBox cp_npu")
@@ -55,10 +55,10 @@ T_est = TensorDecompositions.compose(t);
 info("Norm $(vecnorm(T_est .- T))")
 warn("Execution time $et")
 if !quiet
-	NTFk.plot2tensors([A],[t.factors[1]])
-	NTFk.plot2tensors([B],[t.factors[2]])
-	NTFk.plot2tensors([C],[t.factors[3]])
-	NTFk.plotlefttensor(T, mt; progressbar=nothing)
+	NTFk.plot2matrices(A, t.factors[1])
+	NTFk.plot2matrices(B, t.factors[2])
+	NTFk.plot2matrices(C, t.factors[3])
+	NTFk.plotlefttensor(T, t; progressbar=nothing)
 end
 
 info("MATLAB Block-Coordinate Update NCP")
@@ -66,10 +66,10 @@ et = @elapsed t = NTFk.bcuanalysis(T, 3; maxiter=1000, tol=1e-8, functionname="n
 T_est = TensorDecompositions.compose(t);
 info("Norm $(vecnorm(T_est .- T))")
 if !quiet
-	NTFk.plot2tensors([A],[t.factors[1]])
-	NTFk.plot2tensors([B],[t.factors[2]])
-	NTFk.plot2tensors([C],[t.factors[3]])
-	NTFk.plotlefttensor(T, mt; progressbar=nothing)
+	NTFk.plot2matrices(A, t.factors[1])
+	NTFk.plot2matrices(B, t.factors[2])
+	NTFk.plot2matrices(C, t.factors[3])
+	NTFk.plotlefttensor(T, t; progressbar=nothing)
 end
 
 info("TensorDecompositions Tucker with regularization")
@@ -78,10 +78,10 @@ T_est = TensorDecompositions.compose(t[ibest])
 info("Norm $(vecnorm(T_est .- T))")
 warn("Execution time $et")
 if !quiet
-	NTFk.normalizefactors!(t[1])
-	NTFk.plot2tensors([A],[t[1].factors[1]])
-	NTFk.plot2tensors([B],[t[1].factors[2]])
-	NTFk.plot2tensors([C],[t[1].factors[3]])
+	NTFk.normalizefactors!(t[ibest])
+	NTFk.plot2matrices(A, t[ibest].factors[1])
+	NTFk.plot2matrices(B, t[ibest].factors[2])
+	NTFk.plot2matrices(C, t[ibest].factors[3])
 	NTFk.plotlefttensor(T, T_est; progressbar=nothing)
 end
 
@@ -91,9 +91,9 @@ T_est = TensorDecompositions.compose(t[ibest])
 info("Norm $(vecnorm(T_est .- T))")
 warn("Execution time $et")
 if !quiet
-	NTFk.normalizefactors!(t[1])
-	NTFk.plot2tensors([A],[t[1].factors[1]])
-	NTFk.plot2tensors([B],[t[1].factors[2]])
-	NTFk.plot2tensors([C],[t[1].factors[3]])
+	NTFk.normalizefactors!(t[ibest])
+	NTFk.plot2matrices(A, t[ibest].factors[1])
+	NTFk.plot2matrices(B, t[ibest].factors[2])
+	NTFk.plot2matrices(C, t[ibest].factors[3])
 	NTFk.plotlefttensor(T, T_est; progressbar=nothing)
 end
