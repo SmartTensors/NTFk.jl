@@ -23,6 +23,22 @@ function flatten(X::Array{T,N}, mask::BitArray{M}) where {T,N,M}
 	return A
 end
 
+function flatten(X::Array{T,N}, dim::Number=1) where {T,N}
+	sz = size(X)
+	nt = Vector{Int64}(0)
+	for k = 1:N
+		if (k != dim)
+			push!(nt, k)
+		end
+	end
+	A = Array{T}(*(sz[nt]...), sz[dim])
+	for i = 1:sz[dim]
+		nt = ntuple(k->(k == dim ? i : Colon()), N)
+		A[:, i] = vec(X[nt...])
+	end
+	return A
+end
+
 function indicize(v, levels::Integer; rev=false)
 	iv = convert(Vector{Int64}, ceil.((v .- minimum(v)) ./ (maximum(v)-minimum(v)) .* (levels - 1 ) .+ 1))
 	if rev == true

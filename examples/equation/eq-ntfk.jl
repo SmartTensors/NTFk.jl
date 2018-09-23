@@ -57,7 +57,7 @@ T_orig = TensorDecompositions.compose(tt_orig)
 
 # NTFk.plottensor(T_orig)
 
-ttu, ecsize, ibest = NTFk.analysis(T_orig, [csize]; eigmethod=[false,false,false], lambda=0., tol=1e-16, max_iter=1000000, prefix="results/spnn-345")
+ttu, ecsize, ibest = NTFk.analysis(T_orig, [csize]; eigmethod=[false,false,false], lambda=1., prefix="results/spnn-345")
 NTFk.normalizecore!(ttu[ibest])
 NTFk.normalizefactors!(ttu[ibest])
 # NTFk.plot2matrices(xfactor, ttu[ibest].factors[1])
@@ -73,7 +73,7 @@ Mads.plotseries(ttu[ibest].factors[2])
 Mads.plotseries(zfactor)
 Mads.plotseries(ttu[ibest].factors[3])
 
-tcp, ecsize, ibest = NTFk.analysis(T_orig, [4]; tol=1e-16, max_iter=1000000, prefix="results/tdcp-345")
+tcp, ecsize, ibest = NTFk.analysis(T_orig, [4]; prefix="results/tdcp-345")
 NTFk.normalizelambdas!(tcp[ibest])
 NTFk.normalizefactors!(tcp[ibest])
 # NTFk.plot2matrices(xfactor, tcp[ibest].factors[1])
