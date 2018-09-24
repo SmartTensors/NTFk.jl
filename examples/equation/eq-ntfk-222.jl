@@ -9,7 +9,7 @@ for i = 1:csize[1]
 	x = linspace(0, 10, tsize[1])
 	xfactor[:,i] = xf[i].(x)
 end
-xfactor = xfactor ./ maximum(xfactor, 1)
+# xfactor = xfactor ./ maximum(xfactor, 1)
 Mads.plotseries(xfactor)
 
 yf = [y->1, y->y, y->sin(y), y->y^2]
@@ -18,7 +18,7 @@ for i = 1:csize[2]
 	y = linspace(0, 10, tsize[2])
 	yfactor[:,i] = yf[i].(y)
 end
-yfactor = yfactor ./ maximum(yfactor, 1)
+# yfactor = yfactor ./ maximum(yfactor, 1)
 Mads.plotseries(yfactor)
 
 zf = [z->1, z->z, z->sin(z), z->z^2]
@@ -27,7 +27,7 @@ for i = 1:csize[3]
 	z = linspace(0, 10, tsize[3])
 	zfactor[:,i] = zf[i].(z)
 end
-zfactor = zfactor ./ maximum(zfactor, 1)
+# zfactor = zfactor ./ maximum(zfactor, 1)
 Mads.plotseries(zfactor)
 
 core = zeros(csize)

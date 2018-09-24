@@ -1,7 +1,7 @@
 import NTFk
 
 csize = (3, 4, 5)
-tsize = (20, 30, 40)
+tsize = (20, 50, 50)
 
 xf = [x->1, x->x, x->x^2]
 xfactor = Array{Float64}(tsize[1], csize[1])
@@ -56,8 +56,17 @@ tt_orig = TensorDecompositions.Tucker((xfactor, yfactor, zfactor), core)
 T_orig = TensorDecompositions.compose(tt_orig)
 
 # NTFk.plottensor(T_orig)
+NTFk.plot2d(NTFk.flatten(T_orig, 1)')
+Mads.plotseries(NTFk.flatten(T_orig, 1))
 
-ttu, ecsize, ibest = NTFk.analysis(T_orig, [csize]; eigmethod=[false,false,false], lambda=1., prefix="results/spnn-345")
+xfactori = xfactor + rand(size(xfactor)) *.01
+yfactori = yfactor + rand(size(yfactor)) *.01
+zfactori = zfactor + rand(size(zfactor)) *.01
+tt_ini = TensorDecompositions.Tucker((xfactori, yfactori, zfactori), core)
+
+ttu, ecsize, ibest = NTFk.analysis(T_orig, [csize]; eigmethod=[false,false,false], lambda=0., max_iter=10000, ini_decomp=tt_ini, prefix="results/spnn-345")
+T_est = TensorDecompositions.compose(ttu[ibest]);
+info("Norm $(vecnorm(T_orig .- T_est))")
 NTFk.normalizecore!(ttu[ibest])
 NTFk.normalizefactors!(ttu[ibest])
 # NTFk.plot2matrices(xfactor, ttu[ibest].factors[1])
