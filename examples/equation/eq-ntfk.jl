@@ -50,6 +50,9 @@ core[1,4,1] = 1
 core[2,1,1] = 1
 core[3,1,1] = 1
 
+core[2,3,4] = 1
+core[3,4,5] = 1
+
 # display(core)
 
 tt_orig = TensorDecompositions.Tucker((xfactor, yfactor, zfactor), core)
