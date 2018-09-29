@@ -1,3 +1,5 @@
+import Interpolations
+
 "Convert `@sprintf` macro into `sprintf` function"
 sprintf(args...) = eval(:@sprintf($(args...)))
 
