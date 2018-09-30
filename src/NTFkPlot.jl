@@ -1070,7 +1070,7 @@ function plot2d(T::Array, Te::Array=T; quiet::Bool=false, wellnames=nothing, Tma
 			pc += 1
 		end
 		if wellnames != nothing
-			tm = [Gadfly.Guide.title("$dimname $w $(wellnames[w])")]
+			tm = [Gadfly.Guide.title("$dimname $(wellnames[w])")]
 			if dimname != ""
 				filename = "$(figuredir)/$(lowercase(dimname))_$(wellnames[w])$(append).png"
 			else
