@@ -3,6 +3,9 @@ import Interpolations
 "Convert `@sprintf` macro into `sprintf` function"
 sprintf(args...) = eval(:@sprintf($(args...)))
 
+searchdir(key::Regex, path::String = ".") = filter(x->ismatch(key, x), readdir(path))
+searchdir(key::String, path::String = ".") = filter(x->contains(x, key), readdir(path))
+
 function maximumnan(X, c...; kw...)
 	maximum(X[.!isnan.(X)], c...; kw...)
 end
@@ -10,9 +13,6 @@ end
 function minimumnan(X, c...; kw...)
 	minimum(X[.!isnan.(X)], c...; kw...)
 end
-
-searchdir(key::Regex, path::String = ".") = filter(x->ismatch(key, x), readdir(path))
-searchdir(key::String, path::String = ".") = filter(x->contains(x, key), readdir(path))
 
 function flatten(X::Array{T,N}, mask::BitArray{M}) where {T,N,M}
 	@assert N - 1 == M
@@ -97,6 +97,11 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; cor
 	return Xe[imax[1:crank]]
 end
 
+function getgridvalues(v::Vector, d::Integer)
+	l = length(v)
+	Interpolations.interpolate((1:l,), v, Interpolations.Gridded(Interpolations.Linear()))[1:l/(d+1):l]
+end
+
 function getgridvalues(v, r; logtransform=true)
 	lv = length(v)
 	lr = length(r)
@@ -105,13 +110,13 @@ function getgridvalues(v, r; logtransform=true)
 	for i=1:lv
 		try
 			if logtransform
-				f[i] = Interpolations.interpolate((log10.(r[i]),), 1:length(r[i]), Interpolations.Gridded(Interpolations.Linear()))[log10(v[i])]
+				f[i] = Interpolations.interpolate((log10.(r[i]),), 1:length(r[i]), Interpolations.Gridded(Interpolations.Linear()))[log10.(v[i])]
 			else
 				f[i] = Interpolations.interpolate((r[i],), 1:length(r[i]), Interpolations.Gridded(Interpolations.Linear()))[v[i]]
 			end
 		catch
 			if logtransform
-				f[i] = Interpolations.interpolate((sort!(log10.(r[i])),), length(r[i]):-1:1, Interpolations.Gridded(Interpolations.Linear()))[log10(v[i])]
+				f[i] = Interpolations.interpolate((sort!(log10.(r[i])),), length(r[i]):-1:1, Interpolations.Gridded(Interpolations.Linear()))[log10.(v[i])]
 			else
 				f[i] = Interpolations.interpolate((sort!(r[i]),), length(r[i]):-1:1, Interpolations.Gridded(Interpolations.Linear()))[v[i]]
 			end
