@@ -23,20 +23,20 @@ function computestats(X, Xe, volumeindex=1:size(Xe,1), wellindex=1:size(Xe,3), t
 	fcor = Array{Float64}(3)
 	f = "%-85s"
 	g = "%-.2g"
-	for k in volumeindex
-		se = NMFk.sumnan(Xe[:,timeindex,k])
-		s =  NMFk.sumnan(X[:,timeindex,k])
-		ferr[k] = (se - s) / s
+	for (i, v) in enumerate(volumeindex)
+		se = NMFk.sumnan(Xe[:,timeindex,v])
+		s =  NMFk.sumnan(X[:,timeindex,v])
+		ferr[i] = (se - s) / s
 		for j in wellindex
-			wsum1[j] = NMFk.sumnan(X[j,timeindex,k])
-			wsum2[j] = NMFk.sumnan(Xe[j,timeindex,k])
+			wsum1[j] = NMFk.sumnan(X[j,timeindex,v])
+			wsum2[j] = NMFk.sumnan(Xe[j,timeindex,v])
 			werr[j] = abs.(wsum2[j] - wsum1[j]) / wsum1[j]
 		end
 		# @show wsum1
 		# @show wsum2
 		# @show werr
-		merr[k] = maximum(werr)
-		fcor[k] = cor(vec(wsum1), vec(wsum2))
+		merr[i] = maximum(werr)
+		fcor[i] = cor(vec(wsum1), vec(wsum2))
 	end
 	info("$(NMFk.sprintf(f, c)): $(NMFk.vecnormnan(X[wellindex,:,volumeindex] .- Xe[wellindex,:,volumeindex])) [Error: $(NMFk.sprintf(g, ferr[1])) $(NMFk.sprintf(g, ferr[2])) $(NMFk.sprintf(g, ferr[3]))] [Max error: $(NMFk.sprintf(g, merr[1])) $(NMFk.sprintf(g, merr[2])) $(NMFk.sprintf(g, merr[3]))] [Pearson: $(NMFk.sprintf(g, fcor[1])) $(NMFk.sprintf(g, fcor[2])) $(NMFk.sprintf(g, fcor[3]))]")
 end
