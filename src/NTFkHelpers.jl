@@ -14,6 +14,10 @@ function minimumnan(X, c...; kw...)
 	minimum(X[.!isnan.(X)], c...; kw...)
 end
 
+function flip!(X)
+	X = -X + maximumnan(X) + minimumnan(X)
+end
+
 function computestats(X, Xe, volumeindex=1:size(Xe,1), wellindex=1:size(Xe,3), timeindex=:, c=""; plot::Bool=false, quiet::Bool=true, wellnames=nothing, xaxis=1:size(Xe,2))
 	m = "%-85s"
 	if Xe == nothing
