@@ -1,7 +1,13 @@
-# __precompile__()
+__precompile__()
 
 "Non-negative Tensor Factorization + k-means Clustering"
 module NTFk
+
+if VERSION >= v"0.7"
+	import Pkg
+	using SharedArrays
+	using Printf
+end
 
 "Checks if package is available"
 function ispkgavailable(modulename::String; quiet::Bool=false)
@@ -30,25 +36,44 @@ function printerrormsg(errmsg::Any)
 	end
 end
 
-"Try to import a module"
-macro tryimport(s::Symbol)
-	mname = string(s)
-	importq = string(:(import $s))
-	infostring = string("Module ", s, " is not available")
-	warnstring = string("Module ", s, " cannot be imported")
-	q = quote
-		if ispkgavailable($mname; quiet=true)
+if VERSION >= v"0.7"
+	"Try to import a module"
+	macro tryimport(s::Symbol)
+		mname = string(s)
+		importq = string(:(import $s))
+		infostring = string("Module ", s, " is not available")
+		warnstring = string("Module ", s, " cannot be imported")
+		q = quote
 			try
-				eval(parse($importq))
+				eval(Meta.parse($importq))
 			catch errmsg
 				printerrormsg(errmsg)
 				warn($warnstring)
 			end
-		else
-			info($infostring)
 		end
+		return :($(esc(q)))
 	end
-	return :($(esc(q)))
+else
+	"Try to import a module"
+	macro tryimport(s::Symbol)
+		mname = string(s)
+		importq = string(:(import $s))
+		infostring = string("Module ", s, " is not available")
+		warnstring = string("Module ", s, " cannot be imported")
+		q = quote
+			if ispkgavailable($mname; quiet=true)
+				try
+					eval(parse($importq))
+				catch errmsg
+					printerrormsg(errmsg)
+					warn($warnstring)
+				end
+			else
+				info($infostring)
+			end
+		end
+		return :($(esc(q)))
+	end
 end
 
 import NMFk
@@ -73,7 +98,13 @@ include("NTFkAnalysis-tensordecompositions.jl")
 include("NTFkAnalysis-tensordecompositions-helpers.jl")
 include("NTFkAnalysis-tensordecompositions-memory.jl")
 include("NTFkAnalysis-tensordecompositions-decomposition.jl")
-if isdefined(:MATLAB)
+
+if VERSION >= v"0.7"
+	ism = isdefined(NTFk, :MATLAB)
+else
+	ism = isdefined(:MATLAB)
+end
+if ism
 	include("NTFkAnalysis-tensortoolbox-matlab.jl")
 end
 

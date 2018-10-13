@@ -185,7 +185,7 @@ function getinterpolatedtensor(t::TensorDecompositions.Tucker{T,N}, v; sp=[Inter
 			factors[j] = f
 		end
 	end
-	tn = TensorDecompositions.Tucker((factors...), t.core)
+	tn = TensorDecompositions.Tucker((factors...,), t.core)
 	return tn
 end
 

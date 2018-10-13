@@ -10,7 +10,7 @@ function janalysis(T::Array, crank::Number; seed::Number=1)
 		factors[i] = zeros(crank, sizes[i]) #TODO CanDecomp.candecomp work with transposed factor matrices
 	end
 	CanDecomp.candecomp!(StaticArrays.SVector(factors...), deepcopy(T); regularization=0., max_cd_iters=1, tol=0.1, max_iter=3)
-	TT = TensorDecompositions.CANDECOMP((factors'...), ones(crank)) # transpose factor matrices
+	TT = TensorDecompositions.CANDECOMP((factors'...,), ones(crank)) # transpose factor matrices
 	return TT
 end
 

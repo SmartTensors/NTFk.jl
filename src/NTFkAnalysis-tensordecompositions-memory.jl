@@ -22,7 +22,7 @@ end
 
 composeshared(decomp::TensorDecompositions.CANDECOMP) = composedistributed(decomp.factors, decomp.lambdas)
 
-composeshared!{T,N}(dest::SharedArray{T,N}, decomp::TensorDecompositions.CANDECOMP{T,N}) = composedistributed!(dest, decomp.factors, decomp.lambdas)
+composeshared!(dest::SharedArray{T,N}, decomp::TensorDecompositions.CANDECOMP{T,N}) where {T,N} = composedistributed!(dest, decomp.factors, decomp.lambdas)
 
 @generated function composedistributed!(dest::DistributedArrays.DArray{T,N,Array{T,N}}, factors::NTuple{N, Matrix{T}}, lambdas::Vector{T}) where {T,N}
 	quote
@@ -46,5 +46,5 @@ end
 
 composedistributed(decomp::TensorDecompositions.CANDECOMP) = composedistributed(decomp.factors, decomp.lambdas)
 
-composedistributed!{T,N}(dest::DistributedArrays.DArray{T,N,Array{T,N}}, decomp::TensorDecompositions.CANDECOMP{T,N}) = composedistributed!(dest, decomp.factors, decomp.lambdas)
+composedistributed!(dest::DistributedArrays.DArray{T,N,Array{T,N}}, decomp::TensorDecompositions.CANDECOMP{T,N}) where {T,N} = composedistributed!(dest, decomp.factors, decomp.lambdas)
 

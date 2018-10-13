@@ -756,7 +756,7 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 				push!(factors, t.factors[i])
 			end
 		end
-		tt = deepcopy(TensorDecompositions.Tucker((factors...), t.core))
+		tt = deepcopy(TensorDecompositions.Tucker((factors...,), t.core))
 	else
 		tt = deepcopy(t)
 	end
@@ -992,8 +992,13 @@ function setnewfilename(filename::String, frame::Integer=0; keyword::String="fra
 	if !contains(fn, keyword)
 		fn = root * "-$(keyword)000000." * ext
 	end
-	if ismatch(Regex(string("-", keyword, "[0-9]*\..*\$")), fn)
-		rm = match(Regex(string("-", keyword, "([0-9]*)\.(.*)\$")), fn)
+	if VERSION >= v"0.7"
+		rtest = occursin(Regex(string("-", keyword, "[0-9]*[.].*\$")), fn)
+	else
+		rtest = ismatch(Regex(string("-", keyword, "[0-9]*[.].*\$")), fn)
+	end
+	if rtest
+		rm = match(Regex(string("-", keyword, "([0-9]*)[.](.*)\$")), fn)
 		if frame == 0
 			v = parse(Int, rm.captures[1]) + 1
 		else

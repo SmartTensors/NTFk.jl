@@ -20,9 +20,9 @@ function ttanalysis(T::Array, crank::Number; seed::Number=1, functionname::Strin
 		for i = 1:length(R["u"])
 			R["u"][i] = convert(Array{Float64,2}, R["u"][i]')'
 		end
-		TT = TensorDecompositions.CANDECOMP((R["u"][1:end]...), vec(collect(R["lambda"])))
+		TT = TensorDecompositions.CANDECOMP((R["u"][1:end]...,), vec(collect(R["lambda"])))
 	else
-		TT = TensorDecompositions.CANDECOMP((R["u"][1:end]...), R["lambda"])
+		TT = TensorDecompositions.CANDECOMP((R["u"][1:end]...,), R["lambda"])
 	end
 	# CC = TensorDecompositions.compose(TT)
 	# @show maximum(C .- CC)
@@ -50,9 +50,9 @@ function bcuanalysis(T::Array, crank::Number; seed::Number=1, functionname::Abst
 		for i = 1:length(R["u"])
 			R["u"][i] = convert(Array{Float64,2}, R["u"][i]')'
 		end
-		TT = TensorDecompositions.CANDECOMP((R["u"][1:end]...), vec(collect(R["lambda"])))
+		TT = TensorDecompositions.CANDECOMP((R["u"][1:end]...,), vec(collect(R["lambda"])))
 	else
-		TT = TensorDecompositions.CANDECOMP((R["u"][1:end]...), R["lambda"])
+		TT = TensorDecompositions.CANDECOMP((R["u"][1:end]...,), R["lambda"])
 	end
 	# CC = TensorDecompositions.compose(TT)
 	# @show maximum(C .- CC)
@@ -71,7 +71,7 @@ function ttanalysis(T::Array, crank::Vector; seed::Number=1, functionname::Strin
 	"""
 	MATLAB.eval_string(m)
 	@MATLAB.mget R
-	TT = TensorDecompositions.Tucker((R["u"][1:end]...), R["core"]["data"])
+	TT = TensorDecompositions.Tucker((R["u"][1:end]...,), R["core"]["data"])
 	# CC = TensorDecompositions.compose(TT)
 	# @show maximum(C .- CC)
 	return TT
