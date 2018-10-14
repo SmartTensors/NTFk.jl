@@ -1,6 +1,6 @@
 import TensorDecompositions
 
-function candecomp(X::Array{T, N}, r::Integer; tsize=size(X), seed::Number=1, method::Symbol=:ALS, functionname::String=string(method), tol::Float64=1e-8, maxiter::Integer=DMAXITER, compute_error::Bool=true, verbose::Bool=false, kw...) where {T,N}
+function candecomp(X::AbstractArray{T, N}, r::Integer; tsize=size(X), seed::Number=1, method::Symbol=:ALS, functionname::String=string(method), tol::Float64=1e-8, maxiter::Integer=DMAXITER, compute_error::Bool=true, verbose::Bool=false, kw...) where {T,N}
 	if contains(functionname, "cp_")
 		c = ttanalysis(X, r; seed=abs(rand(Int16)), functionname=functionname, maxiter=maxiter, tol=tol, kw...)
 	elseif contains(functionname, "bcu_")

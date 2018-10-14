@@ -28,7 +28,7 @@ end
 rand_kruskal3(r::Int64, dims::NTuple{N, Int}, nonnegative::Bool) where {N} =
 	TensorDecompositions.compose(rand_candecomp(r, dims, lambdas_nonneg=nonnegative, factors_nonneg=nonnegative))
 
-function add_noise(tnsr::Array{T,N}, sn_ratio = 0.6, nonnegative::Bool = false) where {T, N}
+function add_noise(tnsr::AbstractArray{T,N}, sn_ratio = 0.6, nonnegative::Bool = false) where {T, N}
 	tnsr_noise = randn(size(tnsr)...)
 	if nonnegative
 		map!(x -> max(0.0, x), tnsr_noise, tnsr_noise)
@@ -36,7 +36,7 @@ function add_noise(tnsr::Array{T,N}, sn_ratio = 0.6, nonnegative::Bool = false) 
 	tnsr + 10^(-sn_ratio/0.2) * vecnorm(tnsr) / vecnorm(tnsr) * tnsr_noise
 end
 
-function arrayoperation(A::Array{T,N}, tmap=ntuple(k->(Colon()), N), functionname="mean") where {T, N}
+function arrayoperation(A::AbstractArray{T,N}, tmap=ntuple(k->(Colon()), N), functionname="mean") where {T, N}
 	@assert length(tmap) == N
 	nci = 0
 	for i = 1:N
@@ -64,7 +64,7 @@ function arrayoperation(A::Array{T,N}, tmap=ntuple(k->(Colon()), N), functionnam
 	return B
 end
 
-function movingaverage(A::Array{T, N}, masize::Number=1) where {T, N}
+function movingaverage(A::AbstractArray{T, N}, masize::Number=1) where {T, N}
 	if masize == 0
 		return A
 	end

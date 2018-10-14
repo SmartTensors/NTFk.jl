@@ -129,7 +129,7 @@ function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, x
 	return csize
 end
 
-function analysis(X::Array{T,N}, dsizes::Vector{Int64}, dim, nTF; kw...) where {T,N}
+function analysis(X::AbstractArray{T,N}, dsizes::Vector{Int64}, dim, nTF; kw...) where {T,N}
 	csize = collect(size(X))
 	ndimensons = length(csize)
 	sizes = Vector{Tuple}(0)
@@ -144,7 +144,7 @@ end
 """
 methods: spnntucker, tucker_als, tucker_sym
 """
-function analysis(X::Array{T,N}, csize::NTuple{N,Int}=size(X), nTF::Integer=1; clusterdim::Integer=1, resultdir::String=".", prefix::String="spnn", seed::Integer=0, tol::Number=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter::Integer=DMAXITER, lambda::Number=0.1, lambdas=fill(lambda, length(size(X)) + 1), eigmethod=trues(N), progressbar::Bool=false, quiet::Bool=true, serial::Bool=false, saveall::Bool=false) where {T,N}
+function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Integer=1; clusterdim::Integer=1, resultdir::String=".", prefix::String="spnn", seed::Integer=0, tol::Number=1e-8, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter::Integer=DMAXITER, lambda::Number=0.1, lambdas=fill(lambda, length(size(X)) + 1), eigmethod=trues(N), progressbar::Bool=false, quiet::Bool=true, serial::Bool=false, saveall::Bool=false) where {T,N}
 	info("TensorDecompositions Tucker analysis with core size $(csize)...")
 	info("Clustering Dimension: $clusterdim")
 	@assert clusterdim <= N || clusterdim > 1
@@ -198,7 +198,7 @@ function analysis(X::Array{T,N}, csize::NTuple{N,Int}=size(X), nTF::Integer=1; c
 	return tsi[imin], residues[imin], correlations, minsilhouette
 end
 
-function analysis(X::Array{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Integer=1; clusterdim::Integer=1, resultdir::String=".", prefix::String="spnn", serial::Bool=false, seed::Integer=0, kw...) where {T,N}
+function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Integer=1; clusterdim::Integer=1, resultdir::String=".", prefix::String="spnn", serial::Bool=false, seed::Integer=0, kw...) where {T,N}
 	info("TensorDecompositions Tucker analysis for a series of $(length(csizes)) core sizes ...")
 	warn("Clustering Dimension: $clusterdim")
 	@assert clusterdim <= N || clusterdim > 1
@@ -242,7 +242,7 @@ end
 """
 methods: ALS, SGSD, cp_als, cp_apr, cp_nmu, cp_opt, cp_sym, cp_wopt
 """
-function analysis(X::Array{T,N}, trank::Integer, nTF=1; seed::Number=-1, tol=1e-8, verbose=false, max_iter=DMAXITER, method=:ALS, resultdir::String=".", prefix::String="$(string(method))", quiet=true, serial::Bool=false, saveall=false, kw...) where {T,N}
+function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1, tol=1e-8, verbose=false, max_iter=DMAXITER, method=:ALS, resultdir::String=".", prefix::String="$(string(method))", quiet=true, serial::Bool=false, saveall=false, kw...) where {T,N}
 	if contains(string(method), "cp_")
 		info("MATLAB TensorToolbox CanDecomp analysis using $(string(method)) ...")
 	elseif contains(string(method), "bcu_")
@@ -286,7 +286,7 @@ function analysis(X::Array{T,N}, trank::Integer, nTF=1; seed::Number=-1, tol=1e-
 	return cpi[imin], residues[imin], correlations, minsilhouette
 end
 
-function analysis(X::Array{T,N}, tranks::Vector{Int}, nTF=1; seed::Number=-1, method=:ALS, resultdir::String=".", prefix::String="$(string(method))", serial::Bool=false, kw...) where {T,N}
+function analysis(X::AbstractArray{T,N}, tranks::Vector{Int}, nTF=1; seed::Number=-1, method=:ALS, resultdir::String=".", prefix::String="$(string(method))", serial::Bool=false, kw...) where {T,N}
 	seed >= 0 && srand(seed)
 	tsize = size(X)
 	ndimensons = length(tsize)
@@ -471,7 +471,7 @@ function normalizelambdas!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; ch
 	return nothing
 end
 
-function mincorrelations(X1::Array{T,N}, X2::Array{T,N}) where {T,N}
+function mincorrelations(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}) where {T,N}
 	if N == 3
 		tsize = size(X1)
 		@assert tsize == size(X2)

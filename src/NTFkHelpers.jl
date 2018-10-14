@@ -57,7 +57,7 @@ function computestats(X, Xe, volumeindex=1:size(Xe,1), wellindex=1:size(Xe,3), t
 	plot && NTFk.plot2d(X, Xe; quiet=quiet, figuredir="results-12-18", keyword=namecase, titletext=c, wellnames=wellnames, dimname="Well", xaxis=xaxis, ymin=0, xmin=Dates.Date(2015,12,15), xmax=Dates.Date(2017,6,10), linewidth=1.5Gadfly.pt, gm=[Gadfly.Guide.manual_color_key("", ["Oil", "Gas", "Water"], ["green", "red", "blue"])], colors=["green", "red", "blue"])
 end
 
-function flatten(X::Array{T,N}, mask::BitArray{M}) where {T,N,M}
+function flatten(X::AbstractArray{T,N}, mask::BitArray{M}) where {T,N,M}
 	@assert N - 1 == M
 	sz = size(X)
 	A = Array{T}(sum(.!mask), sz[end])
@@ -68,7 +68,7 @@ function flatten(X::Array{T,N}, mask::BitArray{M}) where {T,N,M}
 	return A
 end
 
-function flatten(X::Array{T,N}, dim::Number=1) where {T,N}
+function flatten(X::AbstractArray{T,N}, dim::Number=1) where {T,N}
 	sz = size(X)
 	nt = Vector{Int64}(0)
 	for k = 1:N
