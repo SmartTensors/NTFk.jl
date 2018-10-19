@@ -7,6 +7,9 @@ if VERSION >= v"0.7"
 	import Pkg
 	using SharedArrays
 	using Printf
+	using LinearAlgebra
+	using SparseArrays
+	using Distributed
 end
 
 "Checks if package is available"
