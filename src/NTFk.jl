@@ -101,6 +101,7 @@ include("NTFkAnalysis-tensordecompositions.jl")
 include("NTFkAnalysis-tensordecompositions-helpers.jl")
 include("NTFkAnalysis-tensordecompositions-memory.jl")
 include("NTFkAnalysis-tensordecompositions-decomposition.jl")
+include("NTFkAnalysis-tensorly.jl")
 
 if VERSION >= v"0.7"
 	ism = isdefined(NTFk, :MATLAB)

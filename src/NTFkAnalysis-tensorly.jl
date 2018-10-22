@@ -1,63 +1,31 @@
 import PyCall
-import NTFk
 
-@PyCall.pyimport tensorly as tl
-@PyCall.pyimport tensorly.decomposition as td
+const tensorly = PyCall.PyNULL()
+const tensorlydecomp = PyCall.PyNULL()
+function __init__()
+	try
+		copy!(tensorly, PyCall.pyimport("tensorly"))
+		info("TensorLy is available")
+	catch
+		warn("TensorLy is not available")
+	end
+	try
+		copy!(tensorlydecomp, PyCall.pyimport("tensorly.decomposition"))
+		info("TensorLy.decomposition is available")
+	catch
+		warn("TensorLy.decomposition is not available")
+	end
+end
 
-srand(1)
-csize = (10,10,10)
-tsize = (1000, 1000, 1000)
-tucker_orig = NTFk.rand_tucker(csize, tsize, factors_nonneg=true, core_nonneg=true)
-T_orig = TensorDecompositions.compose(tucker_orig);
-
-info("numpy")
-tl.set_backend("numpy")
-@time T_orig_tl = tl.backend[:tensor](T_orig);
-@time td.non_negative_tucker(T_orig_tl, rank=csize, n_iter_max=2);
-
-info("mxnet")
-tl.set_backend("mxnet")
-@time T_orig_tl = tl.backend[:tensor](T_orig);
-@time td.non_negative_tucker(T_orig_tl, rank=csize, n_iter_max=2);
-
-info("pytorch")
-tl.set_backend("pytorch")
-@time T_orig_tl = tl.backend[:tensor](T_orig);
-@time td.non_negative_tucker(T_orig_tl, rank=csize, n_iter_max=2);
-
-info("tensorflow")
-tl.set_backend("tensorflow");
-@time T_orig_tl = tl.backend[:tensor](T_orig);
-@time td.non_negative_tucker(T_orig_tl, rank=csize, n_iter_max=2);
-
-info("numpy")
-tl.set_backend("numpy")
-@time td.non_negative_tucker(tl.backend[:tensor](T_orig), rank=csize, n_iter_max=2);
-
-info("mxnet")
-tl.set_backend("mxnet")
-@time td.non_negative_tucker(tl.backend[:tensor](T_orig), rank=csize, n_iter_max=2);
-
-info("pytorch")
-tl.set_backend("pytorch")
-@time td.non_negative_tucker(tl.backend[:tensor](T_orig), rank=csize, n_iter_max=2);
-
-info("tensorflow")
-tl.set_backend("tensorflow");
-@time td.non_negative_tucker(tl.backend[:tensor](T_orig), rank=csize, n_iter_max=2);
-
-info("numpy")
-tl.set_backend("numpy")
-@time @pycall(td.non_negative_tucker(tl.backend[:tensor](T_orig), rank=csize, n_iter_max=2));
-
-info("mxnet")
-tl.set_backend("mxnet")
-@time @pycall(td.non_negative_tucker(tl.backend[:tensor](T_orig), rank=csize, n_iter_max=2));
-
-info("pytorch")
-tl.set_backend("pytorch")
-@time @pycall(td.non_negative_tucker(tl.backend[:tensor](T_orig), rank=csize, n_iter_max=2));
-
-info("tensorflow")
-tl.set_backend("tensorflow");
-@time @pycall(td.non_negative_tucker(tl.backend[:tensor](T_orig), rank=csize, n_iter_max=2));
+"""
+functionname = "non_negative_tucker", "non_negative_cp"
+backend = "tensorflow", "pytorch", "mxnet", "numpy"
+"""
+function tlanalysis(T::Array, crank::Vector; seed::Number=1, backend="tensorflow", functionname::String="non_negative_tucker", init::String="svd", maxiter::Integer=DMAXITER, tol::Number=1e-4, verbose::Bool=false)
+	tensorly[:set_backend](backend)
+	core, factors = tensorlydecomp[Symbol(functionname)](tensorly[:backend][:tensor](T), rank=crank, n_iter_max=maxiter, init=init, tol=tol, verbose=verbose);
+	# CC = TensorDecompositions.compose(TT)
+	# @show maximum(C .- CC)
+	TT = TensorDecompositions.Tucker((factors...,), core)
+	return TT
+end
