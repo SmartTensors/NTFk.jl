@@ -224,7 +224,6 @@ function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Int
 	end
 	info("Decompositions (clustering dimension: $clusterdim)")
 	ibest = 1
-	isortminsilhouette = sortperm(minsilhouette)
 	best = Inf
 	for i in 1:nruns
 		if residues[i] < best
