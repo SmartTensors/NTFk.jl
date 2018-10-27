@@ -224,17 +224,20 @@ function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Int
 	end
 	info("Decompositions (clustering dimension: $clusterdim)")
 	ibest = 1
+	isortminsilhouette = sortperm(minsilhouette)
 	best = Inf
 	for i in 1:nruns
 		if residues[i] < best
 			best = residues[i]
 			ibest = i
 		end
+	end
+	for i in 1:nruns
 		println("$i - $(csizes[i]): residual $(residues[i]) worst tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core)) silhouette $(minsilhouette[i])")
 	end
 	# NTFk.atensor(tucker_spnn[ibest].core)
+	info("Estimated true core size based on the reconstruction: $(csize)")
 	csize = TensorToolbox.mrank(tucker_spnn[ibest].core)
-	info("Estimated true core size: $(csize)")
 	JLD.save("$(resultdir)/$(prefix)-$(mapsize(csize)).jld", "t", tucker_spnn)
 	return tucker_spnn, csize, ibest
 end
