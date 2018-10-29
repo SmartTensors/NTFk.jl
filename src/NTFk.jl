@@ -10,6 +10,15 @@ if VERSION >= v"0.7"
 	using LinearAlgebra
 	using SparseArrays
 	using Distributed
+	using Statistics
+	using Dates
+end
+
+const ntfkdir = splitdir(splitdir(Base.source_path())[1])[1]
+
+"Test NTFk functions"
+function test()
+	include(joinpath(ntfkdir, "test", "runtests.jl"))
 end
 
 "Checks if package is available"
