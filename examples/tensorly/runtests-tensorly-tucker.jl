@@ -1,5 +1,6 @@
 import NTFk
 import PyCall
+import TensorDecompositions
 
 @PyCall.pyimport tensorly as tl
 @PyCall.pyimport tensorly.decomposition as td
