@@ -36,15 +36,9 @@ function loadresults(case::String, csize::Tuple=(); resultdir::String=".")
 end
 
 function analysistime1(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", figuredir::String=".", suffix::String="", seed::Number=0, max_iter=DMAXITER, tol=1e-8, ini_decomp=nothing, lambda::Number=0.1)
-	if !isdir(resultdir)
-		mkdir(resultdir)
-	end
-	if !isdir(moviedir)
-		mkdir(moviedir)
-	end
-	if !isdir(figuredir)
-		mkdir(figuredir)
-	end
+	recursivemkdir(resultdir; filename=false)
+	recursivemkdir(moviedir; filename=false)
+	recursivemkdir(figuredir; filename=false)
 	C = loadcase(case; datadir=datadir)
 	if C == nothing
 		return (0,0,0)
@@ -54,15 +48,9 @@ function analysistime1(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1
 end
 
 function analysistime(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", figuredir::String=".", suffix::String="", seed::Number=0, max_iter=DMAXITER, tol=1e-8)
-	if !isdir(resultdir)
-		mkdir(resultdir)
-	end
-	if !isdir(moviedir)
-		mkdir(moviedir)
-	end
-	if !isdir(figuredir)
-		mkdir(figuredir)
-	end
+	recursivemkdir(resultdir; filename=false)
+	recursivemkdir(moviedir; filename=false)
+	recursivemkdir(figuredir; filename=false)
 	C = loadcase(case; datadir=datadir)
 	if C == nothing
 		return (0,0,0)
@@ -73,12 +61,8 @@ function analysistime(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:
 end
 
 function analysis(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank1=10, trank2=3, datadir::String=".", resultdir::String=".", moviedir::String=".", suffix::String="", seed::Number=0, max_iter=DMAXITER, tol=1e-8, ini_decomp=nothing)
-	if !isdir(resultdir)
-		mkdir(resultdir)
-	end
-	if !isdir(moviedir)
-		mkdir(moviedir)
-	end
+	recursivemkdir(resultdir; filename=false)
+	recursivemkdir(moviedir; filename=false)
 	C = loadcase(case; datadir=datadir)
 	if C == nothing
 		return (0,0,0)
@@ -235,8 +219,8 @@ function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Int
 		println("$i - $(csizes[i]): residual $(residues[i]) worst tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core)) silhouette $(minsilhouette[i])")
 	end
 	# NTFk.atensor(tucker_spnn[ibest].core)
-	info("Estimated true core size based on the reconstruction: $(csize)")
 	csize = TensorToolbox.mrank(tucker_spnn[ibest].core)
+	info("Estimated true core size based on the reconstruction: $(csize)")
 	JLD.save("$(resultdir)/$(prefix)-$(mapsize(csize)).jld", "t", tucker_spnn)
 	return tucker_spnn, csize, ibest
 end

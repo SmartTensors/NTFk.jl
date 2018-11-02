@@ -1,6 +1,8 @@
 import TensorDecompositions
 
-function diagonal_tucker(core_dims::NTuple{N, Int}, dims::NTuple{N, Int}; core_nonneg::Bool=false, factors_nonneg::Bool=false) where {N}
+randomarray(dims, nonneg::Bool=true) = nonneg ? abs.(rand(dims)) : rand(dims)
+
+function diagonal_tucker(core_dims::NTuple{N, Int}, dims::NTuple{N, Int}; core_nonneg::Bool=true, factors_nonneg::Bool=true) where {N}
 	cdim = maximum(core_dims)
 	@assert unique(sort(collect(core_dims)))[1] == cdim
 	ndim = length(core_dims)
@@ -9,26 +11,25 @@ function diagonal_tucker(core_dims::NTuple{N, Int}, dims::NTuple{N, Int}; core_n
 		ii = convert(Vector{Int64}, ones(ndim) .* i)
 		diagonal_core[ii...] = 1
 	end
-	rnd_factor = factors_nonneg ? x -> abs.(randn(x...)) : randn
-	return TensorDecompositions.Tucker((Matrix{Float64}[rnd_factor((dims[i], core_dims[i])) for i in 1:N]...,), diagonal_core)
+	f = ntuple(i->randomarray((dims[i], core_dims[i]), factors_nonneg), N)
+	return TensorDecompositions.Tucker(f, diagonal_core)
 end
 
-function rand_tucker(core_dims::NTuple{N, Int}, dims::NTuple{N, Int}; core_nonneg::Bool=false, factors_nonneg::Bool=false) where {N}
-	rnd_factor = factors_nonneg ? x -> abs.(randn(x...)) : randn
-	rnd_core = core_nonneg ? x -> abs.(randn(x...)) : randn
-	return TensorDecompositions.Tucker((Matrix{Float64}[rnd_factor((dims[i], core_dims[i])) for i in 1:N]...,), rnd_core(core_dims))
+function rand_tucker(core_dims::NTuple{N, Int}, dims::NTuple{N, Int}; core_nonneg::Bool=true, factors_nonneg::Bool=true) where {N}
+	f = ntuple(i->randomarray((dims[i], core_dims[i]), factors_nonneg), N)
+	c = randomarray(core_dims, core_nonneg)
+	return TensorDecompositions.Tucker(f, c)
 end
 
-function rand_candecomp(r::Int64, dims::NTuple{N, Int}; lambdas_nonneg::Bool=false, factors_nonneg::Bool=false) where {N}
-	rnd_factor = factors_nonneg ? x -> abs.(randn(x...)) : randn
-	rnd_lambda = lambdas_nonneg ? x -> abs.(randn(x...)) : randn
-	return TensorDecompositions.CANDECOMP((Matrix{Float64}[rnd_factor((s, r)) for s in dims]...,), rnd_lambda(r))
+function rand_candecomp(r::Int64, dims::NTuple{N, Int}; lambdas_nonneg::Bool=true, factors_nonneg::Bool=true) where {N}
+	f = ntuple(i->randomarray((dims[i], r), factors_nonneg), N)
+	return TensorDecompositions.CANDECOMP(f, randomarray(r, lambdas_nonneg))
 end
 
-rand_kruskal3(r::Int64, dims::NTuple{N, Int}, nonnegative::Bool) where {N} =
+rand_kruskal3(r::Int64, dims::NTuple{N, Int}, nonnegative::Bool=true) where {N} =
 	TensorDecompositions.compose(rand_candecomp(r, dims, lambdas_nonneg=nonnegative, factors_nonneg=nonnegative))
 
-function add_noise(tnsr::AbstractArray{T,N}, sn_ratio = 0.6, nonnegative::Bool = false) where {T, N}
+function add_noise(tnsr::AbstractArray{T,N}, sn_ratio = 0.6, nonnegative::Bool = true) where {T, N}
 	tnsr_noise = randn(size(tnsr)...)
 	if nonnegative
 		map!(x -> max(0.0, x), tnsr_noise, tnsr_noise)
