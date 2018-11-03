@@ -364,7 +364,7 @@ function gettensormaximums(t::TensorDecompositions.Tucker{T,N}) where {T,N}
 	end
 end
 
-function recursivemkdir(s::String; filename=true)
+function recursivemkdir(s::String; filename=true, quiet=true)
 	d = Vector{String}()
 	sc = deepcopy(s)
 	if !filename && sc!= ""
@@ -381,13 +381,13 @@ function recursivemkdir(s::String; filename=true)
 	for i = length(d):-1:1
 		sc = d[i]
 		if isfile(sc)
-			warn("File $(sc) exists!")
+			warn("File $(sc) exists! Something wrong with the path $s")
 			return
 		elseif !isdir(sc)
 			mkdir(sc)
-			info("Make dir $(sc)")
+			!quiet && info("Make dir $(sc)")
 		else
-			warn("Dir $(sc) exists!")
+			!quiet && warn("Dir $(sc) exists!")
 		end
 	end
 end

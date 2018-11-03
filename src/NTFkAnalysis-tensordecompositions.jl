@@ -74,6 +74,7 @@ end
 
 function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", figuredir::String=".", problemname::String="sparse", makemovie::Bool=true, skipmakemovies::Bool=false, skipmakedatamovie::Bool=false, skipmaketimemovies::Bool=false, skipxymakemovies::Bool=true, quiet::Bool=true, seed::Number=0, max_iter=DMAXITER, tol=1e-8, ini_decomp=nothing, lambda::Number=0.1)
 	if length(csize) == 0
+		recursivemkdir(moviedir; filename=false)
 		if !skipmakemovies && !skipmakedatamovie
 			info("Making problem movie for $(case) ...")
 			NTFk.plottensor(X[timeindex, xindex, yindex]; movie=makemovie, moviedir=moviedir, prefix="$(case)", quiet=quiet)
@@ -82,6 +83,7 @@ function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, x
 		yrank = length(collect(yindex))
 		trank = trank
 		info("Solving $(problemname) problem for $(case) ...")
+		recursivemkdir(resultdir; filename=false)
 		t, csize = NTFk.analysis(X[timeindex, xindex, yindex], [(trank, xrank, yrank)]; resultdir=resultdir, prefix="$(case)-", seed=seed, tol=tol, ini_decomp=ini_decomp, core_nonneg=true, verbose=false, max_iter=max_iter, lambda=lambda)
 	else
 		t = loadresults(case, csize; resultdir=resultdir)
@@ -91,6 +93,7 @@ function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, x
 	end
 	if !skipmakemovies
 		if !skipmaketimemovies
+			recursivemkdir(moviedir; filename=false)
 			info("Making $(problemname) problem comparison movie for $(case) ...")
 			nt = TensorDecompositions.compose(t[1])
 			NTFk.plotcmptensors(X[timeindex, xindex, yindex], nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$((mapsize(csize)))", quiet=quiet)
@@ -100,6 +103,7 @@ function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, x
 			NTFk.plottensorcomponents(X[timeindex, xindex, yindex], t[1], 1; csize=csize, movie=makemovie, moviedir=moviedir, prefix="$(case)-$((mapsize(csize)))-t", quiet=quiet)
 		end
 		info("Making $(problemname) 2D component plot for $(case) ...")
+		recursivemkdir(figuredir; filename=false)
 		NTFk.plot2dtensorcomponents(t[1]; quiet=quiet, filename="$(case)-$((mapsize(csize)))-t2d.png", figuredir=figuredir)
 		if !skipmaketimemovies && !skipxymakemovies
 			info("Making $(problemname) problem component X movie for $(case) ...")
@@ -173,7 +177,11 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 	# NTFk.atensor(tsi[imin].core)
 	csize_new = TensorToolbox.mrank(tsi[imin].core)
 	println("$(csize): relative residual $(residues[imin]) worst tensor correlations $(correlations) rank $(csize_new) silhouette $(minsilhouette)")
-	saveall && JLD.save("$(resultdir)/$(prefix)-$(mapsize(csize))->$(mapsize(csize_new)).jld", "t", tsi[imin])
+	if saveall
+		recursivemkdir(resultdir; filename=false)
+		recursivemkdir(prefix; filename=false)
+		JLD.save("$(resultdir)/$(prefix)-$(mapsize(csize))->$(mapsize(csize_new)).jld", "t", tsi[imin])
+	end
 
 	if sum(nans) > 0
 		X[nans] .= NaN
@@ -185,6 +193,8 @@ end
 function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Integer=1; clusterdim::Integer=1, resultdir::String=".", prefix::String="spnn", serial::Bool=false, seed::Integer=0, kw...) where {T,N}
 	info("TensorDecompositions Tucker analysis for a series of $(length(csizes)) core sizes ...")
 	warn("Clustering Dimension: $clusterdim")
+	recursivemkdir(resultdir; filename=false)
+	recursivemkdir(prefix; filename=false)
 	@assert clusterdim <= N || clusterdim > 1
 	seed > 0 && srand(seed)
 	tsize = size(X)
@@ -236,6 +246,8 @@ function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1,
 	else
 		info("TensorDecompositions CanDecomp analysis using $(string(method)) ...")
 	end
+	recursivemkdir(resultdir; filename=false)
+	recursivemkdir(prefix; filename=false)
 	seed >= 0 && srand(seed)
 	tsize = size(X)
 	ndimensons = length(tsize)
@@ -274,6 +286,8 @@ end
 
 function analysis(X::AbstractArray{T,N}, tranks::Vector{Int}, nTF=1; seed::Number=-1, method=:ALS, resultdir::String=".", prefix::String="$(string(method))", serial::Bool=false, kw...) where {T,N}
 	seed >= 0 && srand(seed)
+	recursivemkdir(resultdir; filename=false)
+	recursivemkdir(prefix; filename=false)
 	tsize = size(X)
 	ndimensons = length(tsize)
 	nruns = length(tranks)
