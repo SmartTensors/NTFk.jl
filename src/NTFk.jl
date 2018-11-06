@@ -106,10 +106,10 @@ include("NTFkHelp.jl")
 include("NTFkHelpers.jl")
 include("NTFkPlot.jl")
 include("NTFkAnalysis.jl")
-include("NTFkAnalysis-tensordecompositions.jl")
-include("NTFkAnalysis-tensordecompositions-helpers.jl")
-include("NTFkAnalysis-tensordecompositions-memory.jl")
-include("NTFkAnalysis-tensordecompositions-decomposition.jl")
+include("NTFkAnalysis-TD.jl")
+include("NTFkAnalysis-TD-helpers.jl")
+include("NTFkAnalysis-TD-memory.jl")
+include("NTFkAnalysis-TD-decomposition.jl")
 include("NTFkAnalysis-tensorly.jl")
 
 if VERSION >= v"0.7"
@@ -118,7 +118,7 @@ else
 	ism = isdefined(:MATLAB)
 end
 if ism
-	include("NTFkAnalysis-tensortoolbox-matlab.jl")
+	include("NTFkAnalysis-tensortoolbox.jl")
 end
 
 end
