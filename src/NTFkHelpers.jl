@@ -92,12 +92,16 @@ function indicize(v, levels::Integer; rev=false)
 	return iv
 end
 
-function getcsize(case::String; resultdir::String=".")
+function getcsize(case::String; resultdir::String=".", longname=false)
 	files = searchdir(case, resultdir)
 	csize = Array{Int64}(0, 3)
 	kwa = Vector{String}(0)
 	for (i, f) in enumerate(files)
-		m = match(Regex(string("$(case)(.*)-([0-9]+)_([0-9]+)_([0-9]+).jld")), f)
+		if longname
+			m = match(Regex(string("$(case)(.*)-[0-9]+_[0-9]+_[0-9]+->([0-9]+)_([0-9]+)_([0-9]+).jld")), f)
+		else
+			m = match(Regex(string("$(case)(.*)-([0-9]+)_([0-9]+)_([0-9]+).jld")), f)
+		end
 		if m != nothing
 			push!(kwa, m.captures[1])
 			c = parse.(Int64, m.captures[2:end])
@@ -212,9 +216,9 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 			end
 		end
 		if reverse
-			ifdx = sortperm(fdx; rev=reverse)[1:crank]
+			ifdx = sortperm(fdx; rev=true)[1:crank]
 		else
-			ifdx = sortperm(fdx; rev=reverse)[crank:end]
+			ifdx = flipdim(sortperm(fdx; rev=true)[1:crank], 1)
 		end
 		!quiet && info("Factor magnitudes (max - min): $fdx")
 		if firstpeak
