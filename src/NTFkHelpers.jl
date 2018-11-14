@@ -94,7 +94,7 @@ function indicize(v; rev=false, nsteps=length(v), minvalue=minimum(v), maxvalue=
 			granularity = -convert(Int, ceil(log10(stepvalue)))
 			maxvalue = ceil(maxvalue, granularity)
 			minvalue = floor(minvalue, granularity)
-@			nbins = convert(Int, ceil.((maxvalue - minvalue) / float(stepvalue)))
+			nbins = convert(Int, ceil.((maxvalue - minvalue) / float(stepvalue)))
 		end
 		iv = convert(Vector{Int64}, ceil.((v .- minvalue) ./ (maxvalue - minvalue) .* nbins))
 	else
@@ -432,7 +432,12 @@ function recursivermdir(s::String; filename=true)
 	end
 end
 
-function nanmask(X::Array, mask, dim)
+function nanmask(X::Array, mask::Number)
+	X[X.<=mask] .= NaN
+	return nothing
+end
+
+function nanmask(X::Array, mask::Union{Void,BitArray{N}}, dim) where {N}
 	if mask != nothing
 		if length(size(mask)) == length(size(X))
 			X[mask] .= NaN
@@ -443,7 +448,7 @@ function nanmask(X::Array, mask, dim)
 	return nothing
 end
 
-function nanmask(X::Array, mask)
+function nanmask(X::Array, mask::Union{Void,BitArray{N}}) where {N}
 	if mask != nothing
 		msize = vec(collect(size(mask)))
 		xsize = vec(collect(size(X)))
