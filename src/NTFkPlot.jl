@@ -1149,7 +1149,7 @@ function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::
 	end
 end
 
-function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; xtitle="Time", ytitle="Magnitude", timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", functionname="mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), xmin=datestart, xmax=dateend, transform2d=nothing, kw...)
+function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; xtitle="Time", ytitle="Magnitude", timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", functionname="mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), xmin=datestart, xmax=dateend, ymin=nothing, ymax=nothing, transform2d=nothing, kw...)
 	ndimensons = length(t.factors)
 	if dim > ndimensons || dim < 1
 		warn("Dimension should be >=1 or <=$(length(sizes))")
@@ -1159,7 +1159,7 @@ function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 		warn("Dimension should be >=1 or <=$(length(sizes))")
 		return
 	end
-	s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=true, code=true, order=order, filter=filter, xmin=xmin, xmax=xmax, transform=transform2d)
+	s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=true, code=true, order=order, filter=filter, xmin=xmin, xmax=xmax, ymin=xmin, ymax=xmax,transform=transform2d)
 	progressbar_2d = make_progressbar_2d(s2)
 	plot3tensorcomponents(t, dim, pdim; timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], kw...)
 end
@@ -1168,7 +1168,7 @@ function plot3maxtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1
 	plot3tensorcomponents(t, dim, pdim; kw..., maxcomponent=true)
 end
 
-function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, transform=nothing, order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, kw...)
+function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, transform=nothing, order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savecores::Bool=false, kw...)
 	recursivemkdir(prefix)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
@@ -1235,14 +1235,23 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		tt.core .= t.core
 	end
 	barratio = (maxcomponent) ? 1/2 : 1/3
-	# if true
-	# 	JLD.save("matrix-$(order[1]).jld", "X", X[order[1]])
-	# 	JLD.save("matrix-$(order[2]).jld", "X", X[order[2]])
-	# 	JLD.save("matrix-$(order[3]).jld", "X", X[order[3]])
-	# end
 	plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt), 1; prefix=prefix, barratio=barratio, kw...)
 	if maxcomponent && prefix != ""
 		mv("$prefix-frame000001.png", "$prefix-max.png"; remove_destination=true)
+		if savecores
+			if length(filter) == 0
+				writedlm("$prefix-core1.dat", permutedims(X[order[1]], pt)) # $(order[1]).jld does not work exactly
+				writedlm("$prefix-core2.dat", permutedims(X[order[2]], pt))
+				writedlm("$prefix-core3.dat", permutedims(X[order[3]], pt))
+				# 	JLD.save("matrix-$(order[1]).jld", "X", permutedims(X[order[1]], pt))
+				# 	JLD.save("matrix-$(order[2]).jld", "X", permutedims(X[order[2]], pt))
+				# 	JLD.save("matrix-$(order[3]).jld", "X", permutedims(X[order[3]], pt))
+			else
+				for (e, i) in enumerate(filter)
+					writedlm("$prefix-core$i.dat", permutedims(X[order[e]], pt))
+				end
+			end
+		end
 	end
 end
 
