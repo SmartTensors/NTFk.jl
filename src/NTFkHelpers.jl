@@ -311,8 +311,8 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 		end
 	end
 	X = Vector{Any}(crank)
+	info("Computing $crank tensor components ...")
 	for i = 1:crank
-		info("Tensor component $(dimname[dim])-$i ...")
 		for j = 1:crank
 			if i !== j
 				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
@@ -327,7 +327,7 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 		if transform != nothing
 			X[i] = transform.(X[i])
 		end
-		nanmask(X[i], mask)
+		nanmask!(X[i], mask)
 		tt.core .= t.core
 	end
 	if savetensorslices
@@ -507,14 +507,14 @@ function recursivermdir(s::String; filename=true)
 	end
 end
 
-function nanmask(X::Array, mask::Union{Void,Number})
+function nanmask!(X::Array, mask::Union{Void,Number})
 	if mask != nothing
 		X[X.<=mask] .= NaN
 	end
 	return nothing
 end
 
-function nanmask(X::Array, mask::BitArray{N}, dim) where {N}
+function nanmask!(X::Array, mask::BitArray{N}, dim) where {N}
 	if length(size(mask)) == length(size(X))
 		X[mask] .= NaN
 	else
@@ -523,7 +523,7 @@ function nanmask(X::Array, mask::BitArray{N}, dim) where {N}
 	return nothing
 end
 
-function nanmask(X::Array, mask::BitArray{N}) where {N}
+function nanmask!(X::Array, mask::BitArray{N}) where {N}
 	msize = vec(collect(size(mask)))
 	xsize = vec(collect(size(X)))
 	if length(msize) == length(xsize)
@@ -576,5 +576,13 @@ function getptdimensions(pdim::Integer, ndimensons::Integer, transpose::Bool=fal
 		end
 	end
 	return pt
+end
+
+function checkdimension(dim::Integer, ndimensons::Integer)
+	if dim > ndimensons || dim < 1
+		warn("Dimension should be >=1 or <=$(length(sizes))")
+		return false
+	end
+	return true
 end
 

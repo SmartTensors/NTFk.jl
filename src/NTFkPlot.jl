@@ -853,7 +853,7 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 	if transform != nothing
 		Xp = transform.(Xp)
 	end
-	nanmask(Xp, mask)
+	nanmask!(Xp, mask)
 	if xticks != nothing
 		gm = [gm..., Gadfly.Scale.x_discrete(labels=i->xticks[i]), Gadfly.Guide.xticks(label=true)]
 	end
@@ -901,20 +901,19 @@ function plottensor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CA
 		X = transform.(X)
 	end
 	if typeof(mask) <: Number
-		nanmask(X, mask)
+		nanmask!(X, mask)
 	else
-		nanmask(X, mask, dim)
+		nanmask!(X, mask, dim)
 	end
 	plottensor(X, dim; kw...)
 end
 
 function plottensor(X::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan(X), maxvalue=maximumnan(X), prefix::String="", keyword="frame", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, colormap=colormap_gyr, cutoff::Bool=false, cutvalue::Number=0, vspeed=1.0, kw...) where {T,N}
-	recursivemkdir(moviedir; filename=false)
-	recursivemkdir(prefix)
-	if dim > N || dim < 1
-		warn("Dimension should be >=1 or <=$(length(sizes))")
+	if !checkdimension(dim, N)
 		return
 	end
+	recursivemkdir(moviedir; filename=false)
+	recursivemkdir(prefix)
 	dimname = namedimension(N; char="D", names=("Row", "Column", "Layer"))
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
@@ -1042,7 +1041,7 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		else
 			X[i] = TensorDecompositions.compose(tt)[filter...]
 		end
-		nanmask(X[i], mask)
+		nanmask!(X[i], mask)
 		if transform != nothing
 			X[i] = transform.(X[i])
 		end
@@ -1078,31 +1077,26 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 		if transform != nothing
 			X2[i] = transform.(X2[i])
 		end
-		nanmask(X2[i], mask)
+		nanmask!(X2[i], mask)
 		tt.core .= t2.core
 	end
 	plot3tensors(permutedims(X1, pt), permutedims(X2[order[1]], pt), permutedims(X2[order[2]], pt), 1; prefix=prefix, kw...)
 end
 
 function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t.core), sizes=size(X), xtitle="Time", ytitle="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", sscleanup::Bool=true, movie::Bool=false, moviedir=".", prefix::String="", keyword="frame", title="", quiet::Bool=false, filter=(), minvalue=minimumnan(X), maxvalue=maximumnan(X), hsize=12Compose.inch, vsize=12Compose.inch, colormap=colormap_gyr, functionname="mean", vspeed=1.0, transform=nothing, transform2d=nothing, mask=nothing, kw...)
+	ndimensons = length(sizes)
+	if !checkdimension(dim, ndimensons) || !checkdimension(pdim, ndimensons)
+		return
+	end
 	recursivemkdir(moviedir; filename=false)
 	recursivemkdir(prefix)
-	ndimensons = length(sizes)
-	if dim > ndimensons || dim < 1
-		warn("Dimension should be >=1 or <=$(length(sizes))")
-		return
-	end
-	if pdim > ndimensons || pdim < 1
-		warn("Dimension should be >=1 or <=$(length(sizes))")
-		return
-	end
 	dimname = namedimension(ndimensons; char="D", names=("Row", "Column", "Layer"))
 	s2 = plot2dmodtensorcomponents(X, t, dim, functionname; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, timescale=timescale, quiet=true, code=true, transform=transform2d)
 	progressbar_2d = make_progressbar_2d(s2)
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : Colon()), ndimensons)
-		p1 = plotmatrix(X[nt...], minvalue=minvalue, maxvalue=maxvalue, title=title, colormap=colormap, transform=transform, mask=mask)
+		p1 = plotmatrix(X[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=title, colormap=colormap, transform=transform, mask=mask)
 		p2 = progressbar_2d(i, timescale, timestep, datestart, dateend, dateincrement)
 		!quiet && (sizes[dim] > 1) && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=150), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 2/3), Gadfly.render(p1)), Compose.compose(Compose.context(0, 0, 1, 1/3), Gadfly.render(p2)))); println())
 		if prefix != ""
@@ -1129,25 +1123,41 @@ end
 
 function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; xtitle="Time", ytitle="Magnitude", timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", functionname="mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), xmin=datestart, xmax=dateend, ymin=nothing, ymax=nothing, transform2d=nothing, kw...)
 	ndimensons = length(t.factors)
-	if dim > ndimensons || dim < 1
-		warn("Dimension should be >=1 or <=$(length(sizes))")
+	if !checkdimension(dim, ndimensons) || !checkdimension(pdim, ndimensons)
 		return
 	end
-	if pdim > ndimensons || pdim < 1
-		warn("Dimension should be >=1 or <=$(length(sizes))")
-		return
-	end
-	s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=true, code=true, order=order, filter=filter, xmin=xmin, xmax=xmax, ymin=xmin, ymax=xmax,transform=transform2d)
+	s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=true, code=true, order=order, filter=filter, xmin=xmin, xmax=xmax, ymin=xmin, ymax=xmax, transform=transform2d)
 	progressbar_2d = make_progressbar_2d(s2)
 	plot3tensorcomponents(t, dim, pdim; timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], kw...)
+end
+
+function plotall3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; mask=nothing, csize::Tuple=TensorToolbox.mrank(t.core), transpose=false, xtitle="Time", ytitle="Magnitude", timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", functionname="mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), xmin=datestart, xmax=dateend, ymin=nothing, ymax=nothing, prefix=nothing, maxcomponent=true, savetensorslices=false, transform=nothing, transform2d=nothing, kw...)
+	ndimensons = length(t.factors)
+	if !checkdimension(dim, ndimensons) || !checkdimension(pdim, ndimensons)
+		return
+	end
+	nc = size(t.factors[pdim], 2)
+	np = convert(Int, ceil(nc / 3))
+	x = reshape(collect(1:3*np), (3, np))
+	x[x.>nc] .= nc
+	X = gettensorcomponents(t, dim, pdim; transpose=transpose, csize=csize, prefix=prefix, mask=mask, transform=transform, order=order, maxcomponent=maxcomponent, savetensorslices=savetensorslices)
+	for i = 1:np
+		filter = vec(x[:,i])
+		s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=true, code=true, order=order, filter=filter, xmin=xmin, xmax=xmax, ymin=xmin, ymax=xmax, transform=transform2d)
+		progressbar_2d = make_progressbar_2d(s2)
+		prefixnew = prefix == "" ? "" : prefix * "-$(join(filter, "_"))"
+		plot3tensorcomponents(t, dim, pdim; csize=csize, transpose=transpose, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], prefix=prefixnew, X=X, maxcomponent=maxcomponent, savetensorslices=savetensorslices, mask=mask, kw...)
+	end
 end
 
 function plot3maxtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; kw...)
 	plot3tensorcomponents(t, dim, pdim; kw..., maxcomponent=true)
 end
 
-function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, transform=nothing, order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savetensorslices::Bool=false, kw...)
-	X = gettensorcomponents(t, dim, pdim; transpose=transpose, csize=csize, prefix=prefix, filter=filter, mask=mask, transform=transform, order=order, maxcomponent=maxcomponent, savetensorslices=savetensorslices)
+function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, transform=nothing, order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savetensorslices::Bool=false, X=nothing, kw...)
+	if X == nothing
+		X = gettensorcomponents(t, dim, pdim; transpose=transpose, csize=csize, prefix=prefix, filter=filter, mask=mask, transform=transform, order=order, maxcomponent=maxcomponent, savetensorslices=savetensorslices)
+	end
 	pt = getptdimensions(pdim, length(csize), transpose)
 	barratio = (maxcomponent) ? 1/2 : 1/3
 	plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt), 1; prefix=prefix, barratio=barratio, kw...)
@@ -1177,7 +1187,10 @@ function plot2tensors(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDec
 	plot2tensors(X1, X2, dim; kw...)
 end
 
-function plot2tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), minvalue2=minvalue, maxvalue2=maxvalue, movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", prefix::String = "", keyword="frame", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, uniformscaling::Bool=true, colormap=colormap_gyr, vspeed=1.0) where {T,N}
+function plot2tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), minvalue2=minvalue, maxvalue2=maxvalue, movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, title::String="", moviedir::String=".", prefix::String = "", keyword="frame", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, uniformscaling::Bool=true, colormap=colormap_gyr, vspeed=1.0, kw...) where {T,N}
+	if !checkdimension(dim, N)
+		return
+	end
 	recursivemkdir(prefix)
 	if !uniformscaling
 		minvalue = minimumnan(X1)
@@ -1187,19 +1200,15 @@ function plot2tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, dim::Integ
 	end
 	recursivemkdir(moviedir; filename=false)
 	@assert sizes == size(X2)
-	if dim > N || dim < 1
-		warn("Dimension should be >=1 or <=$(length(sizes))")
-		return
-	end
 	dimname = namedimension(N; char="D", names=("Row", "Column", "Layer"))
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
-		g1 = plotmatrix(X1[nt...], minvalue=minvalue, maxvalue=maxvalue, title=ltitle, colormap=colormap)
-		g2 = plotmatrix(X2[nt...], minvalue=minvalue2, maxvalue=maxvalue2, title=rtitle, colormap=colormap)
+		g1 = plotmatrix(X1[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ltitle, colormap=colormap, kw...)
+		g2 = plotmatrix(X2[nt...]; minvalue=minvalue2, maxvalue=maxvalue2, title=rtitle, colormap=colormap, kw...)
 		if title != ""
 			t = Compose.compose(Compose.context(0, 0, 1Compose.w, 0.0001Compose.h),
-							(Compose.context(), Compose.fill("gray"), Compose.fontsize(20Compose.pt), Compose.text(0.5Compose.w, 0, title * " : " * sprintf("%06d", i), Compose.hcenter, Compose.vtop)))
+				(Compose.context(), Compose.fill("gray"), Compose.fontsize(20Compose.pt), Compose.text(0.5Compose.w, 0, title * " : " * sprintf("%06d", i), Compose.hcenter, Compose.vtop)))
 		else
 			t = Compose.compose(Compose.context(0, 0, 1Compose.w, 0Compose.h))
 		end
@@ -1232,14 +1241,24 @@ function plot2tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, dim::Integ
 	end
 end
 
-plotcmptensors = plot2tensors
-
 function plot3matrices(X1::Matrix, X2::Matrix, X3::Matrix; kw...)
 	plot3tensors([X1], [X2], [X3], 1; minvalue=minimumnan([X1 X2 X3]), maxvalue=maximumnan([X1 X2 X3]), kw...)
 end
 
+function plotcmptensors(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; center=true, transform=nothing, mask=nothing, kw...)
+	X2 = TensorDecompositions.compose(T2)
+	if transform != nothing
+		X2 = transform.(X2)
+	end
+	nanmask!(X2, mask)
+	plot2tensors(X1, X2, dim; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), kw...)
+end
+
 function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan([X1 X2 X3]), maxvalue=maximumnan([X1 X2 X3]), minvalue2=minvalue, maxvalue2=maxvalue, minvalue3=minvalue, maxvalue3=maxvalue, prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, barratio::Number=1/2, colormap=colormap_gyr, uniformscaling::Bool=true, vspeed=1.0, kw...) where {T,N}
 	recursivemkdir(prefix)
+	if !checkdimension(dim, N)
+		return
+	end
 	if !uniformscaling
 		minvalue = minimumnan(X1)
 		maxvalue = maximumnan(X1)
@@ -1251,10 +1270,6 @@ function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::Abstra
 	recursivemkdir(moviedir; filename=false)
 	@assert sizes == size(X2)
 	@assert sizes == size(X3)
-	if dim > N || dim < 1
-		warn("Dimension should be >=1 or <=$(length(sizes))")
-		return
-	end
 	dimname = namedimension(N; char="D", names=("Row", "Column", "Layer"))
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i / $(sizes[dim])"
@@ -1310,7 +1325,7 @@ function plotleftmatrix(X1::Matrix, X2::Matrix; kw...)
 end
 
 function plotlefttensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), center=true, kw...)
-	D=X2-X1
+	D = X2 - X1
 	min3 = minimumnan(D)
 	max3 = maximumnan(D)
 	if center
@@ -1325,8 +1340,8 @@ function plotlefttensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorD
 		X2 = transform.(X2)
 	end
 	D = X2 - X1
-	nanmask(X2, mask)
-	nanmask(D, mask)
+	nanmask!(X2, mask)
+	nanmask!(D, mask)
 	min3 = minimumnan(D)
 	max3 = maximumnan(D)
 	if center
