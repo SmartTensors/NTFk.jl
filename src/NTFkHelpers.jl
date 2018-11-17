@@ -125,7 +125,14 @@ function getcsize(case::String; resultdir::String=".", longname=false)
 	return csize, kwa
 end
 
-function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; core::Bool=false)
+function getfactor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1, cutoff::Number=0)
+	i = vec(maximum(t.factors[dim], 1) .> cutoff)
+	s = size(t.factors[dim])
+	println("Factor $dim: size $s -> ($(s[1]), $(sum(i)))")
+	t.factors[dim][:, i]
+end
+
+function gettensorcomponentsold(t::TensorDecompositions.Tucker, dim::Integer=1; core::Bool=false)
 	cs = size(t.core)[dim]
 	csize = TensorToolbox.mrank(t.core)
 	ndimensons = length(csize)
@@ -271,6 +278,72 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 		order = imax[1:cs]
 	end
 	return order
+end
+
+function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", mask=nothing, transform=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savetensorslices::Bool=false)
+	ndimensons = length(csize)
+	@assert dim >= 1 && dim <= ndimensons
+	dimname = namedimension(ndimensons)
+	crank = csize[dim]
+	pt = getptdimensions(pdim, ndimensons)
+	if maxcomponent
+		factors = []
+		for i = 1:ndimensons
+			if i == dim
+				push!(factors, maximum(t.factors[i], 1))
+			else
+				push!(factors, t.factors[i])
+			end
+		end
+		tt = deepcopy(TensorDecompositions.Tucker((factors...,), t.core))
+	else
+		tt = deepcopy(t)
+	end
+	if crank < 3
+		warn("Multilinear rank of the tensor ($(crank)) is less than 3!")
+		for i = 1:length(order)
+			if order[i] > crank
+				order[i] = crank
+			end
+		end
+		for i = 1:(3-crank)
+			push!(order, crank)
+		end
+	end
+	X = Vector{Any}(crank)
+	for i = 1:crank
+		info("Tensor component $(dimname[dim])-$i ...")
+		for j = 1:crank
+			if i !== j
+				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
+				tt.core[nt...] .= 0
+			end
+		end
+		if length(filter) == 0
+			X[i] = TensorDecompositions.compose(tt)
+		else
+			X[i] = TensorDecompositions.compose(tt)[filter...]
+		end
+		if transform != nothing
+			X[i] = transform.(X[i])
+		end
+		nanmask(X[i], mask)
+		tt.core .= t.core
+	end
+	if savetensorslices
+		if length(filter) == 0
+			recursivemkdir(prefix)
+			for (i, e) in enumerate(order)
+				writedlm("$prefix-tensorslice$i.dat", permutedims(X[e], pt))
+				# JLD.save("$prefix-tensorslice$i.jld", "X", permutedims(X[order[e]], pt))
+			end
+		else
+			for i in filter
+				writedlm("$prefix-tensorslice$i.dat", permutedims(X[order[i]], pt))
+			end
+		end
+	end
+	return X
 end
 
 function mrank(t::TensorDecompositions.Tucker)
@@ -482,5 +555,24 @@ function mapsize(csize)
 		end
 	end
 	return s
+end
+
+function getptdimensions(pdim::Integer, ndimensons::Integer, transpose::Bool=false)
+	pt = Vector{Int64}(0)
+	push!(pt, pdim)
+	if transpose
+		for i = ndimensons:-1:1
+			if i != pdim
+				push!(pt, i)
+			end
+		end
+	else
+		for i = 1:ndimensons
+			if i != pdim
+				push!(pt, i)
+			end
+		end
+	end
+	return pt
 end
 

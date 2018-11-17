@@ -664,7 +664,7 @@ colormap_rbw = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "blue"), parse(
 colormap_gyr = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"), parse(Colors.Colorant, "red"))]
 colormap_gy = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "green"), parse(Colors.Colorant, "yellow"))]
 colormap_wb = [Gadfly.Scale.lab_gradient(parse(Colors.Colorant, "white"), parse(Colors.Colorant, "black"))]
-colormap_g_ = [Gadfly.Scale.lab_gradient(Colors.RGBA{Colors.N0f8}(0,1,0,0), Colors.RGBA{Colors.N0f8}(0,1,0,1))]
+# colormap_g_ = [Gadfly.Scale.lab_gradient(Colors.RGBA{Colors.N0f8}(0,1,0,0), Colors.RGBA{Colors.N0f8}(0,1,0,1))]
 
 function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true,  datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), xmin=datestart, xmax=dateend, transform=nothing, linewidth=2Gadfly.pt, separate::Bool=false)
 	recursivemkdir(figuredir; filename=false)
@@ -869,13 +869,6 @@ function plotfactor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CA
 	plotmatrix(getfactor(t, dim, cutoff); kw...)
 end
 
-function getfactor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1, cutoff::Number=0)
-	i = vec(maximum(t.factors[dim], 1) .> cutoff)
-	s = size(t.factors[dim])
-	println("Factor $dim: size $s -> ($(s[1]), $(sum(i)))")
-	t.factors[dim][:, i]
-end
-
 function plotfactors(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, cutoff::Number=0; prefix="", kw...)
 	recursivemkdir(prefix)
 	for i = 1:length(t.factors)
@@ -987,21 +980,7 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::I
 	@assert ndimensons == length(csize)
 	dimname = namedimension(ndimensons)
 	crank = csize[dim]
-	pt = Vector{Int64}(0)
-	push!(pt, pdim)
-	if transpose
-		for i = ndimensons:-1:1
-			if i != pdim
-				push!(pt, i)
-			end
-		end
-	else
-		for i = 1:ndimensons
-			if i != pdim
-				push!(pt, i)
-			end
-		end
-	end
+	pt = getptdimensions(pdim, ndimensons, transpose)
 	tt = deepcopy(t2)
 	for i = 1:crank
 		info("Making component $(dimname[dim])-$i movie ...")
@@ -1029,21 +1008,7 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 	dimname = namedimension(ndimensons)
 	crank = csize[dim]
 	@assert crank > 1
-	pt = Vector{Int64}(0)
-	push!(pt, pdim)
-	if transpose
-		for i = ndimensons:-1:1
-			if i != pdim
-				push!(pt, i)
-			end
-		end
-	else
-		for i = 1:ndimensons
-			if i != pdim
-				push!(pt, i)
-			end
-		end
-	end
+	pt = getptdimensions(pdim, ndimensons, transpose)
 	tt = deepcopy(t)
 	X = Vector{Any}(crank)
 	for i = 1:crank
@@ -1076,21 +1041,7 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 	dimname = namedimension(ndimensons)
 	crank = csize[dim]
 	@assert crank > 1
-	pt = Vector{Int64}(0)
-	push!(pt, pdim)
-	if transpose
-		for i = ndimensons:-1:1
-			if i != pdim
-				push!(pt, i)
-			end
-		end
-	else
-		for i = 1:ndimensons
-			if i != pdim
-				push!(pt, i)
-			end
-		end
-	end
+	pt = getptdimensions(pdim, ndimensons, transpose)
 	tt = deepcopy(t2)
 	X2 = Vector{Any}(crank)
 	for i = 1:crank
@@ -1177,90 +1128,24 @@ function plot3maxtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1
 	plot3tensorcomponents(t, dim, pdim; kw..., maxcomponent=true)
 end
 
-function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, transform=nothing, order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savecores::Bool=false, kw...)
-	recursivemkdir(prefix)
-	ndimensons = length(csize)
-	@assert dim >= 1 && dim <= ndimensons
-	dimname = namedimension(ndimensons)
-	crank = csize[dim]
-	# @assert crank > 2
-	pt = Vector{Int64}(0)
-	push!(pt, pdim)
-	if transpose
-		for i = ndimensons:-1:1
-			if i != pdim
-				push!(pt, i)
-			end
-		end
-	else
-		for i = 1:ndimensons
-			if i != pdim
-				push!(pt, i)
-			end
-		end
-	end
-	if maxcomponent
-		factors = []
-		for i = 1:ndimensons
-			if i == dim
-				push!(factors, maximum(t.factors[i], 1))
-			else
-				push!(factors, t.factors[i])
-			end
-		end
-		tt = deepcopy(TensorDecompositions.Tucker((factors...,), t.core))
-	else
-		tt = deepcopy(t)
-	end
-	if crank < 3
-		warn("Multilinear rank of the tensor ($(crank)) is less than 3!")
-		for i = 1:length(order)
-			if order[i] > crank
-				order[i] = crank
-			end
-		end
-		for i = 1:(3-crank)
-			push!(order, crank)
-		end
-	end
-	X = Vector{Any}(crank)
-	for i = 1:crank
-		info("Making component $(dimname[dim])-$i movie ...")
-		for j = 1:crank
-			if i !== j
-				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
-				tt.core[nt...] .= 0
-			end
-		end
-		if length(filter) == 0
-			X[i] = TensorDecompositions.compose(tt)
-		else
-			X[i] = TensorDecompositions.compose(tt)[filter...]
-		end
-		if transform != nothing
-			X[i] = transform.(X[i])
-		end
-		nanmask(X[i], mask)
-		tt.core .= t.core
-	end
+function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, transform=nothing, order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savetensorslices::Bool=false, kw...)
+	X = gettensorcomponents(t, dim, pdim; transpose=transpose, csize=csize, prefix=prefix, filter=filter, mask=mask, transform=transform, order=order, maxcomponent=maxcomponent, savetensorslices=savetensorslices)
+	pt = getptdimensions(pdim, length(csize), transpose)
 	barratio = (maxcomponent) ? 1/2 : 1/3
 	plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt), 1; prefix=prefix, barratio=barratio, kw...)
 	if maxcomponent && prefix != ""
+		recursivemkdir(prefix)
 		mv("$prefix-frame000001.png", "$prefix-max.png"; remove_destination=true)
-		if savecores
-			if length(filter) == 0
-				writedlm("$prefix-core1.dat", permutedims(X[order[1]], pt)) # $(order[1]).jld does not work exactly
-				writedlm("$prefix-core2.dat", permutedims(X[order[2]], pt))
-				writedlm("$prefix-core3.dat", permutedims(X[order[3]], pt))
-				# 	JLD.save("matrix-$(order[1]).jld", "X", permutedims(X[order[1]], pt))
-				# 	JLD.save("matrix-$(order[2]).jld", "X", permutedims(X[order[2]], pt))
-				# 	JLD.save("matrix-$(order[3]).jld", "X", permutedims(X[order[3]], pt))
-			else
-				for (e, i) in enumerate(filter)
-					writedlm("$prefix-core$i.dat", permutedims(X[order[e]], pt))
-				end
-			end
-		end
+	end
+end
+
+function plotalltensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, transform=nothing, order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savetensorslices::Bool=false, kw...)
+	X = gettensorcomponents(t, dim, pdim; transpose=transpose, csize=csize, prefix=prefix, filter=filter, mask=mask, transform=transform, order=order, maxcomponent=maxcomponent, savetensorslices=savetensorslices)
+	barratio = (maxcomponent) ? 1/2 : 1/3
+	plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt), 1; prefix=prefix, barratio=barratio, kw...)
+	if maxcomponent && prefix != ""
+		recursivemkdir(prefix)
+		mv("$prefix-frame000001.png", "$prefix-max.png"; remove_destination=true)
 	end
 end
 
