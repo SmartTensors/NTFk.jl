@@ -15,3 +15,5 @@ function imshow(x, title::String="", units::String="", args...)
 				Gadfly.Theme(grid_color="black", grid_line_width=0Gadfly.pt),
 				args...)
 end
+
+plot(Gadfly.layer(x=rand(10)*10, y=rand(10)*10, Gadfly.Geom.line()), layer(x=js, y=is, color=values, Geom.rectbin), Scale.x_continuous, Scale.y_continuous, Coord.cartesian(yflip=true, fixed=true, xmin=0.5, xmax=m+.5, ymin=0.5, ymax=n+.5))

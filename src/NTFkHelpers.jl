@@ -108,7 +108,7 @@ end
 
 function getcsize(case::String; resultdir::String=".", longname=false)
 	files = searchdir(case, resultdir)
-	csize = Array{Int64}(0, 3)
+	csize = Vector{Vector{Int64}}(0)
 	kwa = Vector{String}(0)
 	for (i, f) in enumerate(files)
 		if longname
@@ -119,7 +119,7 @@ function getcsize(case::String; resultdir::String=".", longname=false)
 		if m != nothing
 			push!(kwa, m.captures[1])
 			c = parse.(Int64, m.captures[2:end])
-			csize = vcat(csize, c')
+			push!(csize, c)
 		end
 	end
 	return csize, kwa
@@ -331,15 +331,17 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 		tt.core .= t.core
 	end
 	if savetensorslices
+		nt = ntuple(k->(k == pdim ? 1 : Colon()), ndimensons)
+		sz = size(X[1][nt...])
 		if length(filter) == 0
 			recursivemkdir(prefix)
 			for (i, e) in enumerate(order)
-				writedlm("$prefix-tensorslice$i.dat", permutedims(X[e], pt))
+				writedlm("$prefix-tensorslice$i.dat", reshape(permutedims(X[e], pt), sz))
 				# JLD.save("$prefix-tensorslice$i.jld", "X", permutedims(X[order[e]], pt))
 			end
 		else
 			for i in filter
-				writedlm("$prefix-tensorslice$i.dat", permutedims(X[order[i]], pt))
+				writedlm("$prefix-tensorslice$i.dat", reshape(permutedims(X[order[i]], pt), sz))
 			end
 		end
 	end
