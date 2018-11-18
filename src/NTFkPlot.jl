@@ -1324,17 +1324,17 @@ function plotleftmatrix(X1::Matrix, X2::Matrix; kw...)
 	plot3tensors([X1], [X2], [X2.-X1], 1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), kw...)
 end
 
-function plotlefttensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), center=true, kw...)
+function plotlefttensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), minvalue3=nothing, maxvalue3=nothing, center=true, kw...)
 	D = X2 - X1
-	min3 = minimumnan(D)
-	max3 = maximumnan(D)
+	minvalue3 = minvalue3 == nothing ? minimumnan(D) : minvalue3
+	maxvalue3 = maxvalue3 == nothing ? maximumnan(D) : maxvalue3
 	if center
-		min3, max3 = min(min3, -max3), max(max3, -min3)
+		minvalue3, maxvalue3 = min(minvalue3, -maxvalue3), max(maxvalue3, -minvalue3)
 	end
-	plot3tensors(X1, X2, D, dim; minvalue=minvalue, maxvalue=maxvalue, minvalue3=min3, maxvalue3=max3, kw...)
+	plot3tensors(X1, X2, D, dim; minvalue=minvalue, maxvalue=maxvalue, minvalue3=minvalue3, maxvalue3=maxvalue3, kw...)
 end
 
-function plotlefttensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; center=true, transform=nothing, mask=nothing, kw...)
+function plotlefttensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; minvalue=nothing, maxvalue=nothing, minvalue3=nothing, maxvalue3=nothing, center=true, transform=nothing, mask=nothing, kw...)
 	X2 = TensorDecompositions.compose(T2)
 	if transform != nothing
 		X2 = transform.(X2)
@@ -1342,12 +1342,14 @@ function plotlefttensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorD
 	D = X2 - X1
 	nanmask!(X2, mask)
 	nanmask!(D, mask)
-	min3 = minimumnan(D)
-	max3 = maximumnan(D)
+	minvalue = minvalue == nothing ? minimumnan([X1 X2]) : minvalue
+	maxvalue = minvalue == nothing ? maximumnan([X1 X2]) : maxvalue
+	minvalue3 = minvalue3 == nothing ? minimumnan(D) : minvalue3
+	maxvalue3 = maxvalue3 == nothing ? maximumnan(D) : maxvalue3
 	if center
-		min3, max3 = min(min3, -max3), max(max3, -min3)
+		minvalue3, maxvalue3 = min(minvalue3, -maxvalue3), max(maxvalue3, -minvalue3)
 	end
-	plot3tensors(X1, X2, D, dim; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), minvalue3=min3, maxvalue3=max3, kw...)
+	plot3tensors(X1, X2, D, dim; minvalue=minvalue, maxvalue=maxvalue, minvalue3=minvalue3, maxvalue3=maxvalue3, kw...)
 end
 
 function setnewfilename(filename::String, frame::Integer=0; keyword::String="frame")
