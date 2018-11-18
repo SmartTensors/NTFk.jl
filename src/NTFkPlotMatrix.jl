@@ -7,7 +7,7 @@ function plotmatrix(X::AbstractVector; kw...)
 	plotmatrix(convert(Array{Float64,2}, permutedims(X)); kw...)
 end
 
-function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumnan(X), label="", title="", xlabel="", ylabel="", xticks=nothing, yticks=nothing, xgrid=nothing, ygrid=nothing, gm=[Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing)], masize::Int64=0, colormap=colormap_gyr, filename::String="", hsize=6Compose.inch, vsize=6Compose.inch, figuredir::String=".", colorkey::Bool=true, mask=nothing, polygon=nothing, contour=nothing, linewidth::Measures.Length{:mm,Float64}=1Gadfly.pt, linecolor="gray", defaultcolor=nothing, pointsize=1Gadfly.pt, transform=nothing, code=false, nbins::Integer=0)
+function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumnan(X), label="", title="", xlabel="", ylabel="", xticks=nothing, yticks=nothing, xplot=nothing, yplot=nothing, xmatrix=nothing, ymatrix=nothing, gm=[Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing)], masize::Int64=0, colormap=colormap_gyr, filename::String="", hsize=6Compose.inch, vsize=6Compose.inch, figuredir::String=".", colorkey::Bool=true, mask=nothing, polygon=nothing, contour=nothing, linewidth::Measures.Length{:mm,Float64}=1Gadfly.pt, linecolor="gray", defaultcolor=nothing, pointsize=1.5Gadfly.pt, transform=nothing, code=false, nbins::Integer=0)
 	recursivemkdir(figuredir; filename=false)
 	recursivemkdir(filename)
 	Xp = deepcopy(min.(max.(movingaverage(X, masize), minvalue), maxvalue))
@@ -15,7 +15,7 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 		Xp = transform.(Xp)
 	end
 	nanmask!(Xp, mask)
-	is, js, xs = Gadfly._findnz(x->!isnan(x), Xp)
+	ys, xs, vs = Gadfly._findnz(x->!isnan(x), Xp)
 	n, m = size(Xp)
 	if xticks != nothing
 		gm = [gm..., Gadfly.Scale.x_discrete(labels=i->xticks[i]), Gadfly.Guide.xticks(label=true)]
@@ -27,21 +27,49 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 	cm = colormap == nothing ? [] : [Gadfly.Scale.ContinuousColorScale(colormap..., minvalue=minvalue, maxvalue=maxvalue)]
 	cs = colormap == nothing ? [] : cs
 	ds = min.(size(Xp)) == 1 ? [Gadfly.Scale.x_discrete, Gadfly.Scale.y_discrete] : []
-	gt = [Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt, bar_spacing=0Gadfly.mm), Gadfly.Scale.x_continuous, Gadfly.Scale.y_continuous, Gadfly.Coord.cartesian(yflip=true, fixed=true, xmin=0.5, xmax=m+.5, ymin=0.5, ymax=n+.5)]
+	if polygon != nothing
+		if xplot == nothing && yplot == nothing
+			xplot = Vector{Float64}(2)
+			yplot = Vector{Float64}(2)
+			xplot[1] = minimum(polygon[:,1])
+			xplot[2] = maximum(polygon[:,1])
+			yplot[1] = minimum(polygon[:,2])
+			yplot[2] = maximum(polygon[:,2])
+		else
+			xplot[1] = min(xplot[1], minimum(polygon[:,1]))
+			xplot[2] = max(xplot[2], maximum(polygon[:,1]))
+			yplot[1] = min(yplot[1], minimum(polygon[:,2]))
+			yplot[2] = max(yplot[2], maximum(polygon[:,2]))
+		end
+	end
+	if xmatrix == nothing && ymatrix == nothing
+		xmin = 0.5; xmax = m+.5; ymin = 0.5; ymax = n+.5; yflip = true
+	else
+		xmin = xmatrix[1]; xmax = xmatrix[2]; ymin = ymatrix[1]; ymax = ymatrix[2]; yflip = false
+		sx = xmax - xmin; sy = ymax - ymin
+		dx = sx / m; dy = sy / n;
+		xs = (xs .- 1) ./ m * sx .+ xmin
+		ys = (-1 .- ys) ./ m * sy .+ ymax
+		xmax = max(xplot[2], xmatrix[2] + dx / 2)
+		xmin = min(xplot[1], xmatrix[1] - dx / 2)
+		ymax = max(yplot[2], ymatrix[2] + dy / 2)
+		ymin = min(yplot[1], ymatrix[1] - dy / 2)
+	end
+	gt = [Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt, bar_spacing=0Gadfly.mm), Gadfly.Scale.x_continuous, Gadfly.Scale.y_continuous, Gadfly.Coord.cartesian(yflip=yflip, fixed=true, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)]
 	if defaultcolor == nothing
-		l = [Gadfly.layer(x=js, y=is, color=xs, Gadfly.Geom.rectbin())]
+		l = [Gadfly.layer(x=xs, y=ys, color=vs, Gadfly.Geom.rectbin())]
 	else
 		if nbins == 0
-			l = [Gadfly.layer(x=js, y=is, Gadfly.Theme(default_color=defaultcolor, point_size=pointsize, highlight_width=0Gadfly.pt))]
+			l = [Gadfly.layer(x=xs, y=ys, Gadfly.Theme(default_color=defaultcolor, point_size=pointsize, highlight_width=0Gadfly.pt))]
 		else
 			l = []
 			s = (maxvalue - minvalue) / nbins
 			s1 = minvalue
 			s2 = minvalue + s
 			for i = 1:nbins
-				id = find(i->(i > s1 && i <= s2), xs)
+				id = find(i->(i > s1 && i <= s2), vs)
 				c = Colors.RGBA(defaultcolor.r, defaultcolor.g, defaultcolor.b, defaultcolor.alpha/i)
-				sum(id) > 0 && (l = [l..., Gadfly.layer(x=js[id], y=is[id], Gadfly.Theme(default_color=c, point_size=pointsize, highlight_width=0Gadfly.pt))])
+				sum(id) > 0 && (l = [l..., Gadfly.layer(x=xs[id], y=ys[id], Gadfly.Theme(default_color=c, point_size=pointsize, highlight_width=0Gadfly.pt))])
 				s1 += s
 				s2 += s
 			end
@@ -51,12 +79,13 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 		c = l..., ds..., cm..., cs..., gm..., gt...
 	else
 		if polygon != nothing
-			c = Gadfly.layer(x=polygon[1], y=polygon[2], Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth, default_color=linecolor)), l..., ds..., cm..., cs..., gm..., gt...
+			c = l..., Gadfly.layer(x=polygon[:,1], y=polygon[:,2], Gadfly.Geom.polygon(preserve_order=true, fill=false), Gadfly.Theme(line_width=linewidth, default_color=linecolor)), ds..., cm..., cs..., gm..., gt...
 		else
 			c = Gadfly.layer(z=permutedims(contour .* (maxvalue - minvalue) .+ minvalue), x=collect(1:size(contour, 2)), y=collect(1:size(contour, 1)), Gadfly.Geom.contour(levels=[minvalue]), Gadfly.Theme(line_width=linewidth, default_color=linecolor)), l..., ds..., cm..., cs..., gm..., gt...
 		end
 	end
 	p = Gadfly.plot(c...)
+	# display(p); println();
 	if filename != ""
 		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize, dpi=300), p)
 	end
