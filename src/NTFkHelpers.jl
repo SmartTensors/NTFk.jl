@@ -586,3 +586,64 @@ function checkdimension(dim::Integer, ndimensons::Integer)
 	return true
 end
 
+function zerotensorcomponents!(t::TensorDecompositions.Tucker, dim::Int)
+	ndimensons = length(size(t.core))
+	nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
+	t.core[nt...] .= 0
+end
+
+function zerotensorcomponents!(t::TensorDecompositions.CANDECOMP, dim::Int)
+	ndimensons = length(size(t.core))
+	nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
+	t.lambdas[nt...] .= 0
+end
+
+function namedimension(ndimensons::Int; char="C", names=("T", "X", "Y"))
+	if ndimensons <= 3
+		dimname = names
+	else
+		dimname = ntuple(i->"$char$i", ndimensons)
+	end
+	return dimname
+end
+
+function setnewfilename(filename::String, frame::Integer=0; keyword::String="frame")
+	dir = dirname(filename)
+	fn = splitdir(filename)[end]
+	fs = split(fn, ".")
+	if length(fs) == 1
+		root = fs[1]
+		ext = ""
+	else
+		root = join(fs[1:end-1], ".")
+		ext = fs[end]
+	end
+	if ext == ""
+		ext = "png"
+		fn = fn * "." * ext
+	end
+	if !contains(fn, keyword)
+		fn = root * "-$(keyword)000000." * ext
+	end
+	if VERSION >= v"0.7"
+		rtest = occursin(Regex(string("-", keyword, "[0-9]*[.].*\$")), fn)
+	else
+		rtest = ismatch(Regex(string("-", keyword, "[0-9]*[.].*\$")), fn)
+	end
+	if rtest
+		rm = match(Regex(string("-", keyword, "([0-9]*)[.](.*)\$")), fn)
+		if frame == 0
+			v = parse(Int, rm.captures[1]) + 1
+		else
+			v = frame
+
+		end
+		l = length(rm.captures[1])
+		f = "%0" * string(l) * "d"
+		filename = "$(fn[1:rm.offset-1])-$(keyword)$(sprintf(f, v)).$(rm.captures[2])"
+		return joinpath(dir, filename)
+	else
+		warn("setnewfilename failed!")
+		return ""
+	end
+end

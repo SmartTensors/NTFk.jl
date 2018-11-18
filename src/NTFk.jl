@@ -104,7 +104,10 @@ const dntfdir = splitdir(Base.source_path())[1]
 
 include("NTFkHelp.jl")
 include("NTFkHelpers.jl")
+include("NTFkPlotColors.jl")
+include("NTFkPlot2d.jl")
 include("NTFkPlot.jl")
+include("NTFkPlotComponents.jl")
 include("NTFkAnalysis.jl")
 include("NTFkAnalysis-TD.jl")
 include("NTFkAnalysis-TD-mixing.jl")
