@@ -6,52 +6,6 @@ import TensorToolbox
 import TensorDecompositions
 import Distributions
 
-function plotmatrix(X::AbstractVector; kw...)
-	plotmatrix(convert(Array{Float64,2}, permutedims(X)); kw...)
-end
-
-function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumnan(X), label="", title="", xlabel="", ylabel="", xticks=nothing, yticks=nothing, gm=[Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing)], masize::Int64=0, colormap=colormap_gyr, filename::String="", hsize=6Compose.inch, vsize=6Compose.inch, figuredir::String=".", colorkey::Bool=true, mask=nothing, polygon=nothing, contour=nothing, linewidth::Measures.Length{:mm,Float64}=1Gadfly.pt, linecolor="gray", defaultcolor=nothing, pointsize=1Gadfly.pt, transform=nothing, code=false)
-	recursivemkdir(figuredir; filename=false)
-	recursivemkdir(filename)
-	Xp = deepcopy(min.(max.(movingaverage(X, masize), minvalue), maxvalue))
-	if transform != nothing
-		Xp = transform.(Xp)
-	end
-	nanmask!(Xp, mask)
-	if xticks != nothing
-		gm = [gm..., Gadfly.Scale.x_discrete(labels=i->xticks[i]), Gadfly.Guide.xticks(label=true)]
-	end
-	if yticks != nothing
-		gm = [gm..., Gadfly.Scale.y_discrete(labels=i->yticks[i]), Gadfly.Guide.yticks(label=true)]
-	end
-	cs = colorkey ? [Gadfly.Guide.ColorKey(title=label)] : [Gadfly.Theme(key_position = :none)]
-	cm = colormap == nothing ? [] : [Gadfly.Scale.ContinuousColorScale(colormap..., minvalue=minvalue, maxvalue=maxvalue)]
-	cs = colormap == nothing ? [] : cs
-	ds = min.(size(Xp)) == 1 ? [Gadfly.Scale.x_discrete, Gadfly.Scale.y_discrete] : []
-	is, js, xs = Gadfly._findnz(x->!isnan(x), Xp)
-	n, m = size(Xp)
-	gt = [Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt, bar_spacing=0Gadfly.mm), Gadfly.Scale.x_continuous, Gadfly.Scale.y_continuous, Gadfly.Coord.cartesian(yflip=true, fixed=true, xmin=0.5, xmax=m+.5, ymin=0.5, ymax=n+.5)]
-	l = defaultcolor == nothing ? [Gadfly.layer(x=js, y=is, color=xs, Gadfly.Geom.rectbin())] : [Gadfly.layer(x=js, y=is, Gadfly.Theme(default_color=defaultcolor, point_size=pointsize, highlight_width=0Gadfly.pt))]
-	if polygon == nothing && contour == nothing
-		c = l..., ds..., cm..., cs..., gm..., gt...
-	else
-		if polygon != nothing
-			c = Gadfly.layer(x=polygon[1], y=polygon[2], Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth, default_color=linecolor)), l..., ds..., cm..., cs..., gm..., gt...
-		else
-			c = Gadfly.layer(z=permutedims(contour .* (maxvalue - minvalue) .+ minvalue), x=collect(1:size(contour, 2)), y=collect(1:size(contour, 1)), Gadfly.Geom.contour(levels=[minvalue]), Gadfly.Theme(line_width=linewidth, default_color=linecolor)), l..., ds..., cm..., cs..., gm..., gt...
-		end
-	end
-	p = Gadfly.plot(c...)
-	if filename != ""
-		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize, dpi=300), p)
-	end
-	if code
-		return c
-	else
-		return p
-	end
-end
-
 function plotfactor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1, cutoff::Number=0; kw...)
 	plotmatrix(getfactor(t, dim, cutoff); kw...)
 end
@@ -229,12 +183,13 @@ function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::Abstra
 			g1 = plotmatrix(X1[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ltitle, colormap=nothing, defaultcolor=Colors.RGBA(1.0,0.0,0.0,opacity), code=overlap, kw...)
 			g2 = plotmatrix(X2[nt...]; minvalue=minvalue2, maxvalue=maxvalue2, title=ctitle, colormap=nothing, defaultcolor=Colors.RGBA(0.0,0.0,1.0,opacity), code=overlap, kw...)
 			g3 = plotmatrix(X3[nt...]; minvalue=minvalue3, maxvalue=maxvalue3, title=rtitle, colormap=nothing, defaultcolor=Colors.RGBA(0.0,0.502,0.0,opacity), code=overlap, kw...)
+			g = Compose.hstack(Gadfly.plot(g1..., g2..., g3..., Gadfly.Guide.manual_color_key("", ["T1", "T2", "T3"], ["red", "blue", "green"])))
 		else
 			g1 = plotmatrix(X1[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ltitle, colormap=colormap1, kw...)
 			g2 = plotmatrix(X2[nt...]; minvalue=minvalue2, maxvalue=maxvalue2, title=ctitle, colormap=colormap2, kw...)
 			g3 = plotmatrix(X3[nt...]; minvalue=minvalue3, maxvalue=maxvalue3, title=rtitle, colormap=colormap3, kw...)
+			g = Compose.hstack(g1, g2, g3)
 		end
-		g = overlap ? Compose.hstack(Gadfly.plot(g1..., g2..., g3...)) : Compose.hstack(g1, g2, g3)
 		if progressbar != nothing
 			if sizes[dim] == 1
 				f = progressbar(0, timescale, timestep, datestart, dateend, dateincrement)
@@ -316,124 +271,4 @@ function plotlefttensor(X1::Array{T,N}, T2::Union{TensorDecompositions.Tucker,Te
 		minvalue3, maxvalue3 = min(minvalue3, -maxvalue3), max(maxvalue3, -minvalue3)
 	end
 	plot3tensors(X1, convert(Array{T,N}, X2), convert(Array{T,N}, D), dim; minvalue=minvalue, maxvalue=maxvalue, minvalue3=minvalue3, maxvalue3=maxvalue3, kw...)
-end
-
-"""
-colors=[parse(Colors.Colorant, "green"), parse(Colors.Colorant, "orange"), parse(Colors.Colorant, "blue"), parse(Colors.Colorant, "gray")]
-gm=[Gadfly.Guide.manual_color_key("", ["Oil", "Gas", "Water"], colors[1:3]), Gadfly.Theme(major_label_font_size=16Gadfly.pt, key_label_font_size=14Gadfly.pt, minor_label_font_size=12Gadfly.pt)]
-"""
-function plot2d(T::Array, Te::Array=T; quiet::Bool=false, wellnames=nothing, Tmax=nothing, Tmin=nothing, xtitle::String="", ytitle::String="", titletext::String="", figuredir::String="results", hsize=8Gadfly.inch, vsize=4Gadfly.inch, keyword::String="", dimname::String="Column", colors=NTFk.colors, gm=[Gadfly.Theme(major_label_font_size=16Gadfly.pt, key_label_font_size=14Gadfly.pt, minor_label_font_size=12Gadfly.pt)], linewidth::Measures.Length{:mm,Float64}=2Gadfly.pt, xaxis=1:size(Te,2), xmin=nothing, xmax=nothing, ymin=nothing, ymax=nothing, xintercept=[])
-	recursivemkdir(figuredir)
-	c = size(T)
-	if length(c) == 2
-		nlayers = 1
-	else
-		nlayers = c[3]
-	end
-	if wellnames != nothing
-		@assert length(wellnames) == c[1]
-	end
-	@assert c == size(Te)
-	@assert length(vec(collect(xaxis))) == c[2]
-	if Tmax != nothing && Tmin != nothing
-		@assert size(Tmax) == size(Tmin)
-		@assert size(Tmax, 1) == c[1]
-		@assert size(Tmax, 2) == c[3]
-		append = ""
-	else
-		if maximum(T) <= 1. && maximum(Te) <= 1.
-			append = "_normalized"
-		else
-			append = ""
-		end
-	end
-	if keyword != ""
-		append *= "_$(keyword)"
-	end
-	for w = 1:c[1]
-		!quiet && (if wellnames != nothing
-			println("$dimname $w : $(wellnames[w])")
-		else
-			println("$dimname $w")
-		end)
-		p = Vector{Any}(nlayers * 2)
-		pc = 1
-		for i = 1:nlayers
-			if nlayers == 1
-				y = T[w,:]
-				ye = Te[w,:]
-			else
-				y = T[w,:,i]
-				ye = Te[w,:,i]
-			end
-			if Tmax != nothing && Tmin != nothing
-				y = y * (Tmax[w,i] - Tmin[w,i]) + Tmin[w,i]
-				ye = ye * (Tmax[w,i] - Tmin[w,i]) + Tmin[w,i]
-			end
-			p[pc] = Gadfly.layer(x=xaxis, y=y, xintercept=xintercept, Gadfly.Geom.line, Gadfly.Theme(line_width=linewidth, default_color=colors[i]), Gadfly.Geom.vline)
-			pc += 1
-			p[pc] = Gadfly.layer(x=xaxis, y=ye, xintercept=xintercept, Gadfly.Geom.line, Gadfly.Theme(line_style=:dot, line_width=linewidth, default_color=colors[i]), Gadfly.Geom.vline)
-			pc += 1
-		end
-		if wellnames != nothing
-			tm = [Gadfly.Guide.title("$dimname $(wellnames[w]) $titletext")]
-			if dimname != ""
-				filename = "$(figuredir)/$(lowercase(dimname))_$(wellnames[w])$(append).png"
-			else
-				filename = "$(figuredir)/$(wellnames[w])$(append).png"
-			end
-		else
-			tm = []
-			if dimname != ""
-				filename = "$(figuredir)/$(lowercase(dimname))$(append).png"
-			else
-				filename = "$(figuredir)/$(append[2:end]).png"
-			end
-		end
-		yming = ymin
-		ymaxg = ymax
-		if ymin != nothing && length(ymin) > 1
-			yming = ymin[w]
-		end
-		if ymax != nothing && length(ymax) > 1
-			ymaxg = ymax[w]
-		end
-		f = Gadfly.plot(p..., tm..., Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., Gadfly.Coord.Cartesian(xmin=xmin, xmax=xmax, ymin=yming, ymax=ymaxg))
-		Gadfly.draw(Gadfly.PNG(filename, hsize, vsize, dpi=300), f)
-		!quiet && (display(f); println())
-	end
-end
-
-function progressbar_regular(i::Number, timescale::Bool=false, timestep::Number=1, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day")
-	s = timescale ? sprintf("%6.4f", i * timestep) : sprintf("%6d", i)
-	if datestart != nothing
-		if dateend != nothing
-			s = datestart + ((dateend .- datestart) * (i-1) * timestep)
-		else
-			s = datestart + eval(parse(dateincrement))(i-1)
-		end
-	end
-	return Compose.compose(Compose.context(0, 0, 1Compose.w, 0.05Compose.h),
-		(Compose.context(), Compose.fill("gray"), Compose.fontsize(10Compose.pt), Compose.text(0.01, 0.0, s, Compose.hleft, Compose.vtop)),
-		(Compose.context(), Compose.fill("tomato"), Compose.rectangle(0.75, 0.0, i * timestep * 0.2, 5)),
-		(Compose.context(), Compose.fill("gray"), Compose.rectangle(0.75, 0.0, 0.2, 5)))
-end
-
-function make_progressbar_2d(s)
-	function progressbar_2d(i::Number, timescale::Bool=false, timestep::Number=1, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day")
-		if i > 0
-			xi = timescale ? i * timestep : i
-			if datestart != nothing
-				if dateend != nothing
-					xi = datestart + ((dateend .- datestart) * (i-1) * timestep)
-				else
-					xi = datestart + eval(parse(dateincrement))(i-1)
-				end
-			end
-			return Gadfly.plot(s..., Gadfly.layer(xintercept=[xi], Gadfly.Geom.vline(color=["gray"], size=[2Gadfly.pt])))
-		else
-			return Gadfly.plot(s...)
-		end
-	end
-	return progressbar_2d
 end

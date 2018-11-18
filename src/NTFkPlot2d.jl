@@ -1,10 +1,8 @@
 import Gadfly
 import Measures
-import Colors
 import Compose
 import TensorToolbox
 import TensorDecompositions
-import Distributions
 
 function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true,  datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), xmin=datestart, xmax=dateend, transform=nothing, linewidth=2Gadfly.pt, separate::Bool=false)
 	recursivemkdir(figuredir; filename=false)
@@ -180,4 +178,90 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize, dpi=150), ff)
 	end
 	return ff
+end
+
+"""
+colors=[parse(Colors.Colorant, "green"), parse(Colors.Colorant, "orange"), parse(Colors.Colorant, "blue"), parse(Colors.Colorant, "gray")]
+gm=[Gadfly.Guide.manual_color_key("", ["Oil", "Gas", "Water"], colors[1:3]), Gadfly.Theme(major_label_font_size=16Gadfly.pt, key_label_font_size=14Gadfly.pt, minor_label_font_size=12Gadfly.pt)]
+"""
+function plot2d(T::Array, Te::Array=T; quiet::Bool=false, wellnames=nothing, Tmax=nothing, Tmin=nothing, xtitle::String="", ytitle::String="", titletext::String="", figuredir::String="results", hsize=8Gadfly.inch, vsize=4Gadfly.inch, keyword::String="", dimname::String="Column", colors=NTFk.colors, gm=[Gadfly.Theme(major_label_font_size=16Gadfly.pt, key_label_font_size=14Gadfly.pt, minor_label_font_size=12Gadfly.pt)], linewidth::Measures.Length{:mm,Float64}=2Gadfly.pt, xaxis=1:size(Te,2), xmin=nothing, xmax=nothing, ymin=nothing, ymax=nothing, xintercept=[])
+	recursivemkdir(figuredir)
+	c = size(T)
+	if length(c) == 2
+		nlayers = 1
+	else
+		nlayers = c[3]
+	end
+	if wellnames != nothing
+		@assert length(wellnames) == c[1]
+	end
+	@assert c == size(Te)
+	@assert length(vec(collect(xaxis))) == c[2]
+	if Tmax != nothing && Tmin != nothing
+		@assert size(Tmax) == size(Tmin)
+		@assert size(Tmax, 1) == c[1]
+		@assert size(Tmax, 2) == c[3]
+		append = ""
+	else
+		if maximum(T) <= 1. && maximum(Te) <= 1.
+			append = "_normalized"
+		else
+			append = ""
+		end
+	end
+	if keyword != ""
+		append *= "_$(keyword)"
+	end
+	for w = 1:c[1]
+		!quiet && (if wellnames != nothing
+			println("$dimname $w : $(wellnames[w])")
+		else
+			println("$dimname $w")
+		end)
+		p = Vector{Any}(nlayers * 2)
+		pc = 1
+		for i = 1:nlayers
+			if nlayers == 1
+				y = T[w,:]
+				ye = Te[w,:]
+			else
+				y = T[w,:,i]
+				ye = Te[w,:,i]
+			end
+			if Tmax != nothing && Tmin != nothing
+				y = y * (Tmax[w,i] - Tmin[w,i]) + Tmin[w,i]
+				ye = ye * (Tmax[w,i] - Tmin[w,i]) + Tmin[w,i]
+			end
+			p[pc] = Gadfly.layer(x=xaxis, y=y, xintercept=xintercept, Gadfly.Geom.line, Gadfly.Theme(line_width=linewidth, default_color=colors[i]), Gadfly.Geom.vline)
+			pc += 1
+			p[pc] = Gadfly.layer(x=xaxis, y=ye, xintercept=xintercept, Gadfly.Geom.line, Gadfly.Theme(line_style=:dot, line_width=linewidth, default_color=colors[i]), Gadfly.Geom.vline)
+			pc += 1
+		end
+		if wellnames != nothing
+			tm = [Gadfly.Guide.title("$dimname $(wellnames[w]) $titletext")]
+			if dimname != ""
+				filename = "$(figuredir)/$(lowercase(dimname))_$(wellnames[w])$(append).png"
+			else
+				filename = "$(figuredir)/$(wellnames[w])$(append).png"
+			end
+		else
+			tm = []
+			if dimname != ""
+				filename = "$(figuredir)/$(lowercase(dimname))$(append).png"
+			else
+				filename = "$(figuredir)/$(append[2:end]).png"
+			end
+		end
+		yming = ymin
+		ymaxg = ymax
+		if ymin != nothing && length(ymin) > 1
+			yming = ymin[w]
+		end
+		if ymax != nothing && length(ymax) > 1
+			ymaxg = ymax[w]
+		end
+		f = Gadfly.plot(p..., tm..., Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., Gadfly.Coord.Cartesian(xmin=xmin, xmax=xmax, ymin=yming, ymax=ymaxg))
+		Gadfly.draw(Gadfly.PNG(filename, hsize, vsize, dpi=300), f)
+		!quiet && (display(f); println())
+	end
 end
