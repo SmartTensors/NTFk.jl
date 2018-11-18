@@ -1182,8 +1182,8 @@ function plot2matrices(X1::Matrix, X2::Matrix; kw...)
 	plot2tensors([X1], [X2], 1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), kw...)
 end
 
-function plot2tensors(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...)
-	X2 = TensorDecompositions.compose(T2)
+function plot2tensors(X1::Array{T,N}, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...) where {T,N}
+	X2 = convert(Array{T,N}, TensorDecompositions.compose(T2))
 	plot2tensors(X1, X2, dim; kw...)
 end
 
@@ -1245,13 +1245,13 @@ function plot3matrices(X1::Matrix, X2::Matrix, X3::Matrix; kw...)
 	plot3tensors([X1], [X2], [X3], 1; minvalue=minimumnan([X1 X2 X3]), maxvalue=maximumnan([X1 X2 X3]), kw...)
 end
 
-function plotcmptensors(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; center=true, transform=nothing, mask=nothing, kw...)
+function plotcmptensors(X1::Array{T,N}, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; center=true, transform=nothing, mask=nothing, kw...) where {T,N}
 	X2 = TensorDecompositions.compose(T2)
 	if transform != nothing
 		X2 = transform.(X2)
 	end
 	nanmask!(X2, mask)
-	plot2tensors(X1, X2, dim; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), kw...)
+	plot2tensors(X1, convert(Array{T,N}, X2), dim; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), kw...)
 end
 
 function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan([X1 X2 X3]), maxvalue=maximumnan([X1 X2 X3]), minvalue2=minvalue, maxvalue2=maxvalue, minvalue3=minvalue, maxvalue3=maxvalue, prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, barratio::Number=1/2, colormap=colormap_gyr, uniformscaling::Bool=true, vspeed=1.0, kw...) where {T,N}
@@ -1334,7 +1334,7 @@ function plotlefttensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimumna
 	plot3tensors(X1, X2, D, dim; minvalue=minvalue, maxvalue=maxvalue, minvalue3=minvalue3, maxvalue3=maxvalue3, kw...)
 end
 
-function plotlefttensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; minvalue=nothing, maxvalue=nothing, minvalue3=nothing, maxvalue3=nothing, center=true, transform=nothing, mask=nothing, kw...)
+function plotlefttensor(X1::Array{T,N}, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; minvalue=nothing, maxvalue=nothing, minvalue3=nothing, maxvalue3=nothing, center=true, transform=nothing, mask=nothing, kw...) where {T,N}
 	X2 = TensorDecompositions.compose(T2)
 	if transform != nothing
 		X2 = transform.(X2)
@@ -1343,13 +1343,13 @@ function plotlefttensor(X1::Array, T2::Union{TensorDecompositions.Tucker,TensorD
 	nanmask!(X2, mask)
 	nanmask!(D, mask)
 	minvalue = minvalue == nothing ? minimumnan([X1 X2]) : minvalue
-	maxvalue = minvalue == nothing ? maximumnan([X1 X2]) : maxvalue
+	maxvalue = maxvalue == nothing ? maximumnan([X1 X2]) : maxvalue
 	minvalue3 = minvalue3 == nothing ? minimumnan(D) : minvalue3
 	maxvalue3 = maxvalue3 == nothing ? maximumnan(D) : maxvalue3
 	if center
 		minvalue3, maxvalue3 = min(minvalue3, -maxvalue3), max(maxvalue3, -minvalue3)
 	end
-	plot3tensors(X1, X2, D, dim; minvalue=minvalue, maxvalue=maxvalue, minvalue3=minvalue3, maxvalue3=maxvalue3, kw...)
+	plot3tensors(X1, convert(Array{T,N}, X2), convert(Array{T,N}, D), dim; minvalue=minvalue, maxvalue=maxvalue, minvalue3=minvalue3, maxvalue3=maxvalue3, kw...)
 end
 
 function setnewfilename(filename::String, frame::Integer=0; keyword::String="frame")
