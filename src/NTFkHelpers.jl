@@ -647,3 +647,21 @@ function setnewfilename(filename::String, frame::Integer=0; keyword::String="fra
 		return ""
 	end
 end
+
+function getradialmap(T::Matrix, x0, y0, nr, na)
+	m, n = size(T)
+	R = zeros(nr, na);
+	for i=1:m
+		for j=1:n
+			x = i - x0
+			y = j - y0
+			r = convert(Int, ceil(sqrt(x * x + y * y)))
+			if r > nr
+				continue
+			end
+			a = convert(Int, ceil((((atan(y, x) / pi) + 1) / 2) * na))
+			R[r,a] = max(R[r,a], T[i,j])
+		end
+	end
+	return R
+end
