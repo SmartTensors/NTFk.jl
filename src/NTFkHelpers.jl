@@ -648,19 +648,18 @@ function setnewfilename(filename::String, frame::Integer=0; keyword::String="fra
 	end
 end
 
-function getradialmap(T::Matrix, x0, y0, nr, na)
-	m, n = size(T)
-	R = zeros(nr, na);
-	for i=1:m
-		for j=1:n
-			x = i - x0
-			y = j - y0
-			r = convert(Int, ceil(sqrt(x * x + y * y)))
-			if r > nr
-				continue
-			end
-			a = convert(Int, ceil((((atan(y, x) / pi) + 1) / 2) * na))
-			R[r,a] = max(R[r,a], T[i,j])
+function getradialmap(X::Matrix, x0, y0, nr, na)
+	m, n = size(X)
+	itp = Interpolations.interpolate((1:m, 1:n,), X, Interpolations.Gridded(Interpolations.Constant()))
+	R = Array{Float64}(nr, na)
+	thetadx = pi / na
+	for i=1:nr
+		theta = 0
+		for j=1:na
+			theta += thetadx
+			x = x0 + i * cos(theta)
+			y = y0 + i * sin(theta)
+			R[i,j] = itp[x,y]
 		end
 	end
 	return R
