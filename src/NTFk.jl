@@ -96,8 +96,8 @@ import TensorToolbox
 import JLD
 import PyPlot
 import Gadfly
-JLD.translate("TensorDecompositions.SPNNTuckerState", "TensorDecompositions.SPNNTuckerStateOld")
-JLD.translate("TensorDecompositions.Tucker", "TensorDecompositions.TuckerOld")
+# JLD.translate("TensorDecompositions.SPNNTuckerState", "TensorDecompositions.SPNNTuckerStateOld")
+# JLD.translate("TensorDecompositions.Tucker", "TensorDecompositions.TuckerOld")
 @tryimport MATLAB
 
 modules = ["NTFk", "NMFk", "CanDecomp"]
