@@ -214,6 +214,22 @@ function getinterpolatedtensor(t::TensorDecompositions.Tucker{T,N}, v; sp=[Inter
 	return tn
 end
 
+function getpredictions(t::TensorDecompositions.Tucker{T,N}, dim, v; sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line())), Interpolations.OnCell()]) where {T,N}
+	factors = []
+	for i = 1:N
+		push!(factors, t.factors[i])
+	end
+	for j = dim
+		f = Array{T}(length(v), size(factors[j], 2))
+		for i = 1:size(factors[j], 2)
+			f[:,i] = Interpolations.interpolate(t.factors[j][:, i], sp...).(v)
+		end
+		factors[j] = f
+	end
+	tn = TensorDecompositions.Tucker((factors...,), t.core)
+	return tn
+end
+
 function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core, firstpeak::Bool=true, reverse=true, quiet=true)
 	cs = size(t.core)[dim]
 	!quiet && info("Core size: $(size(t.core))")
