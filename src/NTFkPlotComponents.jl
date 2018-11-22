@@ -125,7 +125,7 @@ function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::
 	recursivemkdir(moviedir; filename=false)
 	recursivemkdir(prefix)
 	dimname = namedimension(ndimensons; char="D", names=("Row", "Column", "Layer"))
-	s2 = plot2dmodtensorcomponents(X, t, dim, functionname; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, timescale=timescale, quiet=true, code=true, transform=transform2d)
+	s2 = plot2dmodtensorcomponents(X, t, dim, functionname; xtitle=xtitle, ytitle=ytitle, datestart=datestart, dateend=dateend, dateincrement=dateincrement, timescale=timescale, quiet=true, code=true, transform=transform2d)
 	progressbar_2d = make_progressbar_2d(s2)
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
