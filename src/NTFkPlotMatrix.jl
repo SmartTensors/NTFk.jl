@@ -57,7 +57,11 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 	end
 	gt = [Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Theme(major_label_font_size=24Gadfly.pt, key_label_font_size=12Gadfly.pt, bar_spacing=0Gadfly.mm), Gadfly.Scale.x_continuous, Gadfly.Scale.y_continuous, Gadfly.Coord.cartesian(yflip=yflip, fixed=true, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)]
 	if defaultcolor == nothing
-		l = [Gadfly.layer(x=xs, y=ys, color=vs, Gadfly.Geom.rectbin())]
+		if length(vs) > 0
+			l = (length(vs) < m * n) ? [Gadfly.layer(x=xs, y=ys, color=vs, Gadfly.Theme(point_size=pointsize, highlight_width=0Gadfly.pt))] : [Gadfly.layer(x=xs, y=ys, color=vs, Gadfly.Geom.rectbin())]
+		else
+			l = nothing
+		end
 	else
 		if nbins == 0
 			l = [Gadfly.layer(x=xs, y=ys, Gadfly.Theme(default_color=defaultcolor, point_size=pointsize, highlight_width=0Gadfly.pt))]
@@ -79,9 +83,18 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 		c = l..., ds..., cm..., cs..., gm..., gt...
 	else
 		if polygon != nothing
-			c = l..., Gadfly.layer(x=polygon[:,1], y=polygon[:,2], Gadfly.Geom.polygon(preserve_order=true, fill=false), Gadfly.Theme(line_width=linewidth, default_color=linecolor)), ds..., cm..., cs..., gm..., gt...
+			c = Gadfly.layer(x=polygon[:,1], y=polygon[:,2], Gadfly.Geom.polygon(preserve_order=true, fill=false), Gadfly.Theme(line_width=linewidth, default_color=linecolor))
 		else
-			c = Gadfly.layer(z=permutedims(contour .* (maxvalue - minvalue) .+ minvalue), x=collect(1:size(contour, 2)), y=collect(1:size(contour, 1)), Gadfly.Geom.contour(levels=[minvalue]), Gadfly.Theme(line_width=linewidth, default_color=linecolor)), l..., ds..., cm..., cs..., gm..., gt...
+			c = Gadfly.layer(z=permutedims(contour .* (maxvalue - minvalue) .+ minvalue), x=collect(1:size(contour, 2)), y=collect(1:size(contour, 1)), Gadfly.Geom.contour(levels=[minvalue]), Gadfly.Theme(line_width=linewidth, default_color=linecolor))
+		end
+		if l != nothing
+			if mask != nothing
+				c = c..., l..., ds..., cm..., cs..., gm..., gt...
+			else
+				c = l..., c..., ds..., cm..., cs..., gm..., gt...
+			end
+		else
+			c = c..., ds..., cm..., gm..., gt...
 		end
 	end
 	p = Gadfly.plot(c...)
