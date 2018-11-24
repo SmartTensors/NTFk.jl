@@ -117,20 +117,16 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 	plot3tensors(permutedims(X1, pt), permutedims(X2[order[1]], pt), permutedims(X2[order[2]], pt), 1; prefix=prefix, kw...)
 end
 
-function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; csize::Tuple=TensorToolbox.mrank(t.core), sizes=size(X), xtitle="Time", ytitle="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", cleanup::Bool=true, movie::Bool=false, moviedir=".", prefix::String="", keyword="frame", title="", quiet::Bool=false, filter=(), minvalue=minimumnan(X), maxvalue=maximumnan(X), hsize=12Compose.inch, vsize=12Compose.inch, colormap=colormap_gyr, functionname="mean", vspeed=1.0, transform=nothing, transform2d=nothing, mask=nothing, kw...)
+function plottensorandsomething(X::Array, something; minvalue=minimumnan(X), maxvalue=maximumnan(X), sizes=size(X), xtitle="Time", ytitle="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", cleanup::Bool=true, movie::Bool=false, moviedir=".", prefix::String="", vspeed=1.0, keyword="frame", quiet::Bool=false, hsize=12Compose.inch, vsize=12Compose.inch, kw...)
 	ndimensons = length(sizes)
-	if !checkdimension(dim, ndimensons) || !checkdimension(pdim, ndimensons)
-		return
-	end
 	recursivemkdir(moviedir; filename=false)
 	recursivemkdir(prefix)
 	dimname = namedimension(ndimensons; char="D", names=("Row", "Column", "Layer"))
-	s2 = plot2dmodtensorcomponents(X, t, dim, functionname; xtitle=xtitle, ytitle=ytitle, datestart=datestart, dateend=dateend, dateincrement=dateincrement, timescale=timescale, quiet=true, code=true, transform=transform2d)
-	progressbar_2d = make_progressbar_2d(s2)
+	progressbar_2d = make_progressbar_2d(something)
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : Colon()), ndimensons)
-		p1 = plotmatrix(X[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=title, colormap=colormap, transform=transform, mask=mask)
+		p1 = plotmatrix(X[nt...]; minvalue=minvalue, maxvalue=maxvalue, kw...)
 		p2 = progressbar_2d(i, timescale, timestep, datestart, dateend, dateincrement)
 		!quiet && (sizes[dim] > 1) && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=150), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 2/3), Gadfly.render(p1)), Compose.compose(Compose.context(0, 0, 1, 1/3), Gadfly.render(p2)))); println())
 		if prefix != ""
@@ -139,19 +135,37 @@ function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::
 		end
 	end
 	if movie && prefix != ""
-		c = `ffmpeg -i $moviedir/$prefix-$(keyword)%06d.png -vcodec libx264 -pix_fmt yuv420p -f mp4 -filter:v "setpts=$vspeed*PTS" -y $moviedir/$prefix.mp4`
-		if quiet
-			run(pipeline(c, stdout=DevNull, stderr=DevNull))
-		else
-			run(c)
+		makemovie(moviedir=moviedir, prefix=prefix, keyword=keyword, cleanup=cleanup, quiet=quiet, vspeed=vspeed)
+	end
+end
+
+function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; minvalue=minimumnan(X), maxvalue=maximumnan(X), csize::Tuple=TensorToolbox.mrank(t.core), sizes=size(X), xtitle="Time", ytitle="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", cleanup::Bool=true, movie::Bool=false, moviedir::String=".", prefix::String="", keyword="frame", vspeed=1.0, quiet::Bool=false, hsize=12Compose.inch, vsize=12Compose.inch, functionname="mean", transform2d=nothing, totals::Bool=true, kw...)
+	ndimensons = length(sizes)
+	if !checkdimension(dim, ndimensons) || !checkdimension(pdim, ndimensons)
+		return
+	end
+	recursivemkdir(moviedir; filename=false)
+	recursivemkdir(prefix)
+	dimname = namedimension(ndimensons; char="D", names=("Row", "Column", "Layer"))
+	if totals
+		s2 = plot2dmodtensorcomponents(X, t, dim, functionname; xtitle=xtitle, ytitle=ytitle, datestart=datestart, dateend=dateend, dateincrement=dateincrement, timescale=timescale, quiet=true, code=true, transform=transform2d)
+	else
+		s2 = plot2dmodtensorcomponents(t, dim, functionname; xtitle=xtitle, ytitle=ytitle, datestart=datestart, dateend=dateend, dateincrement=dateincrement, timescale=timescale, quiet=true, code=true, transform=transform2d)
+	end
+	progressbar_2d = make_progressbar_2d(s2)
+	for i = 1:sizes[dim]
+		framename = "$(dimname[dim]) $i"
+		nt = ntuple(k->(k == dim ? i : Colon()), ndimensons)
+		p1 = plotmatrix(X[nt...]; minvalue=minvalue, maxvalue=maxvalue, kw...)
+		p2 = progressbar_2d(i, timescale, timestep, datestart, dateend, dateincrement)
+		!quiet && (sizes[dim] > 1) && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=150), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 2/3), Gadfly.render(p1)), Compose.compose(Compose.context(0, 0, 1, 1/3), Gadfly.render(p2)))); println())
+		if prefix != ""
+			filename = setnewfilename(prefix, i; keyword=keyword)
+			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=150), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 2/3), Gadfly.render(p1)), Compose.compose(Compose.context(0, 0, 1, 1/3), Gadfly.render(p2))))
 		end
-		if moviedir == "."
-			moviedir, prefix = splitdir(prefix)
-			if moviedir == ""
-				moviedir = "."
-			end
-		end
-		cleanup && run(`find $moviedir -name $prefix-$(keyword)"*".png -delete`)
+	end
+	if movie && prefix != ""
+		makemovie(moviedir=moviedir, prefix=prefix, keyword=keyword, cleanup=cleanup, quiet=quiet, vspeed=vspeed)
 	end
 end
 

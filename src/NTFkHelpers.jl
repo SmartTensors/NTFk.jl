@@ -680,3 +680,20 @@ function getradialmap(X::Matrix, x0, y0, nr, na)
 	end
 	return R
 end
+
+function makemovie(moviedir=".", prefix::String="", keyword="frame", cleanup::Bool=true, quiet::Bool=false, vspeed=1.0)
+	p = joinpath(moviedir, prefix)
+	c = `ffmpeg -i $p-$(keyword)%06d.png -vcodec libx264 -pix_fmt yuv420p -f mp4 -filter:v "setpts=$vspeed*PTS" -y $p.mp4`
+	if quiet
+		run(pipeline(c, stdout=DevNull, stderr=DevNull))
+	else
+		run(c)
+	end
+	if moviedir == "."
+		moviedir, prefix = splitdir(prefix)
+		if moviedir == ""
+			moviedir = "."
+		end
+	end
+	cleanup && run(`find $moviedir -name $prefix-$(keyword)"*".png -delete`)
+end

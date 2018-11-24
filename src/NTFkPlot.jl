@@ -62,19 +62,7 @@ function plottensor(X::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k
 		end
 	end
 	if movie && prefix != ""
-		c = `ffmpeg -i $moviedir/$prefix-$(keyword)%06d.png -vcodec libx264 -pix_fmt yuv420p -f mp4 -filter:v "setpts=$vspeed*PTS" -y $moviedir/$prefix.mp4`
-		if quiet
-			run(pipeline(c, stdout=DevNull, stderr=DevNull))
-		else
-			run(c)
-		end
-		if moviedir == "."
-			moviedir, prefix = splitdir(prefix)
-			if moviedir == ""
-				moviedir = "."
-			end
-		end
-		cleanup && run(`find $moviedir -name $prefix-$(keyword)"*".png -delete`)
+		makemovie(moviedir=moviedir, prefix=prefix, keyword=keyword, cleanup=cleanup, quiet=quiet, vspeed=vspeed)
 	end
 end
 
@@ -125,19 +113,7 @@ function plot2tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, dim::Integ
 		end
 	end
 	if movie && prefix != ""
-		c = `ffmpeg -i $moviedir/$prefix-$(keyword)%06d.png -vcodec libx264 -pix_fmt yuv420p -f mp4 -filter:v "setpts=$vspeed*PTS" -y $moviedir/$prefix.mp4`
-		if quiet
-			run(pipeline(c, stdout=DevNull, stderr=DevNull))
-		else
-			run(c)
-		end
-		if moviedir == "."
-			moviedir, prefix = splitdir(prefix)
-			if moviedir == ""
-				moviedir = "."
-			end
-		end
-		cleanup && run(`find $moviedir -name $prefix-$(keyword)"*.png" -delete`)
+		makemovie(moviedir=moviedir, prefix=prefix, keyword=keyword, cleanup=cleanup, quiet=quiet, vspeed=vspeed)
 	end
 end
 
@@ -225,19 +201,7 @@ function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::Abstra
 		end
 	end
 	if movie && prefix != ""
-		c = `ffmpeg -i $moviedir/$prefix-$(keyword)%06d.png -vcodec libx264 -pix_fmt yuv420p -f mp4 -filter:v "setpts=$vspeed*PTS" -y $moviedir/$prefix.mp4`
-		if quiet
-			run(pipeline(c, stdout=DevNull, stderr=DevNull))
-		else
-			run(c)
-		end
-		if moviedir == "."
-			moviedir, prefix = splitdir(prefix)
-			if moviedir == ""
-				moviedir = "."
-			end
-		end
-		cleanup && run(`find $moviedir -name $prefix-$(keyword)"*.png" -delete`)
+		makemovie(moviedir=moviedir, prefix=prefix, keyword=keyword, cleanup=cleanup, quiet=quiet, vspeed=vspeed)
 	end
 end
 
