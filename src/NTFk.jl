@@ -88,6 +88,8 @@ else
 	end
 end
 
+global imagedpi=150
+
 import NMFk
 import CanDecomp
 import TensorDecompositions

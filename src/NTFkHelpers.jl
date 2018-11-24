@@ -6,6 +6,15 @@ sprintf(args...) = eval(:@sprintf($(args...)))
 searchdir(key::Regex, path::String = ".") = filter(x->ismatch(key, x), readdir(path))
 searchdir(key::String, path::String = ".") = filter(x->contains(x, key), readdir(path))
 
+"""
+Set image dpi
+
+$(DocumentFunction.documentfunction(setdpi))
+"""
+function setdpi(dpi::Integer)
+	global imagedpi = dpi;
+end
+
 function maximumnan(X, c...; kw...)
 	maximum(X[.!isnan.(X)], c...; kw...)
 end
@@ -43,11 +52,6 @@ function computestats(X, Xe, volumeindex=1:size(Xe,1), wellindex=1:size(Xe,3), t
 			wsum1[j] = NMFk.sumnan(X[w,timeindex,v])
 			werr[j] = abs.(wsum2[j] - wsum1[j]) / wsum1[j]
 		end
-		# @show se
-		# @show s
-		# @show wsum2
-		# @show wsum1
-		# @show werr
 		merr[i] = maximum(werr)
 		fcor[i] = cor(vec(wsum1), vec(wsum2))
 	end
@@ -681,7 +685,7 @@ function getradialmap(X::Matrix, x0, y0, nr, na)
 	return R
 end
 
-function makemovie(moviedir=".", prefix::String="", keyword="frame", cleanup::Bool=true, quiet::Bool=false, vspeed=1.0)
+function makemovie(; moviedir=".", prefix::String="", keyword="frame", cleanup::Bool=true, quiet::Bool=false, vspeed::Number=1.0)
 	p = joinpath(moviedir, prefix)
 	c = `ffmpeg -i $p-$(keyword)%06d.png -vcodec libx264 -pix_fmt yuv420p -f mp4 -filter:v "setpts=$vspeed*PTS" -y $p.mp4`
 	if quiet

@@ -18,7 +18,7 @@ function progressbar_regular(i::Number, timescale::Bool=false, timestep::Number=
 		(Compose.context(), Compose.fill("gray"), Compose.rectangle(0.75, 0.0, 0.2, 5)))
 end
 
-function make_progressbar_2d(s)
+function make_progressbar_2d(s; vlinecolor="gray", vlinesize=2Gadfly.pt)
 	function progressbar_2d(i::Number, timescale::Bool=false, timestep::Number=1, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day")
 		if i > 0
 			xi = timescale ? i * timestep : i
@@ -29,7 +29,7 @@ function make_progressbar_2d(s)
 					xi = datestart + eval(parse(dateincrement))(i-1)
 				end
 			end
-			return Gadfly.plot(s..., Gadfly.layer(xintercept=[xi], Gadfly.Geom.vline(color=["gray"], size=[2Gadfly.pt])))
+			return Gadfly.plot(s..., Gadfly.layer(xintercept=[xi], Gadfly.Geom.vline(color=[vlinecolor], size=[vlinesize])))
 		else
 			return Gadfly.plot(s...)
 		end
