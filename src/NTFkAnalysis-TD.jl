@@ -326,6 +326,24 @@ function normalizecore!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::B
 	return nothing
 end
 
+function normalizeslices!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::Bool=false) where {T,N}
+	check && (Xi = TensorDecompositions.compose(X))
+	NTFk.normalizefactors!(X)
+	NTFk.normalizecore!(X, order)
+	M = TensorDecompositions.compose(X, order[2:end])
+	m = maximum(M, order[2:end])
+	@show m
+	for i = 1:length(m)
+		X.core[:,:,i] ./= m[i]
+		X.factors[order[1]][:,i] .*= m[i]
+	end
+	if check
+		Xe = TensorDecompositions.compose(X)
+		info("Normalization error: $(vecnorm(Xi .- Xe))")
+	end
+	return X
+end
+
 function normalizefactors!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; check::Bool=false) where {T,N}
 	check && (Xi = TensorDecompositions.compose(X))
 	for i = order
