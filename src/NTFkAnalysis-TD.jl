@@ -341,7 +341,6 @@ function normalizeslices!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check:
 		Xe = TensorDecompositions.compose(X)
 		info("Normalization error: $(vecnorm(Xi .- Xe))")
 	end
-	return X
 end
 
 function normalizefactors!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; check::Bool=false) where {T,N}
