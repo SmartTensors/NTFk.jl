@@ -117,7 +117,7 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 	plot3tensors(permutedims(X1, pt), permutedims(X2[order[1]], pt), permutedims(X2[order[2]], pt), 1; prefix=prefix, kw...)
 end
 
-function plottensorandsomething(X::Array, something, dim::Integer=1, pdim::Integer=dim; minvalue=minimumnan(X), maxvalue=maximumnan(X), sizes=size(X), xtitle="Time", ytitle="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::String="Dates.Day", dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, cleanup::Bool=true, movie::Bool=false, moviedir=".", prefix::String="", vspeed=1.0, keyword="frame", quiet::Bool=false, hsize=12Compose.inch, vsize=12Compose.inch, dpi::Integer=imagedpi, kw...)
+function plottensorandsomething(X::Array, something, dim::Integer=1, pdim::Integer=dim; minvalue=minimumnan(X), maxvalue=maximumnan(X), sizes=size(X), xtitle="Time", ytitle="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::String="Dates.Day", dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, cleanup::Bool=true, movie::Bool=false, moviedir=".", prefix::String="", vspeed=1.0, keyword="frame", quiet::Bool=false, hsize=12Compose.inch, vsize=12Compose.inch, dpi::Integer=imagedpi, movieformat="mp4", movieopacity::Bool=false, kw...)
 	ndimensons = length(sizes)
 	recursivemkdir(moviedir; filename=false)
 	recursivemkdir(prefix)
@@ -135,7 +135,7 @@ function plottensorandsomething(X::Array, something, dim::Integer=1, pdim::Integ
 		end
 	end
 	if movie && prefix != ""
-		makemovie(moviedir=moviedir, prefix=prefix, keyword=keyword, cleanup=cleanup, quiet=quiet, vspeed=vspeed)
+		makemovie(movieformat=movieformat, movieopacity=movieopacity, moviedir=moviedir, prefix=prefix, keyword=keyword, cleanup=cleanup, quiet=quiet, vspeed=vspeed)
 	end
 end
 

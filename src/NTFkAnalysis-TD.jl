@@ -332,7 +332,6 @@ function normalizeslices!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check:
 	NTFk.normalizecore!(X, order)
 	M = TensorDecompositions.compose(X, order[2:end])
 	m = maximum(M, order[2:end])
-	@show m
 	for i = 1:length(m)
 		X.core[:,:,i] ./= m[i]
 		X.factors[order[1]][:,i] .*= m[i]

@@ -47,8 +47,8 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	end
 	if separate
 		for i = 1:ncomponents
-			tt = title == "" ? title : title * " Signal $(order[filter[i]])"
-			ff = Gadfly.plot(Gadfly.layer(x=xvalues, y=p[:, order[filter[i]]], Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth, default_color=parse(Colors.Colorant, "red"))), Gadfly.Guide.title(tt), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm...)
+			tt = title == "" ? title : title * ": Signal #$i"
+			ff = Gadfly.plot(Gadfly.layer(x=xvalues, y=p[:, order[filter[i]]], Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth, default_color=parse(Colors.Colorant, "red"))), Gadfly.Guide.title(tt), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., Gadfly.Coord.Cartesian(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax))
 			!quiet && (display(ff); println())
 			fs = split(filename, ".")
 			fn = fs[1] * "-$(lpad(order[filter[i]],4,0))." * fs[2]

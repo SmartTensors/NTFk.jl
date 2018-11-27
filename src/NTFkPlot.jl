@@ -35,7 +35,7 @@ function plottensor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CA
 	plottensor(X, dim; kw...)
 end
 
-function plottensor(X::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan(X), maxvalue=maximumnan(X), prefix::String="", keyword="frame", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, colormap=colormap_gyr, cutoff::Bool=false, cutvalue::Number=0, vspeed=1.0, kw...) where {T,N}
+function plottensor(X::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan(X), maxvalue=maximumnan(X), prefix::String="", keyword="frame", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, colormap=colormap_gyr, cutoff::Bool=false, cutvalue::Number=0, vspeed=1.0, movieformat="mp4", movieopacity::Bool=false, kw...) where {T,N}
 	if !checkdimension(dim, N)
 		return
 	end
@@ -62,7 +62,7 @@ function plottensor(X::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k
 		end
 	end
 	if movie && prefix != ""
-		makemovie(moviedir=moviedir, prefix=prefix, keyword=keyword, cleanup=cleanup, quiet=quiet, vspeed=vspeed)
+		makemovie(movieformat=movieformat, movieopacity=movieopacity, moviedir=moviedir, prefix=prefix, keyword=keyword, cleanup=cleanup, quiet=quiet, vspeed=vspeed)
 	end
 end
 
@@ -75,7 +75,7 @@ function plot2tensors(X1::Array{T,N}, T2::Union{TensorDecompositions.Tucker,Tens
 	plot2tensors(X1, X2, dim; kw...)
 end
 
-function plot2tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), minvalue2=minvalue, maxvalue2=maxvalue, movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi, title::String="", moviedir::String=".", prefix::String = "", keyword="frame", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, uniformscaling::Bool=true, colormap=colormap_gyr, vspeed=1.0, kw...) where {T,N}
+function plot2tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), minvalue2=minvalue, maxvalue2=maxvalue, movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi, title::String="", moviedir::String=".", prefix::String = "", keyword="frame", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + eval(parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, uniformscaling::Bool=true, colormap=colormap_gyr, vspeed=1.0, movieformat="mp4", movieopacity::Bool=false, kw...) where {T,N}
 	if !checkdimension(dim, N)
 		return
 	end
@@ -113,7 +113,7 @@ function plot2tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, dim::Integ
 		end
 	end
 	if movie && prefix != ""
-		makemovie(moviedir=moviedir, prefix=prefix, keyword=keyword, cleanup=cleanup, quiet=quiet, vspeed=vspeed)
+		makemovie(movieformat=movieformat, movieopacity=movieopacity, moviedir=moviedir, prefix=prefix, keyword=keyword, cleanup=cleanup, quiet=quiet, vspeed=vspeed)
 	end
 end
 
@@ -130,7 +130,7 @@ function plotcmptensors(X1::Array{T,N}, T2::Union{TensorDecompositions.Tucker,Te
 	plot2tensors(X1, convert(Array{T,N}, X2), dim; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), kw...)
 end
 
-function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan([X1 X2 X3]), maxvalue=maximumnan([X1 X2 X3]), minvalue2=minvalue, maxvalue2=maxvalue, minvalue3=minvalue, maxvalue3=maxvalue, prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi,moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::String="Dates.Day", dateend=nothing, progressbar=progressbar_regular, barratio::Number=1/2, uniformscaling::Bool=true, vspeed=1.0, colormap=colormap_gyr, overlap::Bool=false, opacity=0.8, kw...) where {T,N}
+function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan([X1 X2 X3]), maxvalue=maximumnan([X1 X2 X3]), minvalue2=minvalue, maxvalue2=maxvalue, minvalue3=minvalue, maxvalue3=maxvalue, prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi,moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::String="Dates.Day", dateend=nothing, progressbar=progressbar_regular, barratio::Number=1/2, uniformscaling::Bool=true, vspeed=1.0, movieformat="mp4", movieopacity::Bool=false, colormap=colormap_gyr, overlap::Bool=false, opacity=0.8, kw...) where {T,N}
 	recursivemkdir(prefix)
 	if !checkdimension(dim, N)
 		return
@@ -201,7 +201,7 @@ function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::Abstra
 		end
 	end
 	if movie && prefix != ""
-		makemovie(moviedir=moviedir, prefix=prefix, keyword=keyword, cleanup=cleanup, quiet=quiet, vspeed=vspeed)
+		makemovie(movieformat=movieformat, movieopacity=movieopacity, moviedir=moviedir, prefix=prefix, keyword=keyword, cleanup=cleanup, quiet=quiet, vspeed=vspeed)
 	end
 end
 

@@ -685,9 +685,31 @@ function getradialmap(X::Matrix, x0, y0, nr, na)
 	return R
 end
 
-function makemovie(; moviedir=".", prefix::String="", keyword="frame", cleanup::Bool=true, quiet::Bool=false, vspeed::Number=1.0)
+function makemovie(; movieformat="mp4", movieopacity::Bool=false, moviedir=".", prefix::String="", keyword="frame", imgformat = "png", cleanup::Bool=true, quiet::Bool=false, vspeed::Number=1.0)
 	p = joinpath(moviedir, prefix)
-	c = `ffmpeg -i $p-$(keyword)%06d.png -vcodec libx264 -pix_fmt yuv420p -f mp4 -filter:v "setpts=$vspeed*PTS" -y $p.mp4`
+	if movieopacity
+		s = splitdir(p)
+		files = searchdir(Regex(string("$(s[2])-$(keyword)", ".*\.", "$imgformat")), s[1])
+		for f in files
+			e = splitext(f)
+			c = `convert -background black -flatten -format jpg $(joinpath(s[1], f)) $(joinpath(s[1], e[1])).jpg`
+			if quiet
+				run(pipeline(c, stdout=DevNull, stderr=DevNull))
+			else
+				run(c)
+			end
+		end
+		cleanup && run(`find $moviedir -name $prefix-$(keyword)"*".$imgformat -delete`)
+		imgformat = "jpg"
+	end
+	# c = `ffmpeg -i $p-$(keyword)%06d.png -vcodec png -pix_fmt rgba -f mp4 -filter:v "setpts=$vspeed*PTS" -y $p.mp4`
+	if movieformat == "png"
+		c = `ffmpeg -i $p-$(keyword)%06d.$imgformat -vcodec png -filter:v "setpts=$vspeed*PTS" -y $p.avi`
+	elseif movieformat == "webm"
+		c = `ffmpeg -i $p-$(keyword)%06d.$imgformat -vcodec libvpx -pix_fmt yuva420p -auto-alt-ref 0 -filter:v "setpts=$vspeed*PTS" -y $p.webm`
+	else
+		c = `ffmpeg -i $p-$(keyword)%06d.$imgformat -vcodec libx264 -pix_fmt yuv420p -f mp4 -filter:v "setpts=$vspeed*PTS" -y $p.mp4`
+	end
 	if quiet
 		run(pipeline(c, stdout=DevNull, stderr=DevNull))
 	else
@@ -699,5 +721,5 @@ function makemovie(; moviedir=".", prefix::String="", keyword="frame", cleanup::
 			moviedir = "."
 		end
 	end
-	cleanup && run(`find $moviedir -name $prefix-$(keyword)"*".png -delete`)
+	cleanup && run(`find $moviedir -name $prefix-$(keyword)"*".$imgformat -delete`)
 end
