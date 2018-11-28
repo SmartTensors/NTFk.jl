@@ -205,12 +205,18 @@ function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::Abstra
 	end
 end
 
-function plotleftmatrix(X1::Matrix, X2::Matrix; kw...)
-	plot3tensors([X1], [X2], [X2.-X1], 1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), kw...)
+function plotleftmatrix(X1::Matrix, X2::Matrix; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), minvalue3=nothing, maxvalue3=nothing, center=true, kw...)
+	D = X2 .- X1
+	minvalue3 = minvalue3 == nothing ? minimumnan(D) : minvalue3
+	maxvalue3 = maxvalue3 == nothing ? maximumnan(D) : maxvalue3
+	if center
+		minvalue3, maxvalue3 = min(minvalue3, -maxvalue3), max(maxvalue3, -minvalue3)
+	end
+	plot3tensors([X1], [X2], [D], 1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), minvalue3=minvalue3, maxvalue3=maxvalue3, kw...)
 end
 
 function plotlefttensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), minvalue3=nothing, maxvalue3=nothing, center=true, kw...)
-	D = X2 - X1
+	D = X2 .- X1
 	minvalue3 = minvalue3 == nothing ? minimumnan(D) : minvalue3
 	maxvalue3 = maxvalue3 == nothing ? maximumnan(D) : maxvalue3
 	if center
