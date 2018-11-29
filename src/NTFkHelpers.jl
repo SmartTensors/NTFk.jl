@@ -197,7 +197,7 @@ function getgridvalues(v, r; logtransform=true)
 	return f
 end
 
-function getinterpolatedtensor(t::TensorDecompositions.Tucker{T,N}, v; sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line())), Interpolations.OnCell()]) where {T,N}
+function getinterpolatedtensor(t::TensorDecompositions.Tucker{T,N}, v; sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line())), Interpolations.OnGrid()]) where {T,N}
 	lv = length(v)
 	f = Vector(lv)
 	factors = []
@@ -218,7 +218,7 @@ function getinterpolatedtensor(t::TensorDecompositions.Tucker{T,N}, v; sp=[Inter
 	return tn
 end
 
-function getpredictions(t::TensorDecompositions.Tucker{T,N}, dim, v; sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line())), Interpolations.OnCell()]) where {T,N}
+function getpredictions(t::TensorDecompositions.Tucker{T,N}, dim, v; sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line())), Interpolations.OnGrid()]) where {T,N}
 	factors = []
 	for i = 1:N
 		push!(factors, t.factors[i])
