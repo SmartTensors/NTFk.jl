@@ -687,6 +687,12 @@ end
 
 function makemovie(; movieformat="mp4", movieopacity::Bool=false, moviedir=".", prefix::String="", keyword="frame", imgformat = "png", cleanup::Bool=true, quiet::Bool=false, vspeed::Number=1.0)
 	p = joinpath(moviedir, prefix)
+	if moviedir == "."
+		moviedir, prefix = splitdir(prefix)
+		if moviedir == ""
+			moviedir = "."
+		end
+	end
 	if movieopacity
 		s = splitdir(p)
 		files = searchdir(Regex(string("$(s[2])-$(keyword)", ".*\.", "$imgformat")), s[1])
@@ -714,12 +720,6 @@ function makemovie(; movieformat="mp4", movieopacity::Bool=false, moviedir=".", 
 		run(pipeline(c, stdout=DevNull, stderr=DevNull))
 	else
 		run(c)
-	end
-	if moviedir == "."
-		moviedir, prefix = splitdir(prefix)
-		if moviedir == ""
-			moviedir = "."
-		end
 	end
 	cleanup && run(`find $moviedir -name $prefix-$(keyword)"*".$imgformat -delete`)
 end
