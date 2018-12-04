@@ -227,7 +227,7 @@ function plotMtensors(X::Vector{AbstractArray}, dim::Integer=1; sizes=size(X[1])
 				gv[i] = plotmatrix(X[m][nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ltitle, colormap=colormap[m], key_label_font_size=key_label_font_size, kw...)
 			end
 			g1 =
-			g = Compose.hstack(gv...)
+			g = Compose.hstack(vcat(map(x->[x...], gv)...)...)
 		end
 		if progressbar != nothing
 			if sizes[dim] == 1
