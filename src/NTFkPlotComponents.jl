@@ -158,7 +158,7 @@ function plot3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	plot3tensorcomponents(t, dim, pdim; timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], transform=transform, key_label_font_size=key_label_font_size, kw...)
 end
 
-function plotall3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; mask=nothing, csize::Tuple=TensorToolbox.mrank(t.core), transpose=false, xtitle="Time", ytitle="Magnitude", timescale::Bool=true, datestart=nothing, dateincrement::String="Dates.Day", dateend=nothing, functionname="mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), xmin=datestart, xmax=dateend, ymin=nothing, ymax=nothing, prefix=nothing, maxcomponent=true, savetensorslices=false, transform=nothing, transform2d=nothing, kw...)
+function plotall3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; mask=nothing, csize::Tuple=TensorToolbox.mrank(t.core), transpose=false, xtitle="Time", ytitle="Magnitude", timescale::Bool=true, datestart=nothing, dateincrement::String="Dates.Day", dateend=nothing, functionname="mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), xmin=datestart, xmax=dateend, ymin=nothing, ymax=nothing, prefix=nothing, maxcomponent=false, savetensorslices=false, transform=nothing, transform2d=nothing, kw...)
 	ndimensons = length(t.factors)
 	if !checkdimension(dim, ndimensons) || !checkdimension(pdim, ndimensons)
 		return
@@ -173,7 +173,27 @@ function plotall3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integ
 		s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, code=true, order=order, filter=filter, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, transform=transform2d)
 		progressbar_2d = make_progressbar_2d(s2)
 		prefixnew = prefix == "" ? "" : prefix * "-$(join(filter, "_"))"
-		plot3tensorcomponents(t, dim, pdim; csize=csize, transpose=transpose, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], prefix=prefixnew, X=X, maxcomponent=maxcomponent, savetensorslices=savetensorslices, mask=mask, kw...)
+		plot3tensorcomponents(t, dim, pdim; csize=csize, transpose=transpose, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], prefix=prefixnew, X=X, maxcomponent=maxcomponent, savetensorslices=savetensorslices, mask=mask, signalnames=["T$i" for i = filter], kw...)
+	end
+end
+
+
+function plotallMtensorsandcomponents(t::TensorDecompositions.Tucker, M::Integer, dim::Integer=1, pdim::Integer=dim; mask=nothing, csize::Tuple=TensorToolbox.mrank(t.core), transpose=false, xtitle="Time", ytitle="Magnitude", timescale::Bool=true, datestart=nothing, dateincrement::String="Dates.Day", dateend=nothing, functionname="mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), xmin=datestart, xmax=dateend, ymin=nothing, ymax=nothing, prefix=nothing, maxcomponent=false, savetensorslices=false, transform=nothing, transform2d=nothing, kw...)
+	ndimensons = length(t.factors)
+	if !checkdimension(dim, ndimensons) || !checkdimension(pdim, ndimensons)
+		return
+	end
+	nc = size(t.factors[pdim], 2)
+	np = convert(Int, ceil(nc / M))
+	x = reshape(collect(1:M*np), (M, np))
+	x[x.>nc] .= nc
+	X = gettensorcomponents(t, dim, pdim; transpose=transpose, csize=csize, prefix=prefix, mask=mask, transform=transform, order=order, maxcomponent=maxcomponent, savetensorslices=savetensorslices)
+	for i = 1:np
+		filter = vec(x[:,i])
+		s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, code=true, order=order, filter=filter, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, transform=transform2d)
+		progressbar_2d = make_progressbar_2d(s2)
+		prefixnew = prefix == "" ? "" : prefix * "-$(join(filter, "_"))"
+		plotMtensorcomponents(t, M, dim, pdim; csize=csize, transpose=transpose, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], prefix=prefixnew, X=X, maxcomponent=maxcomponent, savetensorslices=savetensorslices, mask=mask, signalnames=["T$i" for i = filter], kw...)
 	end
 end
 
@@ -188,6 +208,23 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 	pt = getptdimensions(pdim, length(csize), transpose)
 	barratio = (maxcomponent) ? 1/2 : 1/3
 	plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt), 1; prefix=prefix, barratio=barratio, kw...)
+	if maxcomponent && prefix != ""
+		recursivemkdir(prefix)
+		mv("$prefix-frame000001.png", "$prefix-max.png"; remove_destination=true)
+	end
+end
+
+function plotMtensorcomponents(t::TensorDecompositions.Tucker, M::Integer, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, transform=nothing, order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savetensorslices::Bool=false, X=nothing, kw...)
+	if X == nothing
+		X = gettensorcomponents(t, dim, pdim; transpose=transpose, csize=csize, prefix=prefix, filter=filter, mask=mask, transform=transform, order=order, maxcomponent=maxcomponent, savetensorslices=savetensorslices)
+	end
+	pt = getptdimensions(pdim, length(csize), transpose)
+	barratio = (maxcomponent) ? 1/2 : 1/3
+	XM = Vector{AbstractArray}(M)
+	for i = 1:M
+		XM[i] = permutedims(X[order[i]], pt)
+	end
+	plotMtensors(XM, 1; prefix=prefix, barratio=barratio, kw...)
 	if maxcomponent && prefix != ""
 		recursivemkdir(prefix)
 		mv("$prefix-frame000001.png", "$prefix-max.png"; remove_destination=true)
