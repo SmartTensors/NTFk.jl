@@ -181,22 +181,30 @@ function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::Abstra
 				if overlap
 					Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), g), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f)))); println()
 				else
-					Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), g), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f)))); println()
+					Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), Compose.hstack(g1, g2, g3)), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f)))); println()
 				end
 			else
 				if overlap
 					Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(g, f)); println()
 				else
-					Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(g, f)); println()
+					Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(Compose.hstack(g1, g2, g3), f)); println()
 				end
 			end
 		end
 		if prefix != ""
 			filename = setnewfilename(prefix, i; keyword=keyword)
 			if typeof(f) != Compose.Context
-				Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), g), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f))))
+				if overlap
+					Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), g), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f))))
+				else
+					Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), Compose.hstack(g1, g2, g3)), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f))))
+				end
 			else
-				Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Compose.vstack(g, f))
+				if overlap
+					Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Compose.vstack(g, f))
+				else
+					Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Compose.vstack(Compose.hstack(g1, g2, g3), f))
+				end
 			end
 		end
 	end
@@ -215,18 +223,16 @@ function plotMtensors(X::Vector{AbstractArray}, dim::Integer=1; sizes=size(X[1])
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i / $(sizes[dim])"
 		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
+		gv = Vector{Any}(M)
 		if overlap
-			gv = Vector{Any}(M)
 			for m = 1:M
 				gv[m] = plotmatrix(X[m][nt...]; minvalue=minvalue, maxvalue=maxvalue, key_label_font_size=key_label_font_size,title=ltitle, colormap=nothing, defaultcolor=Colors.RGBA(parse.(Colors.Colorant, colors[m]),opacity), code=overlap, kw...)
 			end
 			g = Compose.hstack(Gadfly.plot(vcat(map(x->[x...], gv)...)..., Gadfly.Guide.manual_color_key("", signalnames, signalcolors)))
 		else
-			gv = Vector{Any}(M)
 			for m = 1:M
 				gv[i] = plotmatrix(X[m][nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ltitle, colormap=colormap[m], key_label_font_size=key_label_font_size, kw...)
 			end
-			g1 =
 			g = Compose.hstack(vcat(map(x->[x...], gv)...)...)
 		end
 		if progressbar != nothing
@@ -244,22 +250,30 @@ function plotMtensors(X::Vector{AbstractArray}, dim::Integer=1; sizes=size(X[1])
 				if overlap
 					Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), g), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f)))); println()
 				else
-					Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), g), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f)))); println()
+					Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), Compose.hstack(vcat(map(x->[x...], gv)...)...)), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f)))); println()
 				end
 			else
 				if overlap
 					Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(g, f)); println()
 				else
-					Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(g, f)); println()
+					Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(Compose.hstack(vcat(map(x->[x...], gv)...)...), f)); println()
 				end
 			end
 		end
 		if prefix != ""
 			filename = setnewfilename(prefix, i; keyword=keyword)
 			if typeof(f) != Compose.Context
-				Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), g), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f))))
+				if overlap
+					Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), g), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f))))
+				else
+					Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), Compose.hstack(vcat(map(x->[x...], gv)...)...)), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f))))
+				end
 			else
-				Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Compose.vstack(g, f))
+				if overlap
+					Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Compose.vstack(g, f))
+				else
+					Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Compose.vstack(Compose.hstack(vcat(map(x->[x...], gv)...)...), f))
+				end
 			end
 		end
 	end

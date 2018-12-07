@@ -4,7 +4,7 @@ import Compose
 import TensorToolbox
 import TensorDecompositions
 
-function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, dpi::Integer=imagedpi, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true,  datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), xmin=datestart, xmax=dateend, transform=nothing, linewidth=2Gadfly.pt, separate::Bool=false)
+function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, dpi::Integer=imagedpi, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), xmin=datestart, xmax=dateend, transform=nothing, linewidth=2Gadfly.pt, separate::Bool=false)
 	recursivemkdir(figuredir; filename=false)
 	recursivemkdir(filename)
 	csize = TensorToolbox.mrank(t.core)
@@ -20,7 +20,7 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 		end
 	else
 		if xmax == nothing
-			xmax = 1
+			xmax = timescale ? 1 : nx
 		end
 		xvalues = timescale ? vec(collect(xmax/nx:xmax/nx:xmax)) : vec(collect(1:nx))
 	end
