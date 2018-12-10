@@ -115,11 +115,9 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 		recursivemkdir(prefix; filename=false)
 		JLD.save("$(resultdir)/$(prefix)-$(mapsize(csize))->$(mapsize(csize_new)).jld", "t", tsi[imin])
 	end
-
 	if sum(nans) > 0
 		X[nans] .= NaN
 	end
-
 	return tsi[imin], residues[imin], correlations, minsilhouette
 end
 
