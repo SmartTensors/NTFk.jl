@@ -13,7 +13,13 @@ function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1,
 	end
 	recursivemkdir(resultdir; filename=false)
 	recursivemkdir(prefix; filename=false)
-	seed >= 0 && srand(seed)
+	if seed < 0
+		seed = abs(rand(Int16))
+		info("Random seed: $seed")
+	else
+		info("Provided seed: $seed")
+	end
+	srand(seed)
 	tsize = size(X)
 	ndimensons = length(tsize)
 	info("CP core rank: $(trank)")
@@ -22,10 +28,10 @@ function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1,
 	WBig = Vector{Matrix}(nTF)
 	cpbest = nothing
 	if nprocs() > 1 && !serial
-		cpi = pmap(i->(srand(seed+i); NTFk.candecomp(X, trank; verbose=verbose, maxiter=max_iter, method=method, tol=tol, kw...)), 1:nTF)
+		cpi = pmap(i->(srand(seed+i); NTFk.candecomp(X, trank; tsize=tsize, verbose=verbose, maxiter=max_iter, method=method, tol=tol, kw...)), 1:nTF)
 	else
 		for n = 1:nTF
-			@time cpi[n] = NTFk.candecomp(X, trank; verbose=verbose, maxiter=max_iter, method=method, tol=tol, kw...)
+			@time cpi[n] = NTFk.candecomp(X, trank; tsize=tsize, verbose=verbose, maxiter=max_iter, method=method, tol=tol, kw...)
 		end
 	end
 	for n = 1:nTF
@@ -50,7 +56,13 @@ function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1,
 end
 
 function analysis(X::AbstractArray{T,N}, tranks::Vector{Int}, nTF=1; seed::Number=-1, method=:ALS, resultdir::String=".", prefix::String="$(string(method))", serial::Bool=false, kw...) where {T,N}
-	seed >= 0 && srand(seed)
+	if seed < 0
+		seed = abs(rand(Int16))
+		info("Random seed: $seed")
+	else
+		info("Provided seed: $seed")
+	end
+	srand(seed)
 	recursivemkdir(resultdir; filename=false)
 	recursivemkdir(prefix; filename=false)
 	tsize = size(X)
@@ -86,4 +98,16 @@ function analysis(X::AbstractArray{T,N}, tranks::Vector{Int}, nTF=1; seed::Numbe
 	info("Estimated true core size: $(csize)")
 	JLD.save("$(resultdir)/$(prefix)-$(csize).jld", "t", cpf)
 	return cpf, csize, ibest
+end
+
+function candecomp(X::AbstractArray{T, N}, r::Integer; tsize=size(X), seed::Number=0, method::Symbol=:ALS, functionname::String=string(method), tol::Float64=1e-8, maxiter::Integer=DMAXITER, compute_error::Bool=true, verbose::Bool=false, kw...) where {T,N}
+	if contains(functionname, "cp_")
+		c = ttanalysis(X, r; seed=seed, functionname=functionname, maxiter=maxiter, tol=tol, kw...)
+	elseif contains(functionname, "bcu_")
+		c = bcuanalysis(X, r; seed=seed, functionname=split(functionname, "bcu_")[2], maxiter=maxiter, tol=tol, kw...)
+	else
+		factors_initial_guess = tuple([randn(T, d, r) for d in tsize]...)
+		c = TensorDecompositions.candecomp(X, r, factors_initial_guess; verbose=verbose, compute_error=compute_error, maxiter=maxiter, method=method)
+	end
+	return c
 end

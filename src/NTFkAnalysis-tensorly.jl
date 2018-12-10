@@ -20,20 +20,27 @@ end
 """
 functionname = "non_negative_tucker", "non_negative_cp"
 backend = "tensorflow", "pytorch", "mxnet", "numpy"
-converter = :numpy, :numpy, :asnumpy
+converter = :numpy, :numpy, :asnumpy, (conversion not needed)
 """
-function tlanalysis(X::Array{T,N}, crank::Vector; seed::Number=1, backend="tensorflow", converter=:numpy, functionname::String="non_negative_tucker", init::String="svd", maxiter::Integer=DMAXITER, tol::Number=1e-4, verbose::Bool=false) where {T, N}
+function tlanalysis(X::Array{T,N}, crank::NTuple{N, Int}; seed::Number=1, backend="tensorflow", converter=:numpy, functionname::AbstractString="non_negative_tucker", init::String="svd", maxiter::Integer=DMAXITER, tol::Number=1e-4, verbose::Bool=false) where {T, N}
 	tensorly[:set_backend](backend)
-	core, factors = tensorlydecomp[Symbol(functionname)](tensorly[:backend][:tensor](X), rank=crank, n_iter_max=maxiter, init=init, tol=tol, verbose=verbose);
+	info("Tensorly backend: $backend")
+	core, factors = tensorlydecomp[Symbol(functionname)](tensorly[:backend][:tensor](X), rank=[crank...], n_iter_max=maxiter, init=init, tol=tol, verbose=verbose);
 	nc = length(factors)
 	f = Vector{Array}(nc)
 	if backend != "numpy"
 		converter = backend == "mxnet" ? :asnumpy : converter
-		core = core[converter]()
+		core =  convert(Array{T,N}, core[converter]())
 		for i = 1:nc
-			f[i] = factors[i][converter]()
+			f[i] = convert(Matrix{T}, factors[i][converter]())
+		end
+	else
+		core =  convert(Array{T,N}, core)
+		for i = 1:nc
+			f[i] = convert(Matrix{T}, factors[i])
 		end
 	end
+	# @show maximum(X .- Xe)
 	TT = TensorDecompositions.Tucker((f...,), core)
 	# Xe = TensorDecompositions.compose(TT)
 	# @show maximum(X .- Xe)
