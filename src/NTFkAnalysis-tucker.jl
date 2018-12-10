@@ -3,7 +3,7 @@ import TensorDecompositions
 "A series of analyses for different core sizes"
 function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Integer=1; clusterdim::Integer=1, resultdir::String=".", prefix::String="spnn", serial::Bool=false, seed::Integer=0, kw...) where {T,N}
 	info("TensorDecompositions Tucker analysis for a series of $(length(csizes)) core sizes ...")
-	warn("Clustering Dimension: $clusterdim")
+	info("Clustering Dimension: $clusterdim")
 	recursivemkdir(resultdir; filename=false)
 	recursivemkdir(prefix; filename=false)
 	@assert clusterdim <= N || clusterdim > 1
