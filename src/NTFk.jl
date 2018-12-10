@@ -89,6 +89,7 @@ else
 end
 
 global imagedpi=150
+global DMAXITER = 1000
 
 import NMFk
 import CanDecomp
@@ -119,7 +120,11 @@ include("NTFkAnalysis-TD.jl")
 include("NTFkAnalysis-TD-mixing.jl")
 include("NTFkAnalysis-TD-helpers.jl")
 include("NTFkAnalysis-TD-memory.jl")
-include("NTFkAnalysis-TD-decomposition.jl")
+include("NTFkAnalysis-TD-normalize.jl")
+include("NTFkAnalysis-TD-atensor.jl")
+include("NTFkAnalysis-TD-candecomp.jl")
+include("NTFkAnalysis-TD-tucker.jl")
+include("NTFkAnalysis-TD-cp.jl")
 include("NTFkAnalysis-tensorly.jl")
 
 if VERSION >= v"0.7"
