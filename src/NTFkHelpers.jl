@@ -695,7 +695,7 @@ function makemovie(; movieformat="mp4", movieopacity::Bool=false, moviedir=".", 
 	end
 	if movieopacity
 		s = splitdir(p)
-		files = searchdir(Regex(string("$(s[2])-$(keyword)", ".*\.", "$imgformat")), s[1])
+		files = searchdir(Regex(string("$(s[2])-$(keyword)", ".*\\.", imgformat)), s[1])
 		for f in files
 			e = splitext(f)
 			c = `convert -background black -flatten -format jpg $(joinpath(s[1], f)) $(joinpath(s[1], e[1])).jpg`

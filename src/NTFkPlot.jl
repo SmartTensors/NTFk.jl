@@ -158,7 +158,7 @@ function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::Abstra
 		if overlap
 			g1 = plotmatrix(X1[nt...]; minvalue=minvalue, maxvalue=maxvalue, key_label_font_size=key_label_font_size,title=ltitle, colormap=nothing, defaultcolor=Colors.RGBA(1.0,0.0,0.0,opacity), code=overlap, kw...)
 			g2 = plotmatrix(X2[nt...]; minvalue=minvalue2, maxvalue=maxvalue2, key_label_font_size=key_label_font_size,title=ctitle, colormap=nothing, defaultcolor=Colors.RGBA(0.0,0.0,1.0,opacity), code=overlap, kw...)
-			g3 = plotmatrix(X3[nt...]; minvalue=minvalue3, maxvalue=maxvalue3, key_label_font_size=key_label_font_size,title=rtitle, colormap=nothing, defaultcolor=Colors.RGBA(0.0,0.502,0.0,opacity), code=overlap, key_label_font_size=key_label_font_size, kw...)
+			g3 = plotmatrix(X3[nt...]; minvalue=minvalue3, maxvalue=maxvalue3, key_label_font_size=key_label_font_size,title=rtitle, colormap=nothing, defaultcolor=Colors.RGBA(0.0,0.502,0.0,opacity), code=overlap, kw...)
 			g = Compose.hstack(Gadfly.plot(g1..., g2..., g3..., Gadfly.Guide.manual_color_key("", signalnames, ["red", "blue", "green"])))
 		else
 			g1 = plotmatrix(X1[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ltitle, colormap=colormap1, key_label_font_size=key_label_font_size, kw...)
