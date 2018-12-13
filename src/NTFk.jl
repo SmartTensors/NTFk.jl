@@ -123,6 +123,7 @@ include("NTFkAnalysis-normalize.jl")
 include("NTFkAnalysis-atensor.jl")
 include("NTFkAnalysis-tucker.jl")
 include("NTFkAnalysis-cp.jl")
+include("NTFkAnalysis-hosvd.jl.jl")
 include("NTFkAnalysis-tensorly.jl")
 
 if VERSION >= v"0.7"
