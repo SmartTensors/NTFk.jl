@@ -4,7 +4,7 @@ import Interpolations
 sprintf(args...) = eval(:@sprintf($(args...)))
 
 searchdir(key::Regex, path::String = ".") = filter(x->ismatch(key, x), readdir(path))
-searchdir(key::String, path::String = ".") = filter(x->contains(x, key), readdir(path))
+searchdir(key::String, path::String = ".") = filter(x->occursin(key, x), readdir(path))
 
 """
 Set image dpi
@@ -30,15 +30,15 @@ end
 function computestats(X, Xe, volumeindex=1:size(Xe,1), wellindex=1:size(Xe,3), timeindex=:, c=""; plot::Bool=false, quiet::Bool=true, wellnames=nothing, xaxis=1:size(Xe,2))
 	m = "%-85s"
 	if Xe == nothing
-		info("$(NMFk.sprintf(m, c)): fails")
+		@info("$(NMFk.sprintf(m, c)): fails")
 		return
 	end
-	ferr = Array{Float64}(length(volumeindex))
-	wsum1 = Array{Float64}(length(wellindex))
-	wsum2 = Array{Float64}(length(wellindex))
-	werr = Array{Float64}(length(wellindex))
-	merr = Array{Float64}(length(volumeindex))
-	fcor = Array{Float64}(length(volumeindex))
+	ferr = Array{Float64}(undef, length(volumeindex))
+	wsum1 = Array{Float64}(undef, length(wellindex))
+	wsum2 = Array{Float64}(undef, length(wellindex))
+	werr = Array{Float64}(undef, length(wellindex))
+	merr = Array{Float64}(undef, length(volumeindex))
+	fcor = Array{Float64}(undef, length(volumeindex))
 	g = "%.2g"
 	f = "%.2f"
 	for (i, v) in enumerate(volumeindex)
@@ -56,7 +56,7 @@ function computestats(X, Xe, volumeindex=1:size(Xe,1), wellindex=1:size(Xe,3), t
 		fcor[i] = cor(vec(wsum1), vec(wsum2))
 	end
 	namecase = lowercase(replace(replace(c, " ", "_"), "/", "_"))
-	info("$(NMFk.sprintf(m, c)): $(NMFk.sprintf(f, NMFk.vecnormnan(X[wellindex,timeindex,volumeindex] .- Xe[wellindex,timeindex,volumeindex]))) [Error: $(NMFk.sprintf(g, ferr[1])) $(NMFk.sprintf(g, ferr[2])) $(NMFk.sprintf(g, ferr[3]))] [Max error: $(NMFk.sprintf(g, merr[1])) $(NMFk.sprintf(g, merr[2])) $(NMFk.sprintf(g, merr[3]))] [Pearson: $(NMFk.sprintf(g, fcor[1])) $(NMFk.sprintf(g, fcor[2])) $(NMFk.sprintf(g, fcor[3]))]")
+	@info("$(NMFk.sprintf(m, c)): $(NMFk.sprintf(f, NMFk.vecnormnan(X[wellindex,timeindex,volumeindex] .- Xe[wellindex,timeindex,volumeindex]))) [Error: $(NMFk.sprintf(g, ferr[1])) $(NMFk.sprintf(g, ferr[2])) $(NMFk.sprintf(g, ferr[3]))] [Max error: $(NMFk.sprintf(g, merr[1])) $(NMFk.sprintf(g, merr[2])) $(NMFk.sprintf(g, merr[3]))] [Pearson: $(NMFk.sprintf(g, fcor[1])) $(NMFk.sprintf(g, fcor[2])) $(NMFk.sprintf(g, fcor[3]))]")
 	!plot && return nothing
 	plot && NTFk.plot2d(X, Xe; quiet=quiet, figuredir="results-12-18", keyword=namecase, titletext=c, wellnames=wellnames, dimname="Well", xaxis=xaxis, ymin=0, xmin=Dates.Date(2015,12,15), xmax=Dates.Date(2017,6,10), linewidth=1.5Gadfly.pt, gm=[Gadfly.Guide.manual_color_key("", ["Oil", "Gas", "Water"], ["green", "red", "blue"])], colors=["green", "red", "blue"])
 end
@@ -64,7 +64,7 @@ end
 function flatten(X::AbstractArray{T,N}, mask::BitArray{M}) where {T,N,M}
 	@assert N - 1 == M
 	sz = size(X)
-	A = Array{T}(sum(.!mask), sz[end])
+	A = Array{T}(undef, sum(.!mask), sz[end])
 	for i = 1:sz[end]
 		nt = ntuple(k->(k == N ? i : Colon()), N)
 		A[:, i] = X[nt...][.!mask]
@@ -74,13 +74,13 @@ end
 
 function flatten(X::AbstractArray{T,N}, dim::Number=1) where {T,N}
 	sz = size(X)
-	nt = Vector{Int64}(0)
+	nt = Vector{Int64}(undef, 0)
 	for k = 1:N
 		if (k != dim)
 			push!(nt, k)
 		end
 	end
-	A = Array{T}(*(sz[nt]...), sz[dim])
+	A = Array{T}(undef, *(sz[nt]...), sz[dim])
 	for i = 1:sz[dim]
 		nt = ntuple(k->(k == dim ? i : Colon()), N)
 		A[:, i] = vec(X[nt...])
@@ -112,8 +112,8 @@ end
 
 function getcsize(case::String; resultdir::String=".", longname=false)
 	files = searchdir(case, resultdir)
-	csize = Vector{Vector{Int64}}(0)
-	kwa = Vector{String}(0)
+	csize = Vector{Vector{Int64}}(undef, 0)
+	kwa = Vector{String}(undef, 0)
 	for (i, f) in enumerate(files)
 		if longname
 			m = match(Regex(string("$(case)(.*)-[0-9]+_[0-9]+_[0-9]+->([0-9]+)_([0-9]+)_([0-9]+).jld")), f)
@@ -142,7 +142,7 @@ function gettensorcomponentsold(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	crank = csize[dim]
-	Xe = Vector{Any}(cs)
+	Xe = Vector{Any}(undef, cs)
 	tt = deepcopy(t)
 	for i = 1:cs
 		if core
@@ -207,7 +207,7 @@ function getinterpolatedtensor(t::TensorDecompositions.Tucker{T,N}, v; sp=[Inter
 	for j = 1:lv
 		if !isnan(v[j])
 			cv = size(t.factors[j], 2)
-			f = Array{T}(1,cv)
+			f = Array{T}(undef, 1,cv)
 			for i = 1:cv
 				f[1, i] = Interpolations.interpolate(t.factors[j][:, i], sp...)[v[j]]
 			end
@@ -224,7 +224,7 @@ function getpredictions(t::TensorDecompositions.Tucker{T,N}, dim, v; sp=[Interpo
 		push!(factors, t.factors[i])
 	end
 	for j = dim
-		f = Array{T}(length(v), size(factors[j], 2))
+		f = Array{T}(undef, length(v), size(factors[j], 2))
 		for i = 1:size(factors[j], 2)
 			f[:,i] = Interpolations.interpolate(t.factors[j][:, i], sp...).(v)
 		end
@@ -236,9 +236,9 @@ end
 
 function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core, firstpeak::Bool=true, reverse=true, quiet=true)
 	cs = size(t.core)[dim]
-	!quiet && info("Core size: $(size(t.core))")
+	!quiet && @info("Core size: $(size(t.core))")
 	csize = TensorToolbox.mrank(t.core)
-	!quiet && info("Core mrank: $csize")
+	!quiet && @info("Core mrank: $csize")
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	crank = cs
@@ -249,10 +249,10 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 		fdx = fmax .- fmin
 		for i = 1:cs
 			if fmax[i] == 0
-				warn("Maximum of component $i is equal to zero!")
+				@warn("Maximum of component $i is equal to zero!")
 			end
 			if fdx[i] == 0
-				warn("Component $i has zero variability!")
+				@warn("Component $i has zero variability!")
 				crank -= 1
 			end
 		end
@@ -261,7 +261,7 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 		else
 			ifdx = flipdim(sortperm(fdx; rev=true)[1:crank], 1)
 		end
-		!quiet && info("Factor magnitudes (max - min): $fdx")
+		!quiet && @info("Factor magnitudes (max - min): $fdx")
 		if firstpeak
 			imax = map(i->indmax(t.factors[dim][:, ifdx[i]]), 1:crank)
 			order = ifdx[sortperm(imax)]
@@ -269,7 +269,7 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 			order = ifdx
 		end
 	else
-		maxXe = Vector{Float64}(cs)
+		maxXe = Vector{Float64}(undef, cs)
 		tt = deepcopy(t)
 		for i = 1:cs
 			if method == :core
@@ -293,7 +293,7 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 				tt.factors[dim] .= t.factors[dim]
 			end
 		end
-		!quiet && info("Max core magnitudes: $maxXe")
+		!quiet && @info("Max core magnitudes: $maxXe")
 		imax = sortperm(maxXe; rev=reverse)
 		order = imax[1:cs]
 	end
@@ -320,7 +320,7 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 		tt = deepcopy(t)
 	end
 	if crank < 3
-		warn("Multilinear rank of the tensor ($(crank)) is less than 3!")
+		@warn("Multilinear rank of the tensor ($(crank)) is less than 3!")
 		for i = 1:length(order)
 			if order[i] > crank
 				order[i] = crank
@@ -330,8 +330,8 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 			push!(order, crank)
 		end
 	end
-	X = Vector{Any}(crank)
-	info("Computing $crank tensor components ...")
+	X = Vector{Any}(undef, crank)
+	@info("Computing $crank tensor components ...")
 	for i = 1:crank
 		for j = 1:crank
 			if i !== j
@@ -384,27 +384,27 @@ function gettensorminmax(t::TensorDecompositions.Tucker, dim::Integer=1; method:
 		@assert cs == length(fmax)
 		for i = 1:cs
 			if fmax[i] == 0
-				warn("Maximum of component $i is equal to zero!")
+				@warn("Maximum of component $i is equal to zero!")
 			end
 		end
-		info("Max factor magnitudes: $fmax")
-		info("Min factor magnitudes: $fmin")
+		@info("Max factor magnitudes: $fmax")
+		@info("Min factor magnitudes: $fmin")
 	elseif method == :all
 		Te = TensorDecompositions.compose(t)
 		tsize = size(Te)
 		ts = tsize[dim]
-		maxTe = Vector{Float64}(ts)
-		minTe = Vector{Float64}(ts)
+		maxTe = Vector{Float64}(undef, ts)
+		minTe = Vector{Float64}(undef, ts)
 		for i = 1:tsize[dim]
 			nt = ntuple(k->(k == dim ? i : Colon()), ndimensons)
 			minTe[i] = minimum(Te[nt...])
 			maxTe[i] = maximum(Te[nt...])
 		end
-		info("Max all magnitudes: $maxTe")
-		info("Min all magnitudes: $minTe")
+		@info("Max all magnitudes: $maxTe")
+		@info("Min all magnitudes: $minTe")
 	else
-		maxXe = Vector{Float64}(cs)
-		minXe = Vector{Float64}(cs)
+		maxXe = Vector{Float64}(undef, cs)
+		minXe = Vector{Float64}(undef, cs)
 		tt = deepcopy(t)
 		for i = 1:cs
 			if method == :core
@@ -430,8 +430,8 @@ function gettensorminmax(t::TensorDecompositions.Tucker, dim::Integer=1; method:
 				tt.factors[dim] .= t.factors[dim]
 			end
 		end
-		info("Max core magnitudes: $maxXe")
-		info("Min core magnitudes: $minXe")
+		@info("Max core magnitudes: $maxXe")
+		@info("Min core magnitudes: $minXe")
 	end
 end
 
@@ -446,7 +446,7 @@ function gettensorcomponentgroups(t::TensorDecompositions.Tucker, dim::Integer=1
 			g[m] = gi
 		end
 	end
-	info("Number of component groups in dimension $dim is $(gi)")
+	@info("Number of component groups in dimension $dim is $(gi)")
 	return g
 end
 
@@ -458,10 +458,10 @@ function gettensormaximums(t::TensorDecompositions.Tucker{T,N}) where {T,N}
 		else
 			vv = v
 		end
-		info("D$i factor: $(vv) Max: $(maximum(v))")
+		@info("D$i factor: $(vv) Max: $(maximum(v))")
 	end
 	for i=1:N
-		dp = Vector{Int64}(0)
+		dp = Vector{Int64}(undef, 0)
 		for j = 1:N
 			if j != i
 				push!(dp, j)
@@ -473,12 +473,12 @@ function gettensormaximums(t::TensorDecompositions.Tucker{T,N}) where {T,N}
 		else
 			vv = v
 		end
-		info("D$i core slice: $(vv) Max: $(maximum(v))")
+		@info("D$i core slice: $(vv) Max: $(maximum(v))")
 	end
 end
 
 function recursivemkdir(s::String; filename=true, quiet=true)
-	d = Vector{String}()
+	d = Vector{String}(undef, 0)
 	sc = deepcopy(s)
 	if !filename && sc!= ""
 		push!(d, sc)
@@ -494,19 +494,19 @@ function recursivemkdir(s::String; filename=true, quiet=true)
 	for i = length(d):-1:1
 		sc = d[i]
 		if isfile(sc)
-			warn("File $(sc) exists! Something wrong with the path $s")
+			@warn("File $(sc) exists! Something wrong with the path $s")
 			return
 		elseif !isdir(sc)
 			mkdir(sc)
-			!quiet && info("Make dir $(sc)")
+			!quiet && @info("Make dir $(sc)")
 		else
-			!quiet && warn("Dir $(sc) exists!")
+			!quiet && @warn("Dir $(sc) exists!")
 		end
 	end
 end
 
 function recursivermdir(s::String; filename=true)
-	d = Vector{String}()
+	d = Vector{String}(undef, )
 	sc = deepcopy(s)
 	if !filename && sc!= ""
 		push!(d, sc)
@@ -527,7 +527,7 @@ function recursivermdir(s::String; filename=true)
 	end
 end
 
-function nanmask!(X::Array, mask::Union{Void,Number})
+function nanmask!(X::Array, mask::Union{Nothing,Number})
 	if mask != nothing
 		X[X.<=mask] .= NaN
 	end
@@ -580,7 +580,7 @@ function mapsize(csize)
 end
 
 function getptdimensions(pdim::Integer, ndimensons::Integer, transpose::Bool=false)
-	pt = Vector{Int64}(0)
+	pt = Vector{Int64}(undef, 0)
 	push!(pt, pdim)
 	if transpose
 		for i = ndimensons:-1:1
@@ -600,7 +600,7 @@ end
 
 function checkdimension(dim::Integer, ndimensons::Integer)
 	if dim > ndimensons || dim < 1
-		warn("Dimension should be >=1 or <=$(length(sizes))")
+		@warn("Dimension should be >=1 or <=$(length(sizes))")
 		return false
 	end
 	return true
@@ -663,7 +663,7 @@ function setnewfilename(filename::String, frame::Integer=0; keyword::String="fra
 		filename = "$(fn[1:rm.offset-1])-$(keyword)$(sprintf(f, v)).$(rm.captures[2])"
 		return joinpath(dir, filename)
 	else
-		warn("setnewfilename failed!")
+		@warn("setnewfilename failed!")
 		return ""
 	end
 end
@@ -671,7 +671,7 @@ end
 function getradialmap(X::Matrix, x0, y0, nr, na)
 	m, n = size(X)
 	itp = Interpolations.interpolate((1:m, 1:n,), X, Interpolations.Gridded(Interpolations.Constant()))
-	R = Array{Float64}(nr, na)
+	R = Array{Float64}(undef, nr, na)
 	thetadx = pi / na
 	for i=1:nr
 		theta = 0

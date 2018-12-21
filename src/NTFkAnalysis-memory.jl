@@ -16,7 +16,7 @@ end
 
 @generated function composeshared(factors::NTuple{N, Matrix{T}}, lambdas::Vector{T}) where {T,N}
 	quote
-		composeshared!(SharedArray{T}(@TensorDecompositions.ntuple $N i -> size(factors[i], 1)), factors, lambdas)
+		composeshared!(SharedArray{T}(undef, @TensorDecompositions.ntuple $N i -> size(factors[i], 1)), factors, lambdas)
 	end
 end
 
@@ -40,7 +40,7 @@ end
 
 @generated function composedistributed(factors::NTuple{N, Matrix{T}}, lambdas::Vector{T}) where {T,N}
 	quote
-		composedistributed!(DistributedArrays.DArray{T,N,Array{T,N}}(@TensorDecompositions.ntuple $N i -> size(factors[i], 1)), factors, lambdas)
+		composedistributed!(DistributedArrays.DArray{T,N,Array{T,N}}(undef, @TensorDecompositions.ntuple $N i -> size(factors[i], 1)), factors, lambdas)
 	end
 end
 

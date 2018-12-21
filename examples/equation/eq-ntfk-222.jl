@@ -4,7 +4,7 @@ csize = (4, 4, 4)
 tsize = (10, 10, 10)
 
 xf = [x->1, x->x, x->sin(x)+1, x->x^2]
-xfactor = Array{Float64}(tsize[1], csize[1])
+xfactor = Array{Float64}(undef, tsize[1], csize[1])
 for i = 1:csize[1]
 	x = linspace(0, 10, tsize[1])
 	xfactor[:,i] = xf[i].(x)
@@ -13,7 +13,7 @@ end
 Mads.plotseries(xfactor)
 
 yf = [y->1, y->y, y->sin(y), y->y^2]
-yfactor = Array{Float64}(tsize[2], csize[2])
+yfactor = Array{Float64}(undef, tsize[2], csize[2])
 for i = 1:csize[2]
 	y = linspace(0, 10, tsize[2])
 	yfactor[:,i] = yf[i].(y)
@@ -22,7 +22,7 @@ end
 Mads.plotseries(yfactor)
 
 zf = [z->1, z->z, z->sin(z), z->z^2]
-zfactor = Array{Float64}(tsize[3], csize[3])
+zfactor = Array{Float64}(undef, tsize[3], csize[3])
 for i = 1:csize[3]
 	z = linspace(0, 10, tsize[3])
 	zfactor[:,i] = zf[i].(z)

@@ -34,7 +34,7 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	if transform != nothing
 		p = transform.(p)
 	end
-	pl = Vector{Any}(ncomponents)
+	pl = Vector{Any}(undef, ncomponents)
 	for i = 1:ncomponents
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
 		pl[i] = Gadfly.layer(x=xvalues, y=p[:, order[filter[i]]], Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth, default_color=cc))
@@ -87,13 +87,13 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 		xvalues = timescale ? vec(collect(xmax/nx:xmax/nx:xmax)) : vec(collect(1:nx))
 	end
 	componentnames = map(i->"T$i", 1:crank)
-	dp = Vector{Int64}(0)
+	dp = Vector{Int64}(undef, 0)
 	for i = 1:ndimensons
 		if i != dim
 			push!(dp, i)
 		end
 	end
-	pl = Vector{Any}(crank)
+	pl = Vector{Any}(undef, crank)
 	tt = deepcopy(t)
 	for (i, o) = enumerate(order)
 		for j = 1:crank
@@ -147,13 +147,13 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 		xvalues = timescale ? vec(collect(xmax/nx:xmax/nx:xmax)) : vec(collect(1:nx))
 	end
 	componentnames = map(i->"T$i", 1:crank)
-	dp = Vector{Int64}(0)
+	dp = Vector{Int64}(undef, 0)
 	for i = 1:ndimensons
 		if i != dim
 			push!(dp, i)
 		end
 	end
-	pl = Vector{Any}(crank+2)
+	pl = Vector{Any}(undef, crank+2)
 	tt = deepcopy(t)
 	for (i, o) = enumerate(order)
 		for j = 1:crank
@@ -226,7 +226,7 @@ function plot2d(T::Array, Te::Array=T; quiet::Bool=false, wellnames=nothing, Tma
 		else
 			println("$dimname $w")
 		end)
-		p = Vector{Any}(nlayers * 2)
+		p = Vector{Any}(undef, nlayers * 2)
 		pc = 1
 		for i = 1:nlayers
 			if nlayers == 1

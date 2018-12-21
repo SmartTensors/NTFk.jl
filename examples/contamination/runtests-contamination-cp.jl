@@ -12,12 +12,12 @@ tranks = collect(1:minimum(tsize))
 # sizes = [(1,2,2), (1,2,2), (1,2,2), (1,2,2), (1,2,3), (1,2,3), (1,2,3), (1,2,3), (1,2,3)]
 ndimensons = length(tsize)
 nruns = length(tranks)
-residues = Array{Float64}(nruns)
-correlations = Array{Float64}(nruns, ndimensons)
-T_esta = Array{Array{Float64,3}}(nruns)
-cpf = Array{TensorDecompositions.CANDECOMP{Float64,3}}(nruns)
+residues = Array{Float64}(undef, nruns)
+correlations = Array{Float64}(undef, nruns, ndimensons)
+T_esta = Array{Array{Float64,3}}(undef, nruns)
+cpf = Array{TensorDecompositions.CANDECOMP{Float64,3}}(undef, nruns)
 for i in 1:nruns
-	info("CP rank: $(tranks[i])")
+	@info("CP rank: $(tranks[i])")
 	factors_initial_guess = tuple([randn(dim, tranks[i]) for dim in tsize]...)
 	@time cpf[i] = TensorDecompositions.candecomp(T, tranks[i], factors_initial_guess, compute_error=true, method=:ALS)
 	T_est = TensorDecompositions.compose(cpf[i])
@@ -29,7 +29,7 @@ for i in 1:nruns
 	println("$i - $(tranks[i]): residual $(residues[i]) tensor correlations $(correlations[i,:]) ")
 end
 
-info("Decompositions:")
+@info("Decompositions:")
 ibest = 1
 best = Inf
 for i in 1:nruns

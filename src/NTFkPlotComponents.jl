@@ -12,7 +12,7 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.CANDECOMP; pre
 	crank = length(t2.lambdas)
 	tt = deepcopy(t2)
 	for i = 1:crank
-		info("Making component $i movie ...")
+		@info("Making component $i movie ...")
 		tt.lambdas[1:end .!== i] = 0
 		if length(filter) == 0
 			X2 = TensorDecompositions.compose(tt)
@@ -34,7 +34,7 @@ function plottensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::I
 	pt = getptdimensions(pdim, ndimensons, transpose)
 	tt = deepcopy(t2)
 	for i = 1:crank
-		info("Making component $(dimname[dim])-$i movie ...")
+		@info("Making component $(dimname[dim])-$i movie ...")
 		for j = 1:crank
 			if i !== j
 				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
@@ -61,9 +61,9 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 	@assert crank > 1
 	pt = getptdimensions(pdim, ndimensons, transpose)
 	tt = deepcopy(t)
-	X = Vector{Any}(crank)
+	X = Vector{Any}(undef, crank)
 	for i = 1:crank
-		info("Making component $(dimname[dim])-$i movie ...")
+		@info("Making component $(dimname[dim])-$i movie ...")
 		for j = 1:crank
 			if i !== j
 				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
@@ -94,9 +94,9 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 	@assert crank > 1
 	pt = getptdimensions(pdim, ndimensons, transpose)
 	tt = deepcopy(t2)
-	X2 = Vector{Any}(crank)
+	X2 = Vector{Any}(undef, crank)
 	for i = 1:crank
-		info("Making component $(dimname[dim])-$i movie ...")
+		@info("Making component $(dimname[dim])-$i movie ...")
 		for j = 1:crank
 			if i !== j
 				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
@@ -220,7 +220,7 @@ function plotMtensorcomponents(t::TensorDecompositions.Tucker, M::Integer, dim::
 	end
 	pt = getptdimensions(pdim, length(csize), transpose)
 	barratio = (maxcomponent) ? 1/2 : 1/3
-	XM = Vector{AbstractArray}(M)
+	XM = Vector{AbstractArray}(undef, M)
 	for i = 1:M
 		XM[i] = permutedims(X[order[i]], pt)
 	end
@@ -238,6 +238,6 @@ function plotalltensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1,
 	for i = 1:length(X)
 		filename = prefix == "" ? "" : "$prefix-tensorslice$i.png"
 		p = plotmatrix(permutedims(X[order[i]], pt)[mdfilter...]; filename=filename, kw...)
-		!quiet && (info("Slice $i"); display(p); println();)
+		!quiet && (@info("Slice $i"); display(p); println();)
 	end
 end

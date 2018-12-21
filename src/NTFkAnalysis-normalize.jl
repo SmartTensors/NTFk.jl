@@ -15,7 +15,7 @@ function normalizefactors!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check
 	end
 	if check
 		Xe = TensorDecompositions.compose(X)
-		info("Normalization error: $(vecnorm(Xi .- Xe))")
+		@info("Normalization error: $(norm(Xi .- Xe))")
 	end
 	return nothing
 end
@@ -25,19 +25,19 @@ function normalizecore!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::B
 	l = size(X.core)
 	v = collect(1:N)
 	for i = order
-		m = vec(maximum(X.core, v[v.!=i]))
+		m = vec(maximum(X.core; dims=v[v.!=i]))
 		X.factors[i] .*= m'
-		m[m.==0] = 1.0
+		m[m.==0] .= 1.0
 		for j = 1:l[i]
 			ind = map(k->((i==k) ? j : Colon()), 1:N)
 			X.core[ind...] ./= m[j]
 			# @show m[j]
 		end
-		m = vec(maximum(X.core, v[v.!=i]))
+		m = vec(maximum(X.core; dims=v[v.!=i]))
 	end
 	if check
 		Xe = TensorDecompositions.compose(X)
-		info("Normalization error: $(vecnorm(Xi .- Xe))")
+		@info("Normalization error: $(norm(Xi .- Xe))")
 	end
 	return nothing
 end
@@ -54,7 +54,7 @@ function normalizeslices!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check:
 	end
 	if check
 		Xe = TensorDecompositions.compose(X)
-		info("Normalization error: $(vecnorm(Xi .- Xe))")
+		@info("Normalization error: $(norm(Xi .- Xe))")
 	end
 end
 
@@ -68,7 +68,7 @@ function normalizefactors!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; ch
 	end
 	if check
 		Xe = TensorDecompositions.compose(X)
-		info("Normalization error: $(vecnorm(Xi .- Xe))")
+		@info("Normalization error: $(norm(Xi .- Xe))")
 	end
 	return nothing
 end
@@ -84,7 +84,7 @@ function normalizelambdas!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; ch
 	X.lambdas ./= m
 	if check
 		Xe = TensorDecompositions.compose(X)
-		info("Normalization error: $(vecnorm(Xi .- Xe))")
+		@info("Normalization error: $(norm(Xi .- Xe))")
 	end
 	return nothing
 end

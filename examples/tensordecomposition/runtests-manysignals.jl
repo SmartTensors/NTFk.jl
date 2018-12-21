@@ -13,7 +13,7 @@ function makesignal(s, t, v)
 	return a
 end
 
-srand(10)
+Random.seed!(10)
 
 tsize = (50, 50, 50)
 v = [1.1,1.2,1.3,1.4,1.5,1.6]
@@ -22,7 +22,7 @@ for i = 1:length(v)
 	tt[i] = makesignal(tsize[1], tsize[3], v[i])
 end
 m = rand(vec(collect(0:length(v))), tsize[2])
-T = Array{Float64}(tsize)
+T = Array{Float64}(undef, tsize)
 for i = 1:tsize[2]
 	if m[i] == 0
 		T[:,i,:] = zeros(tsize[1], tsize[3])

@@ -29,8 +29,8 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 	ds = min.(size(Xp)) == 1 ? [Gadfly.Scale.x_discrete, Gadfly.Scale.y_discrete] : []
 	if polygon != nothing
 		if xplot == nothing && yplot == nothing
-			xplot = Vector{Float64}(2)
-			yplot = Vector{Float64}(2)
+			xplot = Vector{Float64}(undef, 2)
+			yplot = Vector{Float64}(undef, 2)
 			xplot[1] = minimum(polygon[:,1])
 			xplot[2] = maximum(polygon[:,1])
 			yplot[1] = minimum(polygon[:,2])

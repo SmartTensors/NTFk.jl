@@ -1,6 +1,6 @@
 import NTFk
 
-srand(1)
+Random.seed!(1)
 csize = (2, 3, 4)
 tsize = (7, 667, 3038)
 # tsize = (5, 10, 15)

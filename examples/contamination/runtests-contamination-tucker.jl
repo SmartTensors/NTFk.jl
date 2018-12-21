@@ -13,14 +13,14 @@ sizes = [size(T) .- 1]
 # sizes = [(1,2,2), (1,2,2), (1,2,2), (1,2,2), (1,2,3), (1,2,3), (1,2,3), (1,2,3), (1,2,3)]
 ndimensons = length(sizes[1])
 nruns = length(sizes)
-residues = Array{Float64}(nruns)
-correlations = Array{Float64}(nruns, ndimensons)
-T_esta = Array{Array{Float64,3}}(nruns)
-tucker_spnn = Array{TensorDecompositions.Tucker{Float64,3}}(nruns)
+residues = Array{Float64}(undef, nruns)
+correlations = Array{Float64}(undef, nruns, ndimensons)
+T_esta = Array{Array{Float64,3}}(undef, nruns)
+tucker_spnn = Array{TensorDecompositions.Tucker{Float64,3}}(undef, nruns)
 T_est = nothing
 for i in 1:nruns
-	info("Core size: $(sizes[i])")
-	@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i], tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambdas=fill(0.1, length(sizes[i]) + 1))
+	@info("Core size: $(sizes[i])")
+	@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i], tol=1e-16, core_nonneg=true, verbose=false, max_iter=50000, lambdas=fill(0.1, length(sizes[i]) + 1))
 	T_est = TensorDecompositions.compose(tucker_spnn[i])
 	T_esta[i] = T_est
 	residues[i] = TensorDecompositions.rel_residue(tucker_spnn[i])
@@ -42,7 +42,7 @@ end
 csize = TensorToolbox.mrank(tucker_spnn[ibest].core)
 NTFk.atensor(tucker_spnn[ibest].core)
 ndimensons = length(csize)
-info("Estimated true core size: $(csize)")
+@info("Estimated true core size: $(csize)")
 
 sizes = [csize]
 for i = 1:ndimensons
@@ -51,14 +51,14 @@ for i = 1:ndimensons
 end
 
 nruns = length(sizes)
-residues = Array{Float64}(nruns)
-correlations = Array{Float64}(nruns, ndimensons)
-T_esta = Array{Array{Float64,3}}(nruns)
-tucker_spnn = Array{TensorDecompositions.Tucker{Float64,3}}(nruns)
+residues = Array{Float64}(undef, nruns)
+correlations = Array{Float64}(undef, nruns, ndimensons)
+T_esta = Array{Array{Float64,3}}(undef, nruns)
+tucker_spnn = Array{TensorDecompositions.Tucker{Float64,3}}(undef, nruns)
 T_est = nothing
 for i in 1:nruns
-	info("Core size: $(sizes[i])")
-	@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i], tol=1e-16, ini_decomp=:hosvd, core_nonneg=true, verbose=false, max_iter=50000, lambdas=fill(0.1, length(sizes[i]) + 1))
+	@info("Core size: $(sizes[i])")
+	@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i], tol=1e-16, core_nonneg=true, verbose=false, max_iter=50000, lambdas=fill(0.1, length(sizes[i]) + 1))
 	T_est = TensorDecompositions.compose(tucker_spnn[i])
 	T_esta[i] = T_est
 	residues[i] = TensorDecompositions.rel_residue(tucker_spnn[i])
@@ -68,7 +68,7 @@ for i in 1:nruns
 	println("$i - $(sizes[i]): residual $(residues[i]) tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core))")
 end
 
-info("Decompositions:")
+@info("Decompositions:")
 ibest = 1
 best = Inf
 for i in 1:nruns

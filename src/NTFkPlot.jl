@@ -223,7 +223,7 @@ function plotMtensors(X::Vector{AbstractArray}, dim::Integer=1; sizes=size(X[1])
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i / $(sizes[dim])"
 		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
-		gv = Vector{Any}(M)
+		gv = Vector{Any}(undef, M)
 		if overlap
 			for m = 1:M
 				gv[m] = plotmatrix(X[m][nt...]; minvalue=minvalue, maxvalue=maxvalue, key_label_font_size=key_label_font_size,title=ltitle, colormap=nothing, defaultcolor=Colors.RGBA(parse.(Colors.Colorant, colors[m]),opacity), code=overlap, kw...)

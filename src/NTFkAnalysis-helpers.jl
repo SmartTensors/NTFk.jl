@@ -1,6 +1,6 @@
 import TensorDecompositions
 
-randomarray(dims, nonneg::Bool=true) = nonneg ? abs.(rand(dims)) : rand(dims)
+randomarray(dims, nonneg::Bool=true) = nonneg ? abs.(rand(dims...)) : rand(dims...)
 
 function diagonal_tucker(core_dims::NTuple{N, Int}, dims::NTuple{N, Int}; core_nonneg::Bool=true, factors_nonneg::Bool=true) where {N}
 	cdim = maximum(core_dims)
@@ -34,7 +34,7 @@ function add_noise(tnsr::AbstractArray{T,N}, sn_ratio = 0.6, nonnegative::Bool =
 	if nonnegative
 		map!(x -> max(0.0, x), tnsr_noise, tnsr_noise)
 	end
-	tnsr + 10^(-sn_ratio/0.2) * vecnorm(tnsr) / vecnorm(tnsr) * tnsr_noise
+	tnsr + 10^(-sn_ratio/0.2) * norm(tnsr) / norm(tnsr) * tnsr_noise
 end
 
 function arrayoperation(A::AbstractArray{T,N}, tmap=ntuple(k->(Colon()), N), functionname="mean") where {T, N}
@@ -45,13 +45,13 @@ function arrayoperation(A::AbstractArray{T,N}, tmap=ntuple(k->(Colon()), N), fun
 			if nci == 0
 				nci = i
 			else
-				warn("Map ($(tmap)) is wrong! More than one non-colon fields! Operation failed!")
+				@warn("Map ($(tmap)) is wrong! More than one non-colon fields! Operation failed!")
 				return
 			end
 		end
 	end
 	if nci == 0
-		warn("Map ($(tmap)) is wrong! Only one non-colon field is needed! Operation failed!")
+		@warn("Map ($(tmap)) is wrong! Only one non-colon field is needed! Operation failed!")
 		return
 	end
 	el = tmap[nci]
@@ -74,7 +74,7 @@ function movingaverage(A::AbstractArray{T, N}, masize::Number=1) where {T, N}
 	I1, Iend = first(R), last(R)
 	for I in R
 		#n, s = 0, zero(eltype(B))
-		s = Vector{T}(0)
+		s = Vector{T}(undef, 0)
 		for J in CartesianRange(max(I1, I-masize), min(Iend, I+masize))
 			push!(s, A[J])
 			#s += A[J]
@@ -88,14 +88,14 @@ end
 function clusterfactors(W, quiet)
 	clusterassignments, M = NMFk.clustersolutions(W)
 	if !quiet
-		info("Cluster assignments:")
+		@info("Cluster assignments:")
 		display(clusterassignments)
-		info("Cluster centroids:")
+		@info("Cluster centroids:")
 		display(M)
 	end
 	_, clustersilhouettes, _ = NMFk.finalize(W, clusterassignments)
 	if !quiet
-		info("Silhouettes for each of the $(length(clustersilhouettes)) clusters:" )
+		@info("Silhouettes for each of the $(length(clustersilhouettes)) clusters:" )
 		display(clustersilhouettes')
 		println("Mean silhouette = ", mean(clustersilhouettes))
 		println("Min  silhouette = ", minimum(clustersilhouettes))
@@ -134,13 +134,13 @@ function mincorrelations(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}) where {
 	if N == 3
 		tsize = size(X1)
 		@assert tsize == size(X2)
-		c = Vector{T}(N)
+		c = Vector{T}(undef, N)
 		c[1] = minimum(map(j->minimum(map(k->corinf(X1[:,k,j], X2[:,k,j]), 1:tsize[2])), 1:tsize[3]))
 		c[2] = minimum(map(j->minimum(map(k->corinf(X1[k,:,j], X2[k,:,j]), 1:tsize[1])), 1:tsize[3]))
 		c[3] = minimum(map(j->minimum(map(k->corinf(X1[k,j,:], X2[k,j,:]), 1:tsize[1])), 1:tsize[2]))
 		return c
 	else
-		warn("Minimum correlations can be computed for 3 dimensional tensors only; D=$N")
+		@warn("Minimum correlations can be computed for 3 dimensional tensors only; D=$N")
 		return NaN
 	end
 end

@@ -1,7 +1,7 @@
 import NTFk
 
 tsize = (2, 10, 5)
-T_orig = Array{Float64}(tsize)
+T_orig = Array{Float64}(undef, tsize)
 T_orig[:,:,1] = [ones(2,2) zeros(2,8)]
 T_orig[:,:,2] = [zeros(2,2) ones(2,2) zeros(2,6)]
 T_orig[:,:,3] = [zeros(2,4) ones(2,2) zeros(2,4)]

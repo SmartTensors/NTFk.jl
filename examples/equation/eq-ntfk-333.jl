@@ -4,7 +4,7 @@ csize = (3, 3, 3)
 tsize = (20, 30, 40)
 
 xf = [x->1., x->sin(x)+1, x->x^2]
-xfactor = Array{Float64}(tsize[1], csize[1])
+xfactor = Array{Float64}(undef, tsize[1], csize[1])
 for i = 1:csize[1]
 	x = linspace(0, 10, tsize[1])
 	xfactor[:,i] = xf[i].(x)
@@ -14,7 +14,7 @@ xfactori = xfactor + rand(size(xfactor)) *.01
 Mads.plotseries(xfactor)
 
 yf = [y->1., y->cos(y), y->exp(y)]
-yfactor = Array{Float64}(tsize[2], csize[2])
+yfactor = Array{Float64}(undef, tsize[2], csize[2])
 for i = 1:csize[2]
 	y = linspace(0, 10, tsize[2])
 	yfactor[:,i] = yf[i].(y)
@@ -24,7 +24,7 @@ yfactori = yfactor + rand(size(yfactor)) *.01
 Mads.plotseries(yfactor)
 
 zf = [z->1., z->cos(2z)+1, z->sqrt(z)]
-zfactor = Array{Float64}(tsize[3], csize[3])
+zfactor = Array{Float64}(undef, tsize[3], csize[3])
 for i = 1:csize[3]
 	z = linspace(0, 10, tsize[3])
 	zfactor[:,i] = zf[i].(z)
@@ -60,7 +60,7 @@ Mads.plotseries(ths.factors[3])
 ttu, ecsize, ibest = NTFk.analysis(T_orig, [csize], 1; eigmethod=[false,false,false], max_iter=100000, lambda=0., prefix="results/spnn-333")
 # ttu, ecsize, ibest = NTFk.analysis(T_orig, [(3,30,40)], 1; eigmethod=[false,false,false], lambda=1., prefix="results/spnn-33040")
 T_est = TensorDecompositions.compose(ttu[ibest]);
-info("Norm $(vecnorm(T_orig .- T_est))")
+@info("Norm $(norm(T_orig .- T_est))")
 NTFk.normalizecore!(ttu[ibest])
 NTFk.normalizefactors!(ttu[ibest])
 Mads.plotseries(xfactor)

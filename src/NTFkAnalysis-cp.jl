@@ -4,31 +4,31 @@ import TensorDecompositions
 methods: ALS, SGSD, cp_als, cp_apr, cp_nmu, cp_opt, cp_sym, cp_wopt
 """
 function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1, tol=1e-8, verbose=false, max_iter=DMAXITER, method=:ALS, resultdir::String=".", prefix::String="$(string(method))", quiet=true, serial::Bool=false, saveall=false, kw...) where {T,N}
-	if contains(string(method), "cp_")
-		info("MATLAB TensorToolbox CanDecomp analysis using $(string(method)) ...")
-	elseif contains(string(method), "bcu_")
-		info("MATLAB Block-coordinate nonconvex CanDecomp analysis using $(string(method)) ...")
+	if occursin("cp_", string(method))
+		@info("MATLAB TensorToolbox CanDecomp analysis using $(string(method)) ...")
+	elseif occursin("bcu_", string(method))
+		@info("MATLAB Block-coordinate nonconvex CanDecomp analysis using $(string(method)) ...")
 	else
-		info("TensorDecompositions CanDecomp analysis using $(string(method)) ...")
+		@info("TensorDecompositions CanDecomp analysis using $(string(method)) ...")
 	end
 	recursivemkdir(resultdir; filename=false)
 	recursivemkdir(prefix; filename=false)
 	if seed < 0
 		seed = abs(rand(Int16))
-		info("Random seed: $seed")
+		@info("Random seed: $seed")
 	else
-		info("Provided seed: $seed")
+		@info("Provided seed: $seed")
 	end
-	srand(seed)
+	Random.seed!(seed)
 	tsize = size(X)
 	ndimensons = length(tsize)
-	info("CP core rank: $(trank)")
-	residues = Array{T}(nTF)
-	cpi = Array{TensorDecompositions.CANDECOMP{T,N}}(nTF)
-	WBig = Vector{Matrix}(nTF)
+	@info("CP core rank: $(trank)")
+	residues = Array{T}(undef, nTF)
+	cpi = Array{TensorDecompositions.CANDECOMP{T,N}}(undef, nTF)
+	WBig = Vector{Matrix}(undef, nTF)
 	cpbest = nothing
 	if nprocs() > 1 && !serial
-		cpi = pmap(i->(srand(seed+i); NTFk.candecomp(X, trank; tsize=tsize, verbose=verbose, maxiter=max_iter, method=method, tol=tol, kw...)), 1:nTF)
+		cpi = pmap(i->(Random.seed!(seed+i); NTFk.candecomp(X, trank; tsize=tsize, verbose=verbose, maxiter=max_iter, method=method, tol=tol, kw...)), 1:nTF)
 	else
 		for n = 1:nTF
 			@time cpi[n] = NTFk.candecomp(X, trank; tsize=tsize, verbose=verbose, maxiter=max_iter, method=method, tol=tol, kw...)
@@ -58,22 +58,22 @@ end
 function analysis(X::AbstractArray{T,N}, tranks::Vector{Int}, nTF=1; seed::Number=-1, method=:ALS, resultdir::String=".", prefix::String="$(string(method))", serial::Bool=false, kw...) where {T,N}
 	if seed < 0
 		seed = abs(rand(Int16))
-		info("Random seed: $seed")
+		@info("Random seed: $seed")
 	else
-		info("Provided seed: $seed")
+		@info("Provided seed: $seed")
 	end
-	srand(seed)
+	Random.seed!(seed)
 	recursivemkdir(resultdir; filename=false)
 	recursivemkdir(prefix; filename=false)
 	tsize = size(X)
 	ndimensons = length(tsize)
 	nruns = length(tranks)
-	residues = Array{T}(nruns)
-	correlations = Array{T}(nruns, ndimensons)
-	cpf = Array{TensorDecompositions.CANDECOMP{T,N}}(nruns)
-	minsilhouette = Array{Float64}(nruns)
+	residues = Array{T}(undef, nruns)
+	correlations = Array{T}(undef, nruns, ndimensons)
+	cpf = Array{TensorDecompositions.CANDECOMP{T,N}}(undef, nruns)
+	minsilhouette = Array{Float64}(undef, nruns)
 	if nprocs() > 1 && !serial
-		r = pmap(i->(srand(seed+i); analysis(X, tranks[i], nTF; method=method, resultdir=resultdir, prefix=prefix, kw..., serial=true, quiet=true)), 1:nruns)
+		r = pmap(i->(Random.seed!(seed+i); analysis(X, tranks[i], nTF; method=method, resultdir=resultdir, prefix=prefix, kw..., serial=true, quiet=true)), 1:nruns)
 		cpf = map(i->(r[i][1]), 1:nruns)
 		residues = map(i->(r[i][2]), 1:nruns)
 		correlations = map(i->(r[i][3]), 1:nruns)
@@ -84,7 +84,7 @@ function analysis(X::AbstractArray{T,N}, tranks::Vector{Int}, nTF=1; seed::Numbe
 			cpf[i], residues[i], correlations[i, :], minsilhouette[i] = analysis(X, tranks[i], nTF; method=method, resultdir=resultdir, prefix=prefix, serial=s, kw...)
 		end
 	end
-	info("Decompositions:")
+	@info("Decompositions:")
 	ibest = 1
 	best = Inf
 	for i in 1:nruns
@@ -95,15 +95,15 @@ function analysis(X::AbstractArray{T,N}, tranks::Vector{Int}, nTF=1; seed::Numbe
 		println("$i - $(tranks[i]): residual $(residues[i]) worst tensor correlations $(correlations[i,:]) silhouette $(minsilhouette[i])")
 	end
 	csize = length(cpf[ibest].lambdas)
-	info("Estimated true core size: $(csize)")
+	@info("Estimated true core size: $(csize)")
 	JLD.save("$(resultdir)/$(prefix)-$(csize).jld", "t", cpf)
 	return cpf, csize, ibest
 end
 
 function candecomp(X::AbstractArray{T, N}, r::Integer; tsize=size(X), seed::Number=0, method::Symbol=:ALS, functionname::String=string(method), tol::Float64=1e-8, maxiter::Integer=DMAXITER, compute_error::Bool=true, verbose::Bool=false, kw...) where {T,N}
-	if contains(functionname, "cp_")
+	if occursin("cp_", string(method))
 		c = ttanalysis(X, r; seed=seed, functionname=functionname, maxiter=maxiter, tol=tol, kw...)
-	elseif contains(functionname, "bcu_")
+	elseif occursin("bcu_", string(method))
 		c = bcuanalysis(X, r; seed=seed, functionname=split(functionname, "bcu_")[2], maxiter=maxiter, tol=tol, kw...)
 	else
 		factors_initial_guess = tuple([randn(T, d, r) for d in tsize]...)

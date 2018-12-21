@@ -26,14 +26,14 @@ function ispkgavailable(modulename::String; quiet::Bool=false)
 	flag=false
 	try
 		Pkg.available(modulename)
-		if typeof(Pkg.installed(modulename)) == Void
+		if typeof(Pkg.installed(modulename)) == Nothing
 			flag=false
-			!quiet && info("Module $modulename is not available")
+			!quiet && @info("Module $modulename is not available")
 		else
 			flag=true
 		end
 	catch
-		!quiet && info("Module $modulename is not available")
+		!quiet && @info("Module $modulename is not available")
 	end
 	return flag
 end
@@ -42,9 +42,9 @@ end
 function printerrormsg(errmsg::Any)
 	Base.showerror(Base.STDERR, errmsg)
 	if in(:msg, fieldnames(errmsg))
-		warn(strip(errmsg.msg))
+		@warn(strip(errmsg.msg))
 	elseif typeof(errmsg) <: AbstractString
-		warn(errmsg)
+		@warn(errmsg)
 	end
 end
 
@@ -60,7 +60,7 @@ if VERSION >= v"0.7"
 				eval(Meta.parse($importq))
 			catch errmsg
 				printerrormsg(errmsg)
-				warn($warnstring)
+				@warn($warnstring)
 			end
 		end
 		return :($(esc(q)))
@@ -78,10 +78,10 @@ else
 					eval(parse($importq))
 				catch errmsg
 					printerrormsg(errmsg)
-					warn($warnstring)
+					@warn($warnstring)
 				end
 			else
-				info($infostring)
+				@info($infostring)
 			end
 		end
 		return :($(esc(q)))

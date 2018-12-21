@@ -1,6 +1,6 @@
 import NTFk
 
-srand(1)
+Random.seed!(1)
 csize = (1, 1, 1)
 tsize = (5, 10, 15)
 tucker_orig = NTFk.rand_tucker(csize, tsize, factors_nonneg=true, core_nonneg=true)

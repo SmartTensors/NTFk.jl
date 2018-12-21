@@ -6,11 +6,11 @@ end
 
 function atensor(X::Array)
 	nd = ndims(X)
-	info("Number of dimensions: $nd")
+	@info("Number of dimensions: $nd")
 	tsize = size(X)
-	mask = Vector{Vector{Bool}}(nd)
+	mask = Vector{Vector{Bool}}(undef, nd)
 	for i = 1:nd
-		info("D$i ($(tsize[i]))")
+		@info("D$i ($(tsize[i]))")
 		mask[i] = trues(tsize[i])
 		for j = 1:tsize[i]
 			st = ntuple(k->(k == i ? j : Colon()), nd)

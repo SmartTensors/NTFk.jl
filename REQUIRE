@@ -4,6 +4,11 @@ CanDecomp
 TensorOperations
 TensorDecompositions
 TensorToolbox
+Arpack
 Gadfly
+PyPlot
 Compose
+JLD
+JLD2
+FileIO
 NMFk

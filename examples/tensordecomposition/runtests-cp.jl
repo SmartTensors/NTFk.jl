@@ -1,6 +1,6 @@
 import NTFk
 
-srand(2)
+Random.seed!(2)
 trank = 3
 tsize = (10, 20, 5)
 cp_orig = NTFk.rand_candecomp(trank, tsize; lambdas_nonneg=true, factors_nonneg=true)

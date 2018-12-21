@@ -6,7 +6,7 @@ function functions(re::Regex; stdout::Bool=false, quiet::Bool=false)
 		eval(NTFk, :(@tryimport $(Symbol(i))))
 		n += functions(Symbol(i), re; stdout=stdout, quiet=quiet)
 	end
-	n > 0 && string == "" && info("Total number of functions: $n")
+	n > 0 && string == "" && @info("Total number of functions: $n")
 	return
 end
 function functions(string::String=""; stdout::Bool=false, quiet::Bool=false)
@@ -15,17 +15,17 @@ function functions(string::String=""; stdout::Bool=false, quiet::Bool=false)
 		eval(NTFk, :(@tryimport $(Symbol(i))))
 		n += functions(Symbol(i), string; stdout=stdout, quiet=quiet)
 	end
-	n > 0 && string == "" && info("Total number of functions: $n")
+	n > 0 && string == "" && @info("Total number of functions: $n")
 	return
 end
 function functions(m::Union{Symbol, Module}, re::Regex; stdout::Bool=false, quiet::Bool=false)
 	n = 0
 	try
 		f = names(eval(m), true)
-		functions = Array{String}(0)
+		functions = Array{String}(undef, 0)
 		for i in 1:length(f)
 			functionname = "$(f[i])"
-			if contains(functionname, "eval") || contains(functionname, "#") || contains(functionname, "__") || functionname == "$m"
+			if occursin("eval", functionname) || occursin("#", functionname) || occursin("__", functionname) || functionname == "$m"
 				continue
 			end
 			if ismatch(re, functionname)
@@ -33,7 +33,7 @@ function functions(m::Union{Symbol, Module}, re::Regex; stdout::Bool=false, quie
 			end
 		end
 		if length(functions) > 0
-			!quiet && info("$(m) functions:")
+			!quiet && @info("$(m) functions:")
 			sort!(functions)
 			n = length(functions)
 			if stdout
@@ -43,9 +43,9 @@ function functions(m::Union{Symbol, Module}, re::Regex; stdout::Bool=false, quie
 			end
 		end
 	catch
-		warn("Module $m not defined!")
+		@warn("Module $m not defined!")
 	end
-	n > 0 && string == "" && info("Number of functions in module $m: $n")
+	n > 0 && string == "" && @info("Number of functions in module $m: $n")
 	return n
 end
 function functions(m::Union{Symbol, Module}, string::String=""; stdout::Bool=false, quiet::Bool=false)
@@ -55,18 +55,18 @@ function functions(m::Union{Symbol, Module}, string::String=""; stdout::Bool=fal
 	end
 	try
 		f = names(eval(m), true)
-		functions = Array{String}(0)
+		functions = Array{String}(undef, 0)
 		for i in 1:length(f)
 			functionname = "$(f[i])"
-			if contains(functionname, "eval") || contains(functionname, "#") || contains(functionname, "__") || functionname == "$m"
+			if occursin("eval", functionname) || occursin("#", functionname) || occursin("__", functionname) || functionname == "$m"
 				continue
 			end
-			if string == "" || contains(functionname, string)
+			if string == "" || occursin(string, functionname)
 				push!(functions, functionname)
 			end
 		end
 		if length(functions) > 0
-			!quiet && info("$(m) functions:")
+			!quiet && @info("$(m) functions:")
 			sort!(functions)
 			n = length(functions)
 			if stdout
@@ -76,9 +76,9 @@ function functions(m::Union{Symbol, Module}, string::String=""; stdout::Bool=fal
 			end
 		end
 	catch
-		warn("Module $m not defined!")
+		@warn("Module $m not defined!")
 	end
-	n > 0 && string == "" && info("Number of functions in module $m: $n")
+	n > 0 && string == "" && @info("Number of functions in module $m: $n")
 	return n
 end
 

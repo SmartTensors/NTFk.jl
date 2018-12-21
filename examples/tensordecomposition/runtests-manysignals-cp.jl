@@ -20,7 +20,7 @@ for i = 1:length(v)
 	tt[i] = makesignal(tsize[1], tsize[3], v[i])
 end
 m = rand(vec(collect(1:length(v))), tsize[2])
-T = Array{Float64}(tsize)
+T = Array{Float64}(undef, tsize)
 for i = 1:tsize[2]
 	if m[i] == 0
 		T[:,i,:] = zeros(tsize[1], tsize[3])
