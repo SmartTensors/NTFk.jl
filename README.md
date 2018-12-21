@@ -1,6 +1,8 @@
 NTFk: Nonnegative Tensor Factorization + custom k-means clustering
 ===============
 
+[![][logo]][logo/ntfk-logo.png]
+
 [![][gitlab-img]][gitlab-url] [![][codecov-img]][codecov-url]
 
 [gitlab-img]: https://gitlab.com/TensorFactorization/NTFk.jl/badges/master/pipeline.svg
@@ -15,14 +17,12 @@ Documentation
 
 Installation
 ============
-Downlod the tar.gz file and extract it in .julia/v.06 repository
-After starting Julia, execute:
 
 ```
 Pkg.add("NTFk")
 ```
 
-Installation of NMFk behind a firewall
+Installation behind a firewall
 ------------------------------
 
 Julia uses git for package management. Add in the `.gitconfig` file in your home directory:
