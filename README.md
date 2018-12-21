@@ -18,8 +18,10 @@ Documentation
 Installation
 ============
 
+After starting Julia, execute:
+
 ```
-Pkg.add("NTFk")
+import Pkg; ("NTFk")
 ```
 
 Installation behind a firewall
@@ -58,3 +60,9 @@ export http_proxy=http://proxyout.lanl.gov:8080
 export https_proxy=http://proxyout.lanl.gov:8080
 export no_proxy=.lanl.gov
 ```
+
+Publications, Presentations, Projects
+=====================================
+
+* [mads.gitlab.io](mads.gitlab.io)
+* [monty.gitlab.io](monty.gitlab.io)
