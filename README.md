@@ -1,7 +1,7 @@
 NTFk: Nonnegative Tensor Factorization + custom k-means clustering
 ===============
 
-![logo]](logo/ntfk-logo.png)
+![logo]](./logo/ntfk-logo.png)
 
 [![][gitlab-img]][gitlab-url] [![][codecov-img]][codecov-url]
 
