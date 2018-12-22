@@ -1,6 +1,7 @@
 import TensorDecompositions
 import TensorToolbox
 import Arpack
+import LinearAlgebra
 
 """
 High-order singular value decomposition (HO-SVD).
@@ -29,7 +30,7 @@ function hosvd(tensor::StridedArray{T,N}, core_dims::NTuple{N, Int}, eigmethod=t
 			end
 			f = e[2]
 		else
-			f = eig(X'X)[2]
+			_, f = LinearAlgebra.eigen(X'X)
 			if compute_error
 				@info("D$i components $(core_dims[i])")
 			end

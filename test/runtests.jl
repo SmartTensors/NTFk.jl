@@ -21,7 +21,7 @@ import Random
 	T_est = TensorDecompositions.compose(tucker_est[ibest])
 	@Test.test csize == csize_est
 	@show norm(T_orig .- T_est)
-	@Test.test isapprox(norm(T_orig .- T_est), 1.1020642905097324, atol=1e-3)
+	@Test.test isapprox(norm(T_orig .- T_est), 1.0104725439065432, atol=1e-3)
 end
 
 @Test.testset "NTFk TensorDecompositions CP analysis" begin

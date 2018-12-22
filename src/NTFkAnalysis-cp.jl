@@ -46,7 +46,7 @@ function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1,
 		WBig[n] = hcat(f...)
 	end
 	minsilhouette = nTF > 1 ? clusterfactors(WBig, quiet) : NaN
-	imin = indmin(residues)
+	imin = argmin(residues)
 	csize = length(cpi[imin].lambdas)
 	X_esta = TensorDecompositions.compose(cpi[imin])
 	correlations = mincorrelations(X_esta, X)

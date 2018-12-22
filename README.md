@@ -64,5 +64,4 @@ export no_proxy=.lanl.gov
 Publications, Presentations, Projects
 =====================================
 
-* [mads.gitlab.io](mads.gitlab.io)
 * [monty.gitlab.io](monty.gitlab.io)

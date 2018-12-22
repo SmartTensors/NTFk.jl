@@ -80,7 +80,7 @@ function normalizelambdas!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; ch
 		X.factors[i] .*= m
 	end
 	m = copy(X.lambdas)
-	m[m.==0] = 1.0
+	m[m.==0] .= 1.0
 	X.lambdas ./= m
 	if check
 		Xe = TensorDecompositions.compose(X)
