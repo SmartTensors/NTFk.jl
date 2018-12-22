@@ -1,7 +1,8 @@
-julia 0.6
+julia 0.7
 DocumentFunction
 CanDecomp
-TensorOperations
+NMFk
+TensorOperations < 1.0
 TensorDecompositions
 TensorToolbox
 Arpack
@@ -11,4 +12,3 @@ Compose
 JLD
 JLD2
 FileIO
-NMFk
