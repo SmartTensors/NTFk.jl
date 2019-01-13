@@ -75,7 +75,7 @@ else
 		q = quote
 			if ispkgavailable($mname; quiet=true)
 				try
-					eval(parse($importq))
+					eval(Meta.parse($importq))
 				catch errmsg
 					printerrormsg(errmsg)
 					@warn($warnstring)

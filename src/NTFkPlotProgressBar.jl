@@ -9,7 +9,7 @@ function progressbar_regular(i::Number, timescale::Bool=false, timestep::Number=
 		if dateend != nothing
 			s = datestart + ((dateend .- datestart) * (i-1) * timestep)
 		else
-			s = datestart + eval(parse(dateincrement))(i-1)
+			s = datestart + eval(Meta.parse(dateincrement))(i-1)
 		end
 	end
 	return Compose.compose(Compose.context(0, 0, 1Compose.w, 0.05Compose.h),
@@ -26,7 +26,7 @@ function make_progressbar_2d(s; vlinecolor="gray", vlinesize=2Gadfly.pt)
 				if dateend != nothing
 					xi = datestart + ((dateend .- datestart) * (i-1) * timestep)
 				else
-					xi = datestart + eval(parse(dateincrement))(i-1)
+					xi = datestart + eval(Meta.parse(dateincrement))(i-1)
 				end
 			end
 			return Gadfly.plot(s..., Gadfly.layer(xintercept=[xi], Gadfly.Geom.vline(color=[vlinecolor], size=[vlinesize])))

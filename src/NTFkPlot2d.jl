@@ -13,11 +13,7 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	crank = csize[dim]
 	nx, ny = size(t.factors[dim])
 	if datestart != nothing
-		if dateend == nothing
-			xvalues = datestart .+ vec(collect(eval(parse(dateincrement))(0):eval(parse(dateincrement))(1):eval(parse(dateincrement))(nx-1)))
-		else
-			xvalues = datestart .+ (vec(collect(1:nx)) ./ nx .* (dateend .- datestart))
-		end
+		xvalue = NTFk.range(datestart, nx; dateend=dateend, dateincrement=dateincrement)
 	else
 		if xmax == nothing
 			xmax = timescale ? 1 : nx
@@ -73,11 +69,7 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	loopcolors = crank > ncolors ? true : false
 	nx, ny = size(t.factors[dim])
 	if datestart != nothing
-		if dateend == nothing
-			xvalues = datestart .+ vec(collect(eval(parse(dateincrement))(0):eval(parse(dateincrement))(1):eval(parse(dateincrement))(nx-1)))
-		else
-			xvalues = datestart .+ (vec(collect(1:nx)) ./nx .* (dateend .- datestart))
-		end
+		xvalue = NTFk.range(datestart, nx; dateend=dateend, dateincrement=dateincrement)
 		xmin=minimum(xvalues)
 		xmax=maximum(xvalues)
 	else
@@ -104,7 +96,7 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 		end
 		X2 = TensorDecompositions.compose(tt)
 		tt.core .= t.core
-		tm = eval(parse(functionname))(X2, dp)
+		tm = eval(Meta.parse(functionname))(X2, dp)
 		if transform != nothing
 			tm = transform.(tm)
 		end
@@ -133,11 +125,7 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	loopcolors = crank > ncolors ? true : false
 	nx, ny = size(t.factors[dim])
 	if datestart != nothing
-		if dateend == nothing
-			xvalues = datestart .+ vec(collect(eval(parse(dateincrement))(0):eval(parse(dateincrement))(1):eval(parse(dateincrement))(nx-1)))
-		else
-			xvalues = datestart .+ (vec(collect(1:nx)) ./nx .* (dateend .- datestart))
-		end
+		xvalue = NTFk.range(datestart, nx; dateend=dateend, dateincrement=dateincrement)
 		xmin=minimum(xvalues)
 		xmax=maximum(xvalues)
 	else
@@ -164,17 +152,17 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 		end
 		X2 = TensorDecompositions.compose(tt)
 		tt.core .= t.core
-		tm = eval(parse(functionname1))(X2, dp)
+		tm = eval(Meta.parse(functionname1))(X2, dp)
 		if transform != nothing
 			tm = transform.(tm)
 		end
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
 		pl[i] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth, default_color=cc))
 	end
-	tm = map(j->eval(parse(functionname2))(vec(X[ntuple(k->(k == dim ? j : Colon()), ndimensons)...])), 1:nx)
+	tm = map(j->eval(Meta.parse(functionname2))(vec(X[ntuple(k->(k == dim ? j : Colon()), ndimensons)...])), 1:nx)
 	pl[crank+1] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth+1Gadfly.pt, line_style=:dot, default_color=parse(Colors.Colorant, "gray")))
 	Xe = TensorDecompositions.compose(t)
-	tm = map(j->eval(parse(functionname2))(vec(Xe[ntuple(k->(k == dim ? j : Colon()), ndimensons)...])), 1:nx)
+	tm = map(j->eval(Meta.parse(functionname2))(vec(Xe[ntuple(k->(k == dim ? j : Colon()), ndimensons)...])), 1:nx)
 	pl[crank+2] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth, default_color=parse(Colors.Colorant, "gray85")))
 	tc = loopcolors ? [] : [Gadfly.Guide.manual_color_key("", [componentnames; "Est."; "True"], [colors[1:crank]; "gray85"; "gray"])]
 	if code
@@ -271,5 +259,13 @@ function plot2d(T::Array, Te::Array=T; quiet::Bool=false, wellnames=nothing, Tma
 		f = Gadfly.plot(p..., tm..., Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., Gadfly.Coord.Cartesian(xmin=xmin, xmax=xmax, ymin=yming, ymax=ymaxg))
 		Gadfly.draw(Gadfly.PNG(filename, hsize, vsize, dpi=dpi), f)
 		!quiet && (display(f); println())
+	end
+end
+
+function range(datestart, nx; dateend=nothing, dateincrement::String="Dates.Day")
+	if dateend == nothing
+		xvalues = datestart .+ vec(collect(eval(Meta.parse(dateincrement))(0):eval(Meta.parse(dateincrement))(1):eval(Meta.parse(dateincrement))(nx-1)))
+	else
+		xvalues = datestart .+ (vec(collect(1:nx)) ./ nx .* (dateend .- datestart))
 	end
 end

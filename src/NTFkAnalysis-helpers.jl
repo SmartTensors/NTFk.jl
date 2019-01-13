@@ -61,7 +61,7 @@ function arrayoperation(A::AbstractArray{T,N}, tmap=ntuple(k->(Colon()), N), fun
 	t = ntuple(k->(k == nci ? v : Colon()), N)
 	B = A[t...]
 	t = ntuple(k->(k == nci ? el[1] : Colon()), N)
-	B[t...] = eval(parse(functionname))(A[tmap...], nci)
+	B[t...] = eval(Meta.parse(functionname))(A[tmap...], nci)
 	return B
 end
 
