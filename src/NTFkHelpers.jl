@@ -642,7 +642,7 @@ function setnewfilename(filename::String, frame::Integer=0; keyword::String="fra
 		ext = "png"
 		fn = fn * "." * ext
 	end
-	if !contains(fn, keyword)
+	if !occursin(keyword, fn)
 		fn = root * "-$(keyword)000000." * ext
 	end
 	if VERSION >= v"0.7"
