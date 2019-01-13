@@ -88,7 +88,7 @@ else
 	end
 end
 
-global imagedpi=150
+global imagedpi = 150
 global DMAXITER = 1000
 
 import NMFk
