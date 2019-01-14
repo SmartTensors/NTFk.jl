@@ -88,24 +88,27 @@ function flatten(X::AbstractArray{T,N}, dim::Number=1) where {T,N}
 	return A
 end
 
-function indicize(v; rev=false, nsteps=length(v), minvalue=minimum(v), maxvalue=maximum(v), stepvalue=nothing)
+function indicize(v; rev=false, nbins=length(v), minvalue=minimum(v), maxvalue=maximum(v), stepvalue=nothing)
 	if stepvalue != nothing
 		if typeof(minvalue) <: DateTime
 			maxvalue = ceil(maxvalue, stepvalue)
 			minvalue = floor(minvalue, stepvalue)
 			nbins = convert(Int, (maxvalue - minvalue) / convert(Dates.Millisecond, stepvalue))
+		elseif typeof(minvalue) <: Date
+			maxvalue = ceil(maxvalue, stepvalue)
+			minvalue = floor(minvalue, stepvalue)
+			nbins = convert(Int, (maxvalue - minvalue) / eval(Meta.parse(stepvalue))(1))
 		else
 			granularity = -convert(Int, ceil(log10(stepvalue)))
 			maxvalue = ceil(maxvalue, granularity)
 			minvalue = floor(minvalue, granularity)
 			nbins = convert(Int, ceil.((maxvalue - minvalue) / float(stepvalue)))
 		end
-		iv = convert(Vector{Int64}, ceil.((v .- minvalue) ./ (maxvalue - minvalue) .* nbins))
-	else
-		iv = convert(Vector{Int64}, ceil.((v .- minvalue) ./ (maxvalue - minvalue) .* (nsteps - 1) .+ 1))
 	end
+	iv = convert(Vector{Int64}, ceil.((v .- minvalue) ./ (maxvalue - minvalue) .* nbins))
+	iv[iv .== 0] .= 1
 	if rev == true
-		iv = (maximum(iv) + 1) .- iv
+		iv = (nbins + 1) .- iv
 	end
 	return iv
 end
