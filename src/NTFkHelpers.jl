@@ -237,7 +237,7 @@ function getpredictions(t::TensorDecompositions.Tucker{T,N}, dim, v; sp=[Interpo
 	return tn
 end
 
-function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core, firstpeak::Bool=true, flipdim=true, quiet=true)
+function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core, firstpeak::Bool=true, flipdim::Bool=true, quiet::Bool=true)
 	cs = size(t.core)[dim]
 	!quiet && @info("Core size: $(size(t.core))")
 	csize = TensorToolbox.mrank(t.core)

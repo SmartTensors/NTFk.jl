@@ -4,7 +4,7 @@ function normalizefactors!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check
 	check && (Xi = TensorDecompositions.compose(X))
 	l = size(X.core)
 	for i = order
-		m = maximum(X.factors[i], dims=1)
+		m = maximum(X.factors[i]; dims=1)
 		@assert length(m) == l[i]
 		for j = 1:l[i]
 			ind = map(k->((i==k) ? j : Colon()), 1:N)
