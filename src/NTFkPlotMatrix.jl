@@ -46,7 +46,8 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 		xmin = 0.5; xmax = m+.5; ymin = 0.5; ymax = n+.5; yflip = true
 	else
 		xmin = xmatrix[1]; xmax = xmatrix[2]; ymin = ymatrix[1]; ymax = ymatrix[2]; yflip = false
-		sx = xmax - xmin; sy = ymax - ymin
+		sx = xmax - xmin
+		sy = ymax - ymin
 		dx = sx / m
 		dy = sy / n
 		xs = (xs .- 1) ./ m * sx .+ xmin

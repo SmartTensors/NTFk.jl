@@ -65,22 +65,22 @@ function arrayoperation(A::AbstractArray{T,N}, tmap=ntuple(k->(Colon()), N), fun
 	return B
 end
 
-function movingaverage(A::AbstractArray{T, N}, masize::Number=1) where {T, N}
-	if masize == 0
+function movingwindow(A::AbstractArray{T, N}, windowsize::Number=1; functionname::String="maximum") where {T, N}
+	if windowsize == 0
 		return A
 	end
 	B = similar(A)
-	R = CartesianRange(size(A))
-	I1, Iend = first(R), last(R)
+	R = CartesianIndices(size(A))
+	Istart, Iend = first(R), last(R)
 	for I in R
-		#n, s = 0, zero(eltype(B))
 		s = Vector{T}(undef, 0)
-		for J in CartesianRange(max(I1, I-masize), min(Iend, I+masize))
+		a = max(Istart, I - windowsize * one(I))
+		b = min(Iend, I + windowsize * one(I)
+		ci = ntuple(i->a[i]:b[i], length(a))
+		for J in CartesianIndices(ci)
 			push!(s, A[J])
-			#s += A[J]
-			#n += 1
 		end
-		B[I] = maximum(s)
+		B[I] = eval(Meta.parse(functionname))(s)
 	end
 	return B
 end
