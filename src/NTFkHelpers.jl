@@ -237,7 +237,7 @@ function getpredictions(t::TensorDecompositions.Tucker{T,N}, dim, v; sp=[Interpo
 	return tn
 end
 
-function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core, firstpeak::Bool=true, reverse=true, quiet=true)
+function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core, firstpeak::Bool=true, flipdim=true, quiet=true)
 	cs = size(t.core)[dim]
 	!quiet && @info("Core size: $(size(t.core))")
 	csize = TensorToolbox.mrank(t.core)
@@ -246,8 +246,8 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 	@assert dim >= 1 && dim <= ndimensons
 	crank = cs
 	if method == :factormagnitude
-		fmin = vec(minimum(t.factors[dim], 1))
-		fmax = vec(maximum(t.factors[dim], 1))
+		fmin = vec(minimum(t.factors[dim], dims=1))
+		fmax = vec(maximum(t.factors[dim], dims=1))
 		@assert cs == length(fmax)
 		fdx = fmax .- fmin
 		for i = 1:cs
@@ -259,10 +259,10 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 				crank -= 1
 			end
 		end
-		if reverse
+		if flipdim
 			ifdx = sortperm(fdx; rev=true)[1:crank]
 		else
-			ifdx = flipdim(sortperm(fdx; rev=true)[1:crank], 1)
+			ifdx = reverse(sortperm(fdx; rev=true)[1:crank]; dims=1)
 		end
 		!quiet && @info("Factor magnitudes (max - min): $fdx")
 		if firstpeak
@@ -297,7 +297,7 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 			end
 		end
 		!quiet && @info("Max core magnitudes: $maxXe")
-		imax = sortperm(maxXe; rev=reverse)
+		imax = sortperm(maxXe; rev=flipdim)
 		order = imax[1:cs]
 	end
 	return order

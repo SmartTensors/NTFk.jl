@@ -51,7 +51,7 @@ end
 Single analysis of a given core size
 methods: spnntucker, tucker_als, tucker_sym, tensorly_
 """
-function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Integer=1; serial::Bool=false, clusterdim::Integer=-1, resultdir::String=".", saveall::Bool=false, quiet::Bool=true, method=:spnntucker, prefix::String="spnn", seed::Integer=-1, kw...) where {T,N}
+function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Integer=1; serial::Bool=false, clusterdim::Integer=1, resultdir::String=".", saveall::Bool=false, quiet::Bool=true, method=:spnntucker, prefix::String="spnn", seed::Integer=-1, kw...) where {T,N}
 	if occursin("tucker_", string(method))
 		@info("MATLAB TensorToolbox Tucker analysis using $(string(method)) ...")
 		prefix = "tensortoolbox"
@@ -95,7 +95,7 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 		residues[n] = TensorDecompositions.rel_residue(tsi[n], X)
 		println("$(n): relative residual $(residues[n])")
 		normalizecore!(tsi[n])
-		f = tsi[n].factors[clusterdim]'
+		f = permutedims(tsi[n].factors[clusterdim])
 		# f[f.==0] = max(minimum(f), 1e-6)
 		# p = NTFk.plotmatrix(cpi[n].factors[1]')
 		# display(p); println()

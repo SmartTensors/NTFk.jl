@@ -5,6 +5,7 @@ NMFk
 TensorOperations 0.0-1.0
 TensorDecompositions
 TensorToolbox
+Interpolations
 Arpack
 Gadfly
 PyPlot

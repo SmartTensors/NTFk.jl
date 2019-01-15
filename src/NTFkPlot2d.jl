@@ -13,7 +13,7 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	crank = csize[dim]
 	nx, ny = size(t.factors[dim])
 	if datestart != nothing
-		xvalue = NTFk.range(datestart, nx; dateend=dateend, dateincrement=dateincrement)
+		xvalues = NTFk.range(datestart, nx; dateend=dateend, dateincrement=dateincrement)
 	else
 		if xmax == nothing
 			xmax = timescale ? 1 : nx
@@ -69,7 +69,7 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	loopcolors = crank > ncolors ? true : false
 	nx, ny = size(t.factors[dim])
 	if datestart != nothing
-		xvalue = NTFk.range(datestart, nx; dateend=dateend, dateincrement=dateincrement)
+		xvalues = NTFk.range(datestart, nx; dateend=dateend, dateincrement=dateincrement)
 		xmin=minimum(xvalues)
 		xmax=maximum(xvalues)
 	else
@@ -125,7 +125,7 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	loopcolors = crank > ncolors ? true : false
 	nx, ny = size(t.factors[dim])
 	if datestart != nothing
-		xvalue = NTFk.range(datestart, nx; dateend=dateend, dateincrement=dateincrement)
+		xvalues = NTFk.range(datestart, nx; dateend=dateend, dateincrement=dateincrement)
 		xmin=minimum(xvalues)
 		xmax=maximum(xvalues)
 	else
