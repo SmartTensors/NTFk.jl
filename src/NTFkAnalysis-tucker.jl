@@ -1,4 +1,5 @@
 import TensorDecompositions
+import Random
 
 "A series of analyses for different core sizes"
 function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Integer=1; clusterdim::Integer=1, resultdir::String=".", prefix::String="spnn", serial::Bool=false, seed::Integer=0, kw...) where {T,N}
