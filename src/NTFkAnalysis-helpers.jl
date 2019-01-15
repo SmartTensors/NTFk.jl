@@ -75,7 +75,7 @@ function movingwindow(A::AbstractArray{T, N}, windowsize::Number=1; functionname
 	for I in R
 		s = Vector{T}(undef, 0)
 		a = max(Istart, I - windowsize * one(I))
-		b = min(Iend, I + windowsize * one(I)
+		b = min(Iend, I + windowsize * one(I))
 		ci = ntuple(i->a[i]:b[i], length(a))
 		for J in CartesianIndices(ci)
 			push!(s, A[J])
