@@ -3,7 +3,7 @@ import Interpolations
 "Convert `@sprintf` macro into `sprintf` function"
 sprintf(args...) = eval(:@sprintf($(args...)))
 
-searchdir(key::Regex, path::String = ".") = filter(x->ismatch(key, x), readdir(path))
+searchdir(key::Regex, path::String = ".") = filter(x->occursin(key, x), readdir(path))
 searchdir(key::String, path::String = ".") = filter(x->occursin(key, x), readdir(path))
 
 """

@@ -10,7 +10,7 @@ end
 function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumnan(X), label="", title="", xlabel="", ylabel="", xticks=nothing, yticks=nothing, xplot=nothing, yplot=nothing, xmatrix=nothing, ymatrix=nothing, gm=[Gadfly.Guide.xticks(label=false, ticks=nothing), Gadfly.Guide.yticks(label=false, ticks=nothing)], masize::Int64=0, colormap=colormap_gyr, filename::String="", hsize=6Compose.inch, vsize=6Compose.inch, figuredir::String=".", colorkey::Bool=true, mask=nothing, polygon=nothing, contour=nothing, linewidth::Measures.Length{:mm,Float64}=2Gadfly.pt, key_label_font_size=12Gadfly.pt, linecolor="gray", defaultcolor=nothing, pointsize=1.5Gadfly.pt, transform=nothing, code::Bool=false, nbins::Integer=0, flatten::Bool=false, rectbin::Bool=(nbins>0) ? false : true)
 	recursivemkdir(figuredir; filename=false)
 	recursivemkdir(filename)
-	Xp = deepcopy(min.(max.(movingaverage(X, masize), minvalue), maxvalue))
+	Xp = deepcopy(min.(max.(movingwindow(X, masize), minvalue), maxvalue))
 	if transform != nothing
 		Xp = transform.(Xp)
 	end
