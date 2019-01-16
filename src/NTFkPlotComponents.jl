@@ -163,7 +163,8 @@ function plotall3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integ
 	if !checkdimension(dim, ndimensons) || !checkdimension(pdim, ndimensons)
 		return
 	end
-	nc = size(t.factors[pdim], 2)
+	# nc = size(t.factors[pdim], 2)
+	nc = length(order)
 	np = convert(Int, ceil(nc / 3))
 	x = reshape(collect(1:3*np), (3, np))
 	x[x.>nc] .= nc
@@ -210,7 +211,7 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 	plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt), 1; prefix=prefix, barratio=barratio, kw...)
 	if maxcomponent && prefix != ""
 		recursivemkdir(prefix)
-		mv("$prefix-frame000001.png", "$prefix-max.png"; remove_destination=true)
+		mv("$prefix-frame000001.png", "$prefix-max.png"; force=true)
 	end
 end
 

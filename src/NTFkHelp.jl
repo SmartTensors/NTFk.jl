@@ -1,9 +1,10 @@
 import DocumentFunction
+import NTFk
 
 function functions(re::Regex; stdout::Bool=false, quiet::Bool=false)
 	n = 0
 	for i in modules
-		eval(NTFk, :(@tryimport $(Symbol(i))))
+		Core.eval(NTFk, :(@tryimport $(Symbol(i))))
 		n += functions(Symbol(i), re; stdout=stdout, quiet=quiet)
 	end
 	n > 0 && string == "" && @info("Total number of functions: $n")
@@ -12,7 +13,7 @@ end
 function functions(string::String=""; stdout::Bool=false, quiet::Bool=false)
 	n = 0
 	for i in modules
-		eval(NTFk, :(@tryimport $(Symbol(i))))
+		Core.eval(NTFk, :(@tryimport $(Symbol(i))))
 		n += functions(Symbol(i), string; stdout=stdout, quiet=quiet)
 	end
 	n > 0 && string == "" && @info("Total number of functions: $n")
@@ -54,7 +55,7 @@ function functions(m::Union{Symbol, Module}, string::String=""; stdout::Bool=fal
 		quiet=false
 	end
 	try
-		f = names(eval(m), true)
+		f = names(Core.eval(NTFk, m); all=true)
 		functions = Array{String}(undef, 0)
 		for i in 1:length(f)
 			functionname = "$(f[i])"

@@ -131,17 +131,18 @@ function getsizes(csize::Tuple, tsize::Tuple=csize .+ 1)
 end
 
 function mincorrelations(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}) where {T,N}
+	c = Vector{T}(undef, N)
 	if N == 3
 		tsize = size(X1)
 		@assert tsize == size(X2)
-		c = Vector{T}(undef, N)
 		c[1] = minimum(map(j->minimum(map(k->corinf(X1[:,k,j], X2[:,k,j]), 1:tsize[2])), 1:tsize[3]))
 		c[2] = minimum(map(j->minimum(map(k->corinf(X1[k,:,j], X2[k,:,j]), 1:tsize[1])), 1:tsize[3]))
 		c[3] = minimum(map(j->minimum(map(k->corinf(X1[k,j,:], X2[k,j,:]), 1:tsize[1])), 1:tsize[2]))
 		return c
 	else
 		@warn("Minimum correlations can be computed for 3 dimensional tensors only; D=$N")
-		return NaN
+		c .= NaN
+		return c
 	end
 end
 

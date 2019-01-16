@@ -133,7 +133,7 @@ function getcsize(case::String; resultdir::String=".", longname=false)
 end
 
 function getfactor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1, cutoff::Number=0)
-	i = vec(maximum(t.factors[dim], 1) .> cutoff)
+	i = vec(maximum(t.factors[dim]; dims=1) .> cutoff)
 	s = size(t.factors[dim])
 	println("Factor $dim: size $s -> ($(s[1]), $(sum(i)))")
 	t.factors[dim][:, i]
@@ -266,7 +266,7 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 		end
 		!quiet && @info("Factor magnitudes (max - min): $fdx")
 		if firstpeak
-			imax = map(i->indmax(t.factors[dim][:, ifdx[i]]), 1:crank)
+			imax = map(i->argmax(t.factors[dim][:, ifdx[i]]), 1:crank)
 			order = ifdx[sortperm(imax)]
 		else
 			order = ifdx
@@ -313,7 +313,7 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 		factors = []
 		for i = 1:ndimensons
 			if i == dim
-				push!(factors, maximum(t.factors[i], 1))
+				push!(factors, maximum(t.factors[i]; dims=1))
 			else
 				push!(factors, t.factors[i])
 			end
@@ -382,8 +382,8 @@ function gettensorminmax(t::TensorDecompositions.Tucker, dim::Integer=1; method:
 	@assert dim >= 1 && dim <= ndimensons
 	crank = csize[dim]
 	if method == :factormagnitude
-		fmin = vec(minimum(t.factors[dim], 1))
-		fmax = vec(maximum(t.factors[dim], 1))
+		fmin = vec(minimum(t.factors[dim]; dims=1))
+		fmax = vec(maximum(t.factors[dim]; dims=1))
 		@assert cs == length(fmax)
 		for i = 1:cs
 			if fmax[i] == 0
@@ -440,7 +440,7 @@ end
 
 function gettensorcomponentgroups(t::TensorDecompositions.Tucker, dim::Integer=1; cutvalue::Number=0.9)
 	g = zeros(t.factors[dim][:, 1])
-	v = maximum(t.factors[dim], 1) .> cutvalue
+	v = maximum(t.factors[dim]; dims=1) .> cutvalue
 	gi = 0
 	for i = 1:length(v)
 		if v[i]
@@ -455,7 +455,7 @@ end
 
 function gettensormaximums(t::TensorDecompositions.Tucker{T,N}) where {T,N}
 	for i=1:N
-		v = maximum(t.factors[i], 1)
+		v = maximum(t.factors[i]; dims=1)
 		if length(v) > 10
 			vv = "[$(v[1]), $(v[2]), $(v[3]), ..., $(v[end])]"
 		else
@@ -470,7 +470,7 @@ function gettensormaximums(t::TensorDecompositions.Tucker{T,N}) where {T,N}
 				push!(dp, j)
 			end
 		end
-		v = vec(maximum(t.core, dp))
+		v = vec(maximum(t.core; dims=dp))
 		if length(v) > 10
 			vv = "[$(v[1]), $(v[2]), $(v[3]), ..., $(v[end])]"
 		else

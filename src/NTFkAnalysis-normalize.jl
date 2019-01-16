@@ -47,7 +47,7 @@ function normalizeslices!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check:
 	NTFk.normalizefactors!(X)
 	NTFk.normalizecore!(X, order)
 	M = TensorDecompositions.compose(X, order[2:end])
-	m = maximum(M, order[2:end])
+	m = maximum(M; dims=order[2:end])
 	for i = 1:length(m)
 		X.core[:,:,i] ./= m[i]
 		X.factors[order[1]][:,i] .*= m[i]
@@ -61,7 +61,7 @@ end
 function normalizefactors!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; check::Bool=false) where {T,N}
 	check && (Xi = TensorDecompositions.compose(X))
 	for i = order
-		m = maximum(X.factors[i], 1)
+		m = maximum(X.factors[i]; dims=1)
 		X.lambdas .*= vec(m)
 		m[m.==0] = 1.0
 		X.factors[i] ./= m
