@@ -18,7 +18,6 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 	ys, xs, vs = Gadfly._findnz(x->!isnan(x), Xp)
 	n, m = size(Xp)
 	rect = checkrectbin(Xp)
-	@show rect
 	if xticks != nothing
 		gm = [gm..., Gadfly.Scale.x_discrete(labels=i->xticks[i]), Gadfly.Guide.xticks(label=true)]
 	end
