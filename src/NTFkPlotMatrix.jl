@@ -17,6 +17,8 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 	nanmask!(Xp, mask)
 	ys, xs, vs = Gadfly._findnz(x->!isnan(x), Xp)
 	n, m = size(Xp)
+	rect = checkrectbin(Xp)
+	@show rect
 	if xticks != nothing
 		gm = [gm..., Gadfly.Scale.x_discrete(labels=i->xticks[i]), Gadfly.Guide.xticks(label=true)]
 	end
@@ -45,22 +47,34 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 	if xmatrix == nothing && ymatrix == nothing
 		xmin = 0.5; xmax = m+.5; ymin = 0.5; ymax = n+.5; yflip = true
 	else
-		xmin = xmatrix[1]; xmax = xmatrix[2]; ymin = ymatrix[1]; ymax = ymatrix[2]; yflip = false
-		sx = xmax - xmin
-		sy = ymax - ymin
+		xmatrixmin = xmatrix[1]; xmatrixmax = xmatrix[2]; ymatrixmin = ymatrix[1]; ymatrixmax = ymatrix[2]; yflip = false
+		sx = xmatrixmax - xmatrixmin
+		sy = ymatrixmax - ymatrixmin
 		dx = sx / m
 		dy = sy / n
-		xs = (xs .- 1) ./ m * sx .+ xmin
-		ys = (-1 .- ys) ./ n * sy .+ ymax
-		xmax = max(xplot[2], xmatrix[2] + dx / 2)
-		xmin = min(xplot[1], xmatrix[1] - dx / 2)
-		ymax = max(yplot[2], ymatrix[2] + dy / 2)
-		ymin = min(yplot[1], ymatrix[1] - dy / 2)
+		xs = (xs .- 1) ./ m * sx .+ xmatrixmin
+		ys = (-1 .- ys) ./ n * sy .+ ymatrixmax
+		xmax = max(xplot[2], xmatrixmax + dx / 2)
+		xmin = min(xplot[1], xmatrixmin - dx / 2)
+		ymax = max(yplot[2], ymatrixmax + dy / 2)
+		ymin = min(yplot[1], ymatrixmin - dy / 2)
+		if rect
+			xrectmin = xs .- dx / 2
+			xrectmax = xs .+ dx / 2
+			yrectmin = ys .- dx / 2
+			yrectmax = ys .+ dx / 2
+		end
 	end
 	gt = [Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Theme(major_label_font_size=major_label_font_size, key_label_font_size=key_label_font_size, bar_spacing=0Gadfly.mm), Gadfly.Scale.x_continuous, Gadfly.Scale.y_continuous, Gadfly.Coord.cartesian(yflip=yflip, fixed=true, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)]
 	if defaultcolor == nothing
 		if length(vs) > 0
-			l = (length(vs) < m * n && !rectbin) ? [Gadfly.layer(x=xs, y=ys, color=vs, Gadfly.Theme(point_size=pointsize, highlight_width=0Gadfly.pt))] : [Gadfly.layer(x=xs, y=ys, color=vs, Gadfly.Geom.rectbin())]
+			if length(vs) < m * n && !rectbin
+				l = [Gadfly.layer(x=xs, y=ys, color=vs, Gadfly.Theme(point_size=pointsize, highlight_width=0Gadfly.pt))]
+			elseif rect
+				l = [Gadfly.layer(x=xs, y=ys, xmin=xrectmin, xmax=xrectmax, ymin=yrectmin, ymax=yrectmax, color=vs, Gadfly.Geom.rect())]
+			else
+				l = [Gadfly.layer(x=xs, y=ys, color=vs, Gadfly.Geom.rectbin())]
+			end
 		else
 			l = nothing
 		end
@@ -116,4 +130,28 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 	else
 		return p
 	end
+end
+
+function checkrectbin(M::Matrix)
+	xok = false
+	iold = 0
+	for i in sum(.!isnan.(M); dims=1)
+		if iold != 0 && i != 0
+			xok = true
+			break
+		else
+			iold = i
+		end
+	end
+	yok = false
+	iold = 0
+	for i in sum(.!isnan.(M); dims=2)
+		if iold != 0 && i != 0
+			yok = true
+			break
+		else
+			iold = i
+		end
+	end
+	return !(xok && yok)
 end
