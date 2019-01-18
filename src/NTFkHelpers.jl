@@ -303,11 +303,12 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 	return order
 end
 
-function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", mask=nothing, transform=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savetensorslices::Bool=false)
-	ndimensons = length(csize)
+function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, prefix::String="", mask=nothing, transform=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savetensorslices::Bool=false)
+	cs = size(t.core)
+	ndimensons = length(cs)
 	@assert dim >= 1 && dim <= ndimensons
 	dimname = namedimension(ndimensons)
-	crank = csize[dim]
+	cdim = cs[dim]
 	if maxcomponent
 		factors = []
 		for i = 1:ndimensons
@@ -321,21 +322,10 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 	else
 		tt = deepcopy(t)
 	end
-	if crank < 3
-		@warn("Multilinear rank of the tensor ($(crank)) is less than 3!")
-		for i = 1:length(order)
-			if order[i] > crank
-				order[i] = crank
-			end
-		end
-		for i = 1:(3-crank)
-			push!(order, crank)
-		end
-	end
-	X = Vector{Any}(undef, crank)
-	@info("Computing $crank tensor components ...")
-	for i = 1:crank
-		for j = 1:crank
+	X = Vector{Any}(undef, cdim)
+	@info("Computing $cdim tensor components ...")
+	for i = 1:cdim
+		for j = 1:cdim
 			if i !== j
 				nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
 				tt.core[nt...] .= 0
