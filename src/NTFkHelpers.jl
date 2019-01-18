@@ -303,12 +303,11 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 	return order
 end
 
-function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Integer=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", mask=nothing, transform=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savetensorslices::Bool=false)
+function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", mask=nothing, transform=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savetensorslices::Bool=false)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	dimname = namedimension(ndimensons)
 	crank = csize[dim]
-	pt = getptdimensions(pdim, ndimensons)
 	if maxcomponent
 		factors = []
 		for i = 1:ndimensons
@@ -354,7 +353,8 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 		tt.core .= t.core
 	end
 	if savetensorslices
-		nt = ntuple(k->(k == pdim ? 1 : Colon()), ndimensons)
+		pt = getptdimensions(pdim, ndimensons)
+		nt = ntuple(k->(k == dim ? 1 : Colon()), ndimensons)
 		sz = size(X[1][nt...])
 		if length(filter) == 0
 			recursivemkdir(prefix)
@@ -601,10 +601,24 @@ function getptdimensions(pdim::Integer, ndimensons::Integer, transpose::Bool=fal
 	return pt
 end
 
+function getptdimensions(pdim::Tuple, ndimensons::Integer, transpose::Bool=false)
+	return pdim
+end
+
 function checkdimension(dim::Integer, ndimensons::Integer)
 	if dim > ndimensons || dim < 1
-		@warn("Dimension should be >=1 or <=$(length(sizes))")
+		@warn("Dimension should be >=1 or <=$(ndimensons)")
 		return false
+	end
+	return true
+end
+
+function checkdimension(dim::Tuple, ndimensons::Integer)
+	for i in dim
+		if i > ndimensons || i < 1
+			@warn("Dimension should be >=1 or <=$(ndimensons)")
+			return false
+		end
 	end
 	return true
 end
