@@ -1,4 +1,5 @@
 import TensorDecompositions
+import Statistics
 
 randomarray(dims, nonneg::Bool=true) = nonneg ? abs.(rand(dims...)) : rand(dims...)
 

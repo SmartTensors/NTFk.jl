@@ -73,7 +73,7 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 			s1 = minvalue
 			s2 = minvalue + s
 			for i = 1:nbins
-				id = find(i->(i > s1 && i <= s2), vs)
+				id = findall(i->(i > s1 && i <= s2), vs)
 				c = Colors.RGBA(defaultcolor.r, defaultcolor.g, defaultcolor.b, defaultcolor.alpha/i)
 				sum(id) > 0 && (l = [l..., Gadfly.layer(x=xs[id], y=ys[id], Gadfly.Theme(default_color=c, point_size=pointsize, highlight_width=0Gadfly.pt))])
 				s1 += s
