@@ -46,7 +46,7 @@ function normalizeslices!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check:
 	check && (Xi = TensorDecompositions.compose(X))
 	NTFk.normalizefactors!(X)
 	NTFk.normalizecore!(X, order)
-	M = TensorDecompositions.compose(X, order[2:end])
+	M = NTFk.compose(X, order[2:end])
 	m = maximum(M; dims=order[2:end])
 	for i = 1:length(m)
 		t = ntuple(k->(k == order[1] ? i : Colon()), N)
@@ -89,3 +89,8 @@ function normalizelambdas!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; ch
 	end
 	return nothing
 end
+
+"""
+Composes a full tensor from a decomposition
+"""
+compose(X::TensorDecompositions.Tucker{T,N}, modes=collect(1:N)) where {T,N} = TensorDecompositions.tensorcontractmatrices(TensorDecompositions.core(X), TensorDecompositions.factors(X)[modes], modes; transpose=true)
