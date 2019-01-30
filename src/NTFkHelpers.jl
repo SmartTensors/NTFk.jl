@@ -113,15 +113,15 @@ function indicize(v; rev=false, nbins=length(v), minvalue=minimum(v), maxvalue=m
 	return iv
 end
 
-function getcsize(case::String; resultdir::String=".", longname=false)
+function getcsize(case::String; resultdir::String=".", longname=false, extension="jld")
 	files = searchdir(case, resultdir)
 	csize = Vector{Vector{Int64}}(undef, 0)
 	kwa = Vector{String}(undef, 0)
 	for (i, f) in enumerate(files)
 		if longname
-			m = match(Regex(string("$(case)(.*)-[0-9]+_[0-9]+_[0-9]+->([0-9]+)_([0-9]+)_([0-9]+).jld")), f)
+			m = match(Regex(string("$(case)(.*)-[0-9]+_[0-9]+_[0-9]+->([0-9]+)_([0-9]+)_([0-9]+).$extension\$")), f)
 		else
-			m = match(Regex(string("$(case)(.*)-([0-9]+)_([0-9]+)_([0-9]+).jld")), f)
+			m = match(Regex(string("$(case)(.*)-([0-9]+)_([0-9]+)_([0-9]+).$extension\$")), f)
 		end
 		if m != nothing
 			push!(kwa, m.captures[1])

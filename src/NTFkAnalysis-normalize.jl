@@ -49,7 +49,8 @@ function normalizeslices!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check:
 	M = TensorDecompositions.compose(X, order[2:end])
 	m = maximum(M; dims=order[2:end])
 	for i = 1:length(m)
-		X.core[:,:,i] ./= m[i]
+		t = ntuple(k->(k == order[1] ? i : Colon()), N)
+		X.core[t...] ./= m[i]
 		X.factors[order[1]][:,i] .*= m[i]
 	end
 	if check
