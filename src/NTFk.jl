@@ -125,6 +125,7 @@ include("NTFkAnalysis-tucker.jl")
 include("NTFkAnalysis-cp.jl")
 include("NTFkAnalysis-hosvd.jl")
 include("NTFkAnalysis-tensorly.jl")
+include("NTFkLoadTensorDecompositions.jl")
 
 if VERSION >= v"0.7"
 	ism = isdefined(NTFk, :MATLAB)
