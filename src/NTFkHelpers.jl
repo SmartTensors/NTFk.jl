@@ -548,15 +548,15 @@ function nanmask!(X::Array, mask::BitArray{N}) where {N}
 end
 
 function remask(sm, repeats::Integer=1)
-	return reshape(repmat(sm, 1, repeats), (size(sm)..., repeats))
+	return reshape(repeat(sm, 1, repeats), (size(sm)..., repeats))
 end
 
 function remask(sm, repeats::Tuple)
-	return reshape(repmat(sm, 1, *(repeats...)), (size(sm)..., repeats...))
+	return reshape(repeat(sm, 1, *(repeats...)), (size(sm)..., repeats...))
 end
 
 function remask(sm, repeats::Vector{Int64})
-	return reshape(repmat(sm, 1, *(repeats...)), (size(sm)..., repeats...))
+	return reshape(repeat(sm, 1, *(repeats...)), (size(sm)..., repeats...))
 end
 
 function mapsize(csize)
