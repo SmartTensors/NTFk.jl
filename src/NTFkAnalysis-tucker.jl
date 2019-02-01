@@ -43,13 +43,19 @@ function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Int
 	# NTFk.atensor(tucker_spnn[ibest].core)
 	csize = TensorToolbox.mrank(tucker_spnn[ibest].core)
 	@info("Estimated true core size based on the reconstruction: $(csize)")
-	JLD.save("$(resultdir)/$(prefix)-$(mapsize(csize)).jld", "t", tucker_spnn)
+	if nruns > 1
+		JLD.save("$(resultdir)/$(prefix)-$(mapsize(csize)).jld", "tucker_vector", tucker_spnn)
+	else
+		JLD.save("$(resultdir)/$(prefix)-$(mapsize(csize)).jld", "tucker", tucker_spnn[1])
+	end
 	return tucker_spnn, csize, ibest
 end
 
 """
 Single analysis of a given core size
 methods: spnntucker, tucker_als, tucker_sym, tensorly_
+
+$(DocumentFunction.documentfunction(analysis))
 """
 function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Integer=1; serial::Bool=false, clusterdim::Integer=1, resultdir::String=".", saveall::Bool=false, quiet::Bool=true, method=:spnntucker, prefix::String="spnn", seed::Integer=-1, kw...) where {T,N}
 	if occursin("tucker_", string(method))
@@ -114,7 +120,7 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 	if saveall
 		recursivemkdir(resultdir; filename=false)
 		recursivemkdir(prefix; filename=false)
-		JLD.save("$(resultdir)/$(prefix)-$(mapsize(csize))->$(mapsize(csize_new)).jld", "t", tsi[imin])
+		JLD.save("$(resultdir)/$(prefix)-$(mapsize(csize))->$(mapsize(csize_new)).jld", "tucker", tsi[imin])
 	end
 	if sum(nans) > 0
 		X[nans] .= NaN
@@ -125,6 +131,8 @@ end
 """
 Single analysis of a given core size
 methods: spnntucker, tucker_als, tucker_sym, tensorly_
+
+$(DocumentFunction.documentfunction(tucker))
 """
 function tucker(X::AbstractArray{T, N}, csize::NTuple{N, Int}; seed::Number=0, method::Symbol=:spnntucker, functionname::String=string(method), maxiter::Integer=DMAXITER, core_nonneg::Bool=true, verbose::Bool=false, tol::Number=1e-8, ini_decomp::Symbol=:ntfk_hosvd, lambda::Number=0.1, lambdas=fill(lambda, length(size(X)) + 1), eigmethod=trues(N), eigreduce=eigmethod, progressbar::Bool=false, order=1:N, compute_error::Bool=true, compute_rank::Bool=true, whichm::Symbol=:LM, hosvd_tol::Number=0.0, hosvd_maxiter::Integer=300, rtol::Number=0., kw...) where {T,N}
 	if occursin("tucker_", string(method))

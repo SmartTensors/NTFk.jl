@@ -51,7 +51,11 @@ function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1,
 	X_esta = TensorDecompositions.compose(cpi[imin])
 	correlations = mincorrelations(X_esta, X)
 	println("$(trank): residual $(residues[imin]) worst tensor correlations $(correlations) rank $(csize) silhouette $(minsilhouette)")
-	saveall && JLD.save("$(resultdir)/$(prefix)-$(mapsize(csize)).jld", "t", cpi[imin])
+	if saveall
+		recursivemkdir(resultdir; filename=false)
+		recursivemkdir(prefix; filename=false)
+		JLD.save("$(resultdir)/$(prefix)-$(mapsize(csize)).jld", "cp", cpi[imin])
+	end
 	return cpi[imin], residues[imin], correlations, minsilhouette
 end
 
@@ -95,8 +99,12 @@ function analysis(X::AbstractArray{T,N}, tranks::Vector{Int}, nTF=1; seed::Numbe
 		println("$i - $(tranks[i]): residual $(residues[i]) worst tensor correlations $(correlations[i,:]) silhouette $(minsilhouette[i])")
 	end
 	csize = length(cpf[ibest].lambdas)
-	@info("Estimated true core size: $(csize)")
-	JLD.save("$(resultdir)/$(prefix)-$(csize).jld", "t", cpf)
+	@info("Estimated true core size (diagonal length): $(csize)")
+	if nruns > 1
+		JLD.save("$(resultdir)/$(prefix)-$(csize).jld", "cp_vector", cpf)
+	else
+		JLD.save("$(resultdir)/$(prefix)-$(csize).jld", "cp", cpf[1])
+	end
 	return cpf, csize, ibest
 end
 
