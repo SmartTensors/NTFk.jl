@@ -108,6 +108,11 @@ function analysis(X::AbstractArray{T,N}, tranks::Vector{Int}, nTF=1; seed::Numbe
 	return cpf, csize, ibest
 end
 
+"""
+Candecomp/Parafac (CP) deconstruction
+
+$(DocumentFunction.documentfunction(candecomp))
+"""
 function candecomp(X::AbstractArray{T, N}, r::Integer; tsize=size(X), seed::Number=0, method::Symbol=:ALS, functionname::String=string(method), tol::Float64=1e-8, maxiter::Integer=DMAXITER, compute_error::Bool=true, verbose::Bool=false, kw...) where {T,N}
 	if occursin("cp_", string(method))
 		c = ttanalysis(X, r; seed=seed, functionname=functionname, maxiter=maxiter, tol=tol, kw...)
