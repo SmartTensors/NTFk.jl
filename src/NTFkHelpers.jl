@@ -732,7 +732,6 @@ function makemovie(; movieformat="mp4", movieopacity::Bool=false, moviedir=".", 
 		@warn("Unknown movie format $movieformat; mp4 will be used!")
 		c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -vcodec libx264 -pix_fmt yuv420p -f mp4 -filter:v "setpts=$vspeed*PTS" -y $p.mp4`
 	end
-	@show c
 	if quiet
 		run(pipeline(c, stdout=DevNull, stderr=DevNull))
 	else
