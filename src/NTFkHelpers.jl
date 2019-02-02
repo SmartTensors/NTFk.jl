@@ -696,7 +696,7 @@ function getradialmap(X::Matrix, x0, y0, nr, na)
 	return R
 end
 
-function makemovie(; movieformat="mp4", movieopacity::Bool=false, moviedir=".", prefix::String="", keyword="frame", imgformat = "png", cleanup::Bool=true, quiet::Bool=false, vspeed::Number=1.0)
+function makemovie(; movieformat="mp4", movieopacity::Bool=false, moviedir=".", prefix::String="", keyword="frame", imgformat = "png", cleanup::Bool=true, quiet::Bool=false, vspeed::Number=1.0, numberofdigits::Integer=6)
 	p = joinpath(moviedir, prefix)
 	if moviedir == "."
 		moviedir, prefix = splitdir(prefix)
@@ -721,12 +721,18 @@ function makemovie(; movieformat="mp4", movieopacity::Bool=false, moviedir=".", 
 	end
 	# c = `ffmpeg -i $p-$(keyword)%06d.png -vcodec png -pix_fmt rgba -f mp4 -filter:v "setpts=$vspeed*PTS" -y $p.mp4`
 	if movieformat == "png"
-		c = `ffmpeg -i $p-$(keyword)%06d.$imgformat -vcodec png -filter:v "setpts=$vspeed*PTS" -y $p.avi`
+		c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -vcodec png -filter:v "setpts=$vspeed*PTS" -y $p.avi`
 	elseif movieformat == "webm"
-		c = `ffmpeg -i $p-$(keyword)%06d.$imgformat -vcodec libvpx -pix_fmt yuva420p -auto-alt-ref 0 -filter:v "setpts=$vspeed*PTS" -y $p.webm`
+		c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -vcodec libvpx -pix_fmt yuva420p -auto-alt-ref 0 -filter:v "setpts=$vspeed*PTS" -y $p.webm`
+	elseif movieformat == "gif"
+		c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -f gif -filter:v "setpts=$vspeed*PTS" -y $p.gif`
+	elseif movieformat == "mp4"
+		c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -vcodec libx264 -pix_fmt yuv420p -f mp4 -filter:v "setpts=$vspeed*PTS" -y $p.mp4`
 	else
-		c = `ffmpeg -i $p-$(keyword)%06d.$imgformat -vcodec libx264 -pix_fmt yuv420p -f mp4 -filter:v "setpts=$vspeed*PTS" -y $p.mp4`
+		@warn("Unknown movie format $movieformat; mp4 will be used!")
+		c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -vcodec libx264 -pix_fmt yuv420p -f mp4 -filter:v "setpts=$vspeed*PTS" -y $p.mp4`
 	end
+	@show c
 	if quiet
 		run(pipeline(c, stdout=DevNull, stderr=DevNull))
 	else
