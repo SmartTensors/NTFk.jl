@@ -46,11 +46,12 @@ function computestats(X, Xe, volumeindex=1:size(Xe,1), wellindex=1:size(Xe,3), t
 	g = "%.2g"
 	f = "%.2f"
 	for (i, v) in enumerate(volumeindex)
-		se = NMFk.sumnan(Xe[wellindex,timeindex,v])
-		s =  NMFk.sumnan(X[wellindex,timeindex,v])
+		# se = NMFk.sumnan(Xe[wellindex,timeindex,v])
+		# s =  NMFk.sumnan(X[wellindex,timeindex,v])
 		# @show se
 		# @show s
-		ferr[i] = (se - s) / s
+		# ferr[i] = (se - s) / s
+		ferr[i] = NMFk.normnan(X[wellindex,timeindex,v] .- Xe[wellindex,timeindex,v])
 		for (j, w) in enumerate(wellindex)
 			wsum2[j] = NMFk.sumnan(Xe[w,timeindex,v])
 			wsum1[j] = NMFk.sumnan(X[w,timeindex,v])
@@ -59,8 +60,9 @@ function computestats(X, Xe, volumeindex=1:size(Xe,1), wellindex=1:size(Xe,3), t
 		merr[i] = maximum(werr)
 		fcor[i] = cor(vec(wsum1), vec(wsum2))
 	end
-	namecase = lowercase(replace(replace(c, " ", "_"), "/", "_"))
-	@info("$(NMFk.sprintf(m, c)): $(NMFk.sprintf(f, NMFk.vecnormnan(X[wellindex,timeindex,volumeindex] .- Xe[wellindex,timeindex,volumeindex]))) [Error: $(NMFk.sprintf(g, ferr[1])) $(NMFk.sprintf(g, ferr[2])) $(NMFk.sprintf(g, ferr[3]))] [Max error: $(NMFk.sprintf(g, merr[1])) $(NMFk.sprintf(g, merr[2])) $(NMFk.sprintf(g, merr[3]))] [Pearson: $(NMFk.sprintf(g, fcor[1])) $(NMFk.sprintf(g, fcor[2])) $(NMFk.sprintf(g, fcor[3]))]")
+	namecase = lowercase(replace(replace(c, " "=>"_"), "/"=> "_"))
+	# @info("$(NMFk.sprintf(m, c)): $(NMFk.sprintf(f, NMFk.normnan(X[wellindex,timeindex,volumeindex] .- Xe[wellindex,timeindex,volumeindex]))) [Error: $(NMFk.sprintf(g, ferr[1])) $(NMFk.sprintf(g, ferr[2])) $(NMFk.sprintf(g, ferr[3]))] [Max error: $(NMFk.sprintf(g, merr[1])) $(NMFk.sprintf(g, merr[2])) $(NMFk.sprintf(g, merr[3]))] [Pearson: $(NMFk.sprintf(g, fcor[1])) $(NMFk.sprintf(g, fcor[2])) $(NMFk.sprintf(g, fcor[3]))]")
+	@info("$(NMFk.sprintf(m, c)): $(NMFk.sprintf(f, NMFk.normnan(X[wellindex,timeindex,volumeindex] .- Xe[wellindex,timeindex,volumeindex]))) : $(NMFk.sprintf(f, ferr[1])) : $(NMFk.sprintf(f, ferr[2])) : $(NMFk.sprintf(f, ferr[3])) : $(NMFk.sprintf(g, fcor[1])) : $(NMFk.sprintf(g, fcor[2])) : $(NMFk.sprintf(g, fcor[3]))")
 	!plot && return nothing
 	plot && NTFk.plot2d(X, Xe; quiet=quiet, figuredir="results-12-18", keyword=namecase, titletext=c, wellnames=wellnames, dimname="Well", xaxis=xaxis, ymin=0, xmin=Dates.Date(2015,12,15), xmax=Dates.Date(2017,6,10), linewidth=1.5Gadfly.pt, gm=[Gadfly.Guide.manual_color_key("", ["Oil", "Gas", "Water"], ["green", "red", "blue"])], colors=["green", "red", "blue"])
 end
@@ -178,7 +180,7 @@ end
 
 function getgridvalues(v::Vector, d::Integer)
 	l = length(v)
-	Interpolations.interpolate((1:l,), v, Interpolations.Gridded(Interpolations.Linear()))[1:l/(d+1):l]
+	Interpolations.interpolate((1:l,), v, Interpolations.Gridded(Interpolations.Linear())).(1:l/(d+1):l)
 end
 
 function getgridvalues(v, r; logtransform=true)
@@ -189,15 +191,15 @@ function getgridvalues(v, r; logtransform=true)
 	for i=1:lv
 		try
 			if logtransform
-				f[i] = Interpolations.interpolate((log10.(r[i]),), 1:length(r[i]), Interpolations.Gridded(Interpolations.Linear()))[log10.(v[i])]
+				f[i] = Interpolations.interpolate((log10.(r[i]),), 1:length(r[i]), Interpolations.Gridded(Interpolations.Linear())).(log10.(v[i]))
 			else
-				f[i] = Interpolations.interpolate((r[i],), 1:length(r[i]), Interpolations.Gridded(Interpolations.Linear()))[v[i]]
+				f[i] = Interpolations.interpolate((r[i],), 1:length(r[i]), Interpolations.Gridded(Interpolations.Linear())).(v[i])
 			end
 		catch
 			if logtransform
-				f[i] = Interpolations.interpolate((sort!(log10.(r[i])),), length(r[i]):-1:1, Interpolations.Gridded(Interpolations.Linear()))[log10.(v[i])]
+				f[i] = Interpolations.interpolate((sort!(log10.(r[i])),), length(r[i]):-1:1, Interpolations.Gridded(Interpolations.Linear())).(log10.(v[i]))
 			else
-				f[i] = Interpolations.interpolate((sort!(r[i]),), length(r[i]):-1:1, Interpolations.Gridded(Interpolations.Linear()))[v[i]]
+				f[i] = Interpolations.interpolate((sort!(r[i]),), length(r[i]):-1:1, Interpolations.Gridded(Interpolations.Linear())).(v[i])
 			end
 		end
 	end
@@ -690,7 +692,7 @@ function getradialmap(X::Matrix, x0, y0, nr, na)
 			theta += thetadx
 			x = x0 + i * cos(theta)
 			y = y0 + i * sin(theta)
-			R[i,j] = itp[x,y]
+			R[i,j] = itp(x,y)
 		end
 	end
 	return R
