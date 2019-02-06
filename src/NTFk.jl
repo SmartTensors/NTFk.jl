@@ -74,8 +74,6 @@ import TensorToolbox
 import JLD
 import PyPlot
 import Gadfly
-# JLD.translate("TensorDecompositions.SPNNTuckerState", "TensorDecompositions.SPNNTuckerStateOld")
-# JLD.translate("TensorDecompositions.Tucker", "TensorDecompositions.TuckerOld")
 @tryimport MATLAB
 
 modules = ["NTFk", "NMFk", "CanDecomp"]
@@ -102,12 +100,7 @@ include("NTFkAnalysis-hosvd.jl")
 include("NTFkAnalysis-tensorly.jl")
 include("NTFkLoadTensorDecompositions.jl")
 
-if VERSION >= v"0.7"
-	ism = isdefined(NTFk, :MATLAB)
-else
-	ism = isdefined(:MATLAB)
-end
-if ism
+if isdefined(NTFk, :MATLAB)
 	include("NTFkAnalysis-tensortoolbox.jl")
 end
 
