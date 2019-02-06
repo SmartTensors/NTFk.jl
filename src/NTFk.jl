@@ -1,6 +1,6 @@
 __precompile__()
 
-"Non-negative Tensor Factorization + k-means Clustering"
+"Non-negative Tensor Factorization + k-means Clustering and sparsity constraints"
 module NTFk
 
 import Pkg
