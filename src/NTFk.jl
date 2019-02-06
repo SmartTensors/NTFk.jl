@@ -3,16 +3,14 @@ __precompile__()
 "Non-negative Tensor Factorization + k-means Clustering"
 module NTFk
 
-if VERSION >= v"0.7"
-	import Pkg
-	using SharedArrays
-	using Printf
-	using LinearAlgebra
-	using SparseArrays
-	using Distributed
-	using Statistics
-	using Dates
-end
+import Pkg
+import Dates
+using SharedArrays
+using Printf
+using LinearAlgebra
+using SparseArrays
+using Distributed
+using Statistics
 
 const ntfkdir = splitdir(splitdir(Base.source_path())[1])[1]
 
@@ -48,44 +46,21 @@ function printerrormsg(errmsg::Any)
 	end
 end
 
-if VERSION >= v"0.7"
-	"Try to import a module"
-	macro tryimport(s::Symbol)
-		mname = string(s)
-		importq = string(:(import $s))
-		infostring = string("Module ", s, " is not available")
-		warnstring = string("Module ", s, " cannot be imported")
-		q = quote
-			try
-				eval(Meta.parse($importq))
-			catch errmsg
-				printerrormsg(errmsg)
-				@warn($warnstring)
-			end
+"Try to import a module"
+macro tryimport(s::Symbol)
+	mname = string(s)
+	importq = string(:(import $s))
+	infostring = string("Module ", s, " is not available")
+	warnstring = string("Module ", s, " cannot be imported")
+	q = quote
+		try
+			eval(Meta.parse($importq))
+		catch errmsg
+			printerrormsg(errmsg)
+			@warn($warnstring)
 		end
-		return :($(esc(q)))
 	end
-else
-	"Try to import a module"
-	macro tryimport(s::Symbol)
-		mname = string(s)
-		importq = string(:(import $s))
-		infostring = string("Module ", s, " is not available")
-		warnstring = string("Module ", s, " cannot be imported")
-		q = quote
-			if ispkgavailable($mname; quiet=true)
-				try
-					eval(Meta.parse($importq))
-				catch errmsg
-					printerrormsg(errmsg)
-					@warn($warnstring)
-				end
-			else
-				@info($infostring)
-			end
-		end
-		return :($(esc(q)))
-	end
+	return :($(esc(q)))
 end
 
 global imagedpi = 150

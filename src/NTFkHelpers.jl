@@ -658,11 +658,7 @@ function setnewfilename(filename::String, frame::Integer=0; keyword::String="fra
 	if !occursin(keyword, fn)
 		fn = root * "-$(keyword)000000." * ext
 	end
-	if VERSION >= v"0.7"
-		rtest = occursin(Regex(string("-", keyword, "[0-9]*[.].*\$")), fn)
-	else
-		rtest = ismatch(Regex(string("-", keyword, "[0-9]*[.].*\$")), fn)
-	end
+	rtest = occursin(Regex(string("-", keyword, "[0-9]*[.].*\$")), fn)
 	if rtest
 		rm = match(Regex(string("-", keyword, "([0-9]*)[.](.*)\$")), fn)
 		if frame == 0
