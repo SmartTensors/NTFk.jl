@@ -10,6 +10,7 @@ Interpolations
 Arpack
 Gadfly
 Colors
+Measures
 PyPlot
 Compose
 JLD
