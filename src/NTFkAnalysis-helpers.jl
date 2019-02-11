@@ -38,7 +38,7 @@ function add_noise(tnsr::AbstractArray{T,N}, sn_ratio = 0.6, nonnegative::Bool =
 	tnsr + 10^(-sn_ratio/0.2) * norm(tnsr) / norm(tnsr) * tnsr_noise
 end
 
-function arrayoperation(A::AbstractArray{T,N}, tmap=ntuple(k->(Colon()), N), functionname="mean") where {T, N}
+function arrayoperation(A::AbstractArray{T,N}, tmap=ntuple(k->(Colon()), N), functionname="Statistics.mean") where {T, N}
 	@assert length(tmap) == N
 	nci = 0
 	for i = 1:N
@@ -62,7 +62,7 @@ function arrayoperation(A::AbstractArray{T,N}, tmap=ntuple(k->(Colon()), N), fun
 	t = ntuple(k->(k == nci ? v : Colon()), N)
 	B = A[t...]
 	t = ntuple(k->(k == nci ? el[1] : Colon()), N)
-	B[t...] = eval(Meta.parse(functionname))(A[tmap...], nci)
+	B[t...] = Core.eval(Main, Meta.parse(functionname))(A[tmap...], nci)
 	return B
 end
 
@@ -81,7 +81,7 @@ function movingwindow(A::AbstractArray{T, N}, windowsize::Number=1; functionname
 		for J in CartesianIndices(ci)
 			push!(s, A[J])
 		end
-		B[I] = eval(Meta.parse(functionname))(s)
+		B[I] = Core.eval(Main, Meta.parse(functionname))(s)
 	end
 	return B
 end

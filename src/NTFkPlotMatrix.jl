@@ -120,7 +120,7 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 			f = joinpath(figuredir, filename)
 			e = splitext(f)
 			cmd = `convert -background black -flatten -format jpg $f $(e[1]).jpg`
-			run(pipeline(cmd, stdout=DevNull, stderr=DevNull))
+			run(pipeline(cmd, stdout=devnull, stderr=devnull))
 			rm(f)
 		end
 	end

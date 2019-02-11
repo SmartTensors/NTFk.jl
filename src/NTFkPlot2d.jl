@@ -3,8 +3,9 @@ import Measures
 import Compose
 import TensorToolbox
 import TensorDecompositions
+import Statistics
 
-function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, dpi::Integer=imagedpi, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), xmin=datestart, xmax=dateend, transform=nothing, linewidth=2Gadfly.pt, separate::Bool=false)
+function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, dpi::Integer=imagedpi, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), xmin=datestart, xmax=dateend, xfilter=nothing, transform=nothing, linewidth=2Gadfly.pt, separate::Bool=false)
 	recursivemkdir(figuredir; filename=false)
 	recursivemkdir(filename)
 	csize = TensorToolbox.mrank(t.core)
@@ -20,6 +21,9 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 		end
 		xvalues = timescale ? vec(collect(xmax/nx:xmax/nx:xmax)) : vec(collect(1:nx))
 	end
+	if xfilter == nothing
+		xfilter = 1:nx
+	end
 	ncomponents = length(filter)
 	loopcolors = ncomponents > ncolors ? true : false
 	# if loopcolors
@@ -33,7 +37,7 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	pl = Vector{Any}(undef, ncomponents)
 	for i = 1:ncomponents
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
-		pl[i] = Gadfly.layer(x=xvalues, y=p[:, order[filter[i]]], Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth, default_color=cc))
+		pl[i] = Gadfly.layer(x=xvalues[xfilter], y=p[xfilter, order[filter[i]]], Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth, default_color=cc))
 	end
 	# @show [repeat(colors, colorloops); colors[1:(ncomponents - colorloops * ncolors)]]
 	# tc = loopcolors ? [Gadfly.Guide.manual_color_key("", componentnames, [repeat(colors, colorloops); colors[1:(ncomponents - colorloops * ncolors)]])] : [Gadfly.Guide.manual_color_key("", componentnames, colors[1:ncomponents])] # this does not work
@@ -44,10 +48,10 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	if separate
 		for i = 1:ncomponents
 			tt = title == "" ? title : title * ": Signal #$i"
-			ff = Gadfly.plot(Gadfly.layer(x=xvalues, y=p[:, order[filter[i]]], Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth, default_color=parse(Colors.Colorant, "red"))), Gadfly.Guide.title(tt), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., Gadfly.Coord.Cartesian(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax))
+			ff = Gadfly.plot(Gadfly.layer(x=xvalues[xfilter], y=p[xfilter, order[filter[i]]], Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth, default_color=parse(Colors.Colorant, "red"))), Gadfly.Guide.title(tt), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., Gadfly.Coord.Cartesian(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax))
 			!quiet && (display(ff); println())
 			fs = split(filename, ".")
-			fn = fs[1] * "-$(lpad(order[filter[i]],4,0))." * fs[2]
+			fn = fs[1] * "-$(lpad("$(order[filter[i]])", 4, "0"))." * fs[2]
 			Gadfly.draw(Gadfly.PNG(joinpath(figuredir, fn), hsize, vsize, dpi=dpi), ff)
 		end
 	end
@@ -59,7 +63,7 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	return ff
 end
 
-function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, functionname::String="mean"; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, dpi::Integer=imagedpi, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], linewidth=2Gadfly.pt, timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude), xmin=datestart, xmax=dateend, transform=nothing)
+function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, functionname::String="Statistics.mean"; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, dpi::Integer=imagedpi, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], linewidth=2Gadfly.pt, timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude), xmin=datestart, xmax=dateend, transform=nothing)
 	recursivemkdir(figuredir; filename=false)
 	recursivemkdir(filename)
 	csize = TensorToolbox.mrank(t.core)
@@ -70,8 +74,8 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	nx, ny = size(t.factors[dim])
 	if datestart != nothing
 		xvalues = NTFk.range(datestart, nx; dateend=dateend, dateincrement=dateincrement)
-		xmin=minimum(xvalues)
-		xmax=maximum(xvalues)
+		xmin = minimum(xvalues)
+		xmax = maximum(xvalues)
 	else
 		if xmax == nothing
 			xmax = 1
@@ -96,7 +100,7 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 		end
 		X2 = TensorDecompositions.compose(tt)
 		tt.core .= t.core
-		tm = eval(Meta.parse(functionname))(X2, dp)
+		tm = Core.eval(Main, Meta.parse(functionname))(X2; dims=dp)
 		if transform != nothing
 			tm = transform.(tm)
 		end
@@ -115,7 +119,7 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	return ff
 end
 
-function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, functionname1::String="mean", functionname2::String="mean"; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, dpi::Integer=imagedpi, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], linewidth=2Gadfly.pt, timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude), xmin=datestart, xmax=dateend, transform=nothing)
+function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, functionname1::String="Statistics.mean", functionname2::String="Statistics.mean"; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, dpi::Integer=imagedpi, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], linewidth=2Gadfly.pt, timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude), xmin=datestart, xmax=dateend, transform=nothing)
 	csize = TensorToolbox.mrank(t.core)
 	recursivemkdir(figuredir; filename=false)
 	recursivemkdir(filename)
@@ -152,18 +156,18 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 		end
 		X2 = TensorDecompositions.compose(tt)
 		tt.core .= t.core
-		tm = eval(Meta.parse(functionname1))(X2, dp)
+		tm = Core.eval(Main, Meta.parse(functionname1))(X2; dims=dp)
 		if transform != nothing
 			tm = transform.(tm)
 		end
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
 		pl[i] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth, default_color=cc))
 	end
-	tm = map(j->eval(Meta.parse(functionname2))(vec(X[ntuple(k->(k == dim ? j : Colon()), ndimensons)...])), 1:nx)
-	pl[crank+1] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth+1Gadfly.pt, line_style=:dot, default_color=parse(Colors.Colorant, "gray")))
+	tm = map(j->Core.eval(Main, Meta.parse(functionname2))(vec(X[ntuple(k->(k == dim ? j : Colon()), ndimensons)...])), 1:nx)
+	pl[crank+1] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth+1Gadfly.pt, line_style=[:dot], default_color="gray"))
 	Xe = TensorDecompositions.compose(t)
-	tm = map(j->eval(Meta.parse(functionname2))(vec(Xe[ntuple(k->(k == dim ? j : Colon()), ndimensons)...])), 1:nx)
-	pl[crank+2] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth, default_color=parse(Colors.Colorant, "gray85")))
+	tm = map(j->Core.eval(Main, Meta.parse(functionname2))(vec(Xe[ntuple(k->(k == dim ? j : Colon()), ndimensons)...])), 1:nx)
+	pl[crank+2] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth, default_color="gray85"))
 	tc = loopcolors ? [] : [Gadfly.Guide.manual_color_key("", [componentnames; "Est."; "True"], [colors[1:crank]; "gray85"; "gray"])]
 	if code
 		return [pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., Gadfly.Coord.Cartesian(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax), tc...]
@@ -230,7 +234,7 @@ function plot2d(T::Array, Te::Array=T; quiet::Bool=false, wellnames=nothing, Tma
 			end
 			p[pc] = Gadfly.layer(x=xaxis, y=y, xintercept=xintercept, Gadfly.Geom.line, Gadfly.Theme(line_width=linewidth, default_color=colors[i]), Gadfly.Geom.vline)
 			pc += 1
-			p[pc] = Gadfly.layer(x=xaxis, y=ye, xintercept=xintercept, Gadfly.Geom.line, Gadfly.Theme(line_style=:dot, line_width=linewidth, default_color=colors[i]), Gadfly.Geom.vline)
+			p[pc] = Gadfly.layer(x=xaxis, y=ye, xintercept=xintercept, Gadfly.Geom.line, Gadfly.Theme(line_style=[:dot], line_width=linewidth, default_color=colors[i]), Gadfly.Geom.vline)
 			pc += 1
 		end
 		if wellnames != nothing
@@ -264,7 +268,7 @@ end
 
 function range(datestart, nx; dateend=nothing, dateincrement::String="Dates.Day")
 	if dateend == nothing
-		xvalues = datestart .+ vec(collect(eval(Meta.parse(dateincrement))(0):eval(Meta.parse(dateincrement))(1):eval(Meta.parse(dateincrement))(nx-1)))
+		xvalues = datestart .+ vec(collect(Core.eval(Main, Meta.parse(dateincrement))(0):Core.eval(Main, Meta.parse(dateincrement))(1):Core.eval(Main, Meta.parse(dateincrement))(nx-1)))
 	else
 		xvalues = datestart .+ (vec(collect(1:nx)) ./ nx .* (dateend .- datestart))
 	end

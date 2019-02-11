@@ -25,7 +25,7 @@ end
 function loadresults(case::String, csize::Tuple=(); resultdir::String=".")
 	filename = "$(resultdir)/$(case)-$(mapsize(csize)).jld"
 	if isfile(filename)
-		t = JLD.load(filename, "t")
+		t = NTFk.loadtucker(filename, "t")
 		return t
 	else
 		@warn("File $(filename) does not exist!")

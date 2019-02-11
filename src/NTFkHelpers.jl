@@ -103,7 +103,7 @@ function indicize(v; rev=false, nbins=length(v), minvalue=minimum(v), maxvalue=m
 		elseif typeof(minvalue) <: Date
 			maxvalue = ceil(maxvalue, stepvalue)
 			minvalue = floor(minvalue, stepvalue)
-			nbins = convert(Int, (maxvalue - minvalue) / eval(Meta.parse(stepvalue))(1))
+			nbins = convert(Int, (maxvalue - minvalue) / Core.eval(Main, Meta.parse(stepvalue))(1))
 		else
 			granularity = -convert(Int, ceil(log10(stepvalue)))
 			maxvalue = ceil(maxvalue, granularity)
@@ -227,7 +227,7 @@ function getinterpolatedtensor(t::TensorDecompositions.Tucker{T,N}, v; sp=[Inter
 	return tn
 end
 
-function getpredictions(t::TensorDecompositions.Tucker{T,N}, dim, v; sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line())), Interpolations.OnGrid()]) where {T,N}
+function getpredictions(t::TensorDecompositions.Tucker{T,N}, dim, v; sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line(Interpolations.OnGrid())))], ep=[Interpolations.Line(Interpolations.OnGrid())]) where {T,N}
 	factors = []
 	for i = 1:N
 		push!(factors, t.factors[i])
@@ -235,7 +235,9 @@ function getpredictions(t::TensorDecompositions.Tucker{T,N}, dim, v; sp=[Interpo
 	for j = dim
 		f = Array{T}(undef, length(v), size(factors[j], 2))
 		for i = 1:size(factors[j], 2)
-			f[:,i] = Interpolations.interpolate(t.factors[j][:, i], sp...).(v)
+			itp = Interpolations.interpolate(t.factors[j][:, i], sp...)
+			etp = Interpolations.extrapolate(itp, ep...)
+			f[:,i] = etp.(collect(v))
 		end
 		factors[j] = f
 	end
@@ -709,7 +711,7 @@ function makemovie(; movieformat="mp4", movieopacity::Bool=false, moviedir=".", 
 			e = splitext(f)
 			c = `convert -background black -flatten -format jpg $(joinpath(s[1], f)) $(joinpath(s[1], e[1])).jpg`
 			if quiet
-				run(pipeline(c, stdout=DevNull, stderr=DevNull))
+				run(pipeline(c, stdout=devnull, stderr=devnull))
 			else
 				run(c)
 			end
@@ -731,7 +733,7 @@ function makemovie(; movieformat="mp4", movieopacity::Bool=false, moviedir=".", 
 		c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -vcodec libx264 -pix_fmt yuv420p -f mp4 -filter:v "setpts=$vspeed*PTS" -y $p.mp4`
 	end
 	if quiet
-		run(pipeline(c, stdout=DevNull, stderr=DevNull))
+		run(pipeline(c, stdout=devnull, stderr=devnull))
 	else
 		run(c)
 	end
