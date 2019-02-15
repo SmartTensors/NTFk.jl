@@ -354,15 +354,16 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 		pt = getptdimensions(pdim, ndimensons)
 		nt = ntuple(k->(k == dim ? 1 : Colon()), ndimensons)
 		sz = size(X[1][nt...])
+		ii = lpad("$i", 4, "0")
 		if length(filter) == 0
 			recursivemkdir(prefix)
 			for (i, e) in enumerate(order)
-				writedlm("$prefix-tensorslice$i.dat", reshape(permutedims(X[e], pt), sz))
-				# JLD.save("$prefix-tensorslice$i.jld", "X", permutedims(X[order[e]], pt))
+				writedlm("$prefix-tensorslice$ii.dat", reshape(permutedims(X[e], pt), sz))
+				# JLD.save("$prefix-tensorslice$ii.jld", "X", permutedims(X[order[e]], pt))
 			end
 		else
 			for i in filter
-				writedlm("$prefix-tensorslice$i.dat", reshape(permutedims(X[order[i]], pt), sz))
+				writedlm("$prefix-tensorslice$ii.dat", reshape(permutedims(X[order[i]], pt), sz))
 			end
 		end
 	end

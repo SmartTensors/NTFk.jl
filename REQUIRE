@@ -7,6 +7,7 @@ TensorOperations 0.0-1.0
 TensorDecompositions
 TensorToolbox
 Interpolations
+Distributions
 Arpack
 Gadfly
 Colors

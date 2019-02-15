@@ -270,7 +270,7 @@ function plotalltensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1,
 	pt = getptdimensions(pdim, length(csize), transpose)
 	mdfilter = ntuple(k->(k == 1 ? 1 : Colon()), length(csize))
 	for i = 1:length(X)
-		filename = prefix == "" ? "" : "$prefix-tensorslice$i.png"
+		filename = prefix == "" ? "" : "$prefix-tensorslice$(lpad("$i", 4, "0")).png"
 		p = plotmatrix(permutedims(X[order[i]], pt)[mdfilter...]; filename=filename, kw...)
 		!quiet && (@info("Slice $i"); display(p); println();)
 	end

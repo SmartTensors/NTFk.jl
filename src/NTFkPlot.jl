@@ -157,7 +157,7 @@ function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::Abstra
 	else
 		gla = Vector{Any}(undef, 3)
 		for i = 1:3
-			gla = []
+			gla[i] = []
 		end
 	end
 	for i = 1:sizes[dim]
