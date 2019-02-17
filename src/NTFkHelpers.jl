@@ -183,27 +183,59 @@ function getgridvalues(v::Vector, d::Integer)
 	Interpolations.interpolate((1:l,), v, Interpolations.Gridded(Interpolations.Linear())).(1:l/(d+1):l)
 end
 
-function getgridvalues(v, r; logtransform=true)
+function getgridvalues(v::AbstractVector, r; logtransform=true)
 	lv = length(v)
 	lr = length(r)
 	@assert lv == lr
 	f = similar(v)
-	for i=1:lv
-		try
-			if logtransform
-				f[i] = Interpolations.interpolate((log10.(r[i]),), 1:length(r[i]), Interpolations.Gridded(Interpolations.Linear())).(log10.(v[i]))
-			else
-				f[i] = Interpolations.interpolate((r[i],), 1:length(r[i]), Interpolations.Gridded(Interpolations.Linear())).(v[i])
-			end
-		catch
-			if logtransform
-				f[i] = Interpolations.interpolate((sort!(log10.(r[i])),), length(r[i]):-1:1, Interpolations.Gridded(Interpolations.Linear())).(log10.(v[i]))
-			else
-				f[i] = Interpolations.interpolate((sort!(r[i]),), length(r[i]):-1:1, Interpolations.Gridded(Interpolations.Linear())).(v[i])
-			end
+	try
+		if logtransform
+			f = Interpolations.interpolate((log10.(r[i]),), 1:length(r[i]), Interpolations.Gridded(Interpolations.Linear())).(log10.(v))
+		else
+			f = Interpolations.interpolate((r[i],), 1:length(r[i]), Interpolations.Gridded(Interpolations.Linear())).(v)
+		end
+	catch
+		if logtransform
+			f = Interpolations.interpolate((sort!(log10.(r[i])),), length(r[i]):-1:1, Interpolations.Gridded(Interpolations.Linear())).(log10.(v))
+		else
+			f = Interpolations.interpolate((sort!(r[i]),), length(r[i]):-1:1, Interpolations.Gridded(Interpolations.Linear())).(v)
 		end
 	end
 	return f
+end
+
+function remap(v::AbstractVector, vi::UnitRange, ve::UnitRange; nonneg::Bool=true, sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line(Interpolations.OnGrid())))], ep=[Interpolations.Line(Interpolations.OnGrid())])
+	lv = length(v)
+	li = length(vi)
+	@assert lv == li
+	f1 = Vector{Float64}(undef, length(vi))
+	isn = .!isnan.(v)
+	itp = Interpolations.interpolate((vi[isn],), v[isn], Interpolations.Gridded(Interpolations.Linear()))
+	etp = Interpolations.extrapolate(itp, ep...)
+	f1 = etp(ve)
+	nonneg && (f1[f1.<0] .= 0)
+	# f2 = Vector{Float64}(undef, length(ve))
+	# itp = Interpolations.interpolate(f1, sp...)
+	# etp = Interpolations.extrapolate(itp, ep...)
+	# f2 = etp(ve)
+	return f1
+end
+
+function remap(v::AbstractVector, vi::AbstractVector, ve::AbstractVector; nonneg::Bool=true, sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line(Interpolations.OnGrid())))], ep=[Interpolations.Line(Interpolations.OnGrid())])
+	lv = length(v)
+	li = length(vi)
+	@assert lv == li
+	f1 = Vector{Float64}(undef, length(vi))
+	isn = .!isnan.(v)
+	itp = Interpolations.interpolate((vi[isn],), v[isn], Interpolations.Gridded(Interpolations.Linear()))
+	etp = Interpolations.extrapolate(itp, ep...)
+	f1 = etp.(ve)
+	nonneg && (f1[f1.<0] .= 0)
+	# f2 = Vector{Float64}(undef, length(ve))
+	# itp = Interpolations.interpolate(f1, sp...)
+	# etp = Interpolations.extrapolate(itp, ep...)
+	# f2 = etp.(ve)
+	return f1
 end
 
 function getinterpolatedtensor(t::TensorDecompositions.Tucker{T,N}, v; sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line())), Interpolations.OnGrid()]) where {T,N}
@@ -237,7 +269,7 @@ function getpredictions(t::TensorDecompositions.Tucker{T,N}, dim, v; sp=[Interpo
 		for i = 1:size(factors[j], 2)
 			itp = Interpolations.interpolate(t.factors[j][:, i], sp...)
 			etp = Interpolations.extrapolate(itp, ep...)
-			f[:,i] = etp.(collect(v))
+			f[:, i] = etp.(collect(v))
 		end
 		factors[j] = f
 	end
