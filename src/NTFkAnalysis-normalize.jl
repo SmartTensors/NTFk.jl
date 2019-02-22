@@ -59,6 +59,24 @@ function normalizeslices!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check:
 	end
 end
 
+function scaleslices!(X::TensorDecompositions.Tucker{T,N}, m=AbtractVector, order=1:N; check::Bool=false) where {T,N}
+	check && (Xi = TensorDecompositions.compose(X))
+	NTFk.normalizefactors!(X)
+	NTFk.normalizecore!(X, order)
+	Xe = NTFk.compose(X, order[2:end])
+	me = maximum(Xe; dims=order[2:end])
+	@assert length(m) == length(me)
+	for i = 1:length(m)
+		t = ntuple(k->(k == order[1] ? i : Colon()), N)
+		X.core[t...] ./= m[i]
+		X.factors[order[1]][:,i] .*= m[i]
+	end
+	if check
+		Xe = TensorDecompositions.compose(X)
+		@info("Normalization error: $(norm(Xi .- Xe))")
+	end
+end
+
 function normalizefactors!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; check::Bool=false) where {T,N}
 	check && (Xi = TensorDecompositions.compose(X))
 	for i = order

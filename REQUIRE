@@ -8,6 +8,7 @@ TensorDecompositions
 TensorToolbox
 Interpolations
 Distributions
+DistributedArrays
 Arpack
 Gadfly
 Colors
