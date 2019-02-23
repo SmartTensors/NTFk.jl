@@ -1,4 +1,5 @@
 import Interpolations
+import DelimitedFiles
 
 "Convert `@sprintf` macro into `sprintf` function"
 sprintf(args...) = eval(:@sprintf($(args...)))
@@ -386,20 +387,30 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 		pt = getptdimensions(pdim, ndimensons)
 		nt = ntuple(k->(k == dim ? 1 : Colon()), ndimensons)
 		sz = size(X[1][nt...])
-		ii = lpad("$i", 4, "0")
-		if length(filter) == 0
-			recursivemkdir(prefix)
-			for (i, e) in enumerate(order)
-				writedlm("$prefix-tensorslice$ii.dat", reshape(permutedims(X[e], pt), sz))
-				# JLD.save("$prefix-tensorslice$ii.jld", "X", permutedims(X[order[e]], pt))
-			end
-		else
-			for i in filter
-				writedlm("$prefix-tensorslice$ii.dat", reshape(permutedims(X[order[i]], pt), sz))
-			end
-		end
+		NTFk.savetensorslices(X, pt, sz, order, prefix)
 	end
 	return X
+end
+
+function savetensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, prefix::String="", transform=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude))
+	cs = size(t.core)
+	ndimensons = length(cs)
+	@assert dim >= 1 && dim <= ndimensons
+	dimname = namedimension(ndimensons)
+	X = gettensorcomponents(t, dim, pdim; transpose=transpose, prefix=prefix, mask=nothing, transform=transform, filter=filter, order=order, maxcomponent=true)
+	pt = getptdimensions(pdim, ndimensons)
+	nt = ntuple(k->(k == dim ? 1 : Colon()), ndimensons)
+	sz = size(X[1][nt...])
+	NTFk.savetensorslices(X, pt, sz, order, prefix)
+end
+
+function savetensorslices(X::AbstractArray, pt, sz, order, prefix::String="")
+	recursivemkdir(prefix)
+	for (i, e) in enumerate(order)
+		ii = lpad("$i", 4, "0")
+		DelimitedFiles.writedlm("$prefix-tensorslice$ii.dat", reshape(permutedims(X[e], pt), sz)[:,:])
+		# JLD.save("$prefix-tensorslice$ii.jld", "X", permutedims(X[order[e]], pt))
+	end
 end
 
 function mrank(t::TensorDecompositions.Tucker)
