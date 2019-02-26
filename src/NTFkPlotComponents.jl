@@ -195,7 +195,7 @@ function plotall3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integ
 	np = convert(Int, ceil(nc / 3))
 	x = reshape(collect(1:3*np), (3, np))
 	x[x.>nc] .= nc
-	X = gettensorcomponents(t, dim, pdim; transpose=transpose, prefix=prefix, mask=mask, transform=transform, order=order, maxcomponent=maxcomponent, savetensorslices=savetensorslices, filter=tensorfilter)
+	X = gettensorcomponents(t, dim, pdim; transpose=transpose, prefix=prefix, filter=tensorfilter, mask=mask, transform=transform, order=order, maxcomponent=maxcomponent, savetensorslices=savetensorslices)
 	for i = 1:np
 		filter = vec(x[:,i])
 		s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, code=true, order=order, filter=filter, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, transform=transform2d, gm=gm)
@@ -205,19 +205,19 @@ function plotall3tensorsandcomponents(t::TensorDecompositions.Tucker, dim::Integ
 	end
 end
 
-function plotallMtensorsandcomponents(t::TensorDecompositions.Tucker, M::Integer, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; mask=nothing, csize::Tuple=TensorToolbox.mrank(t.core), transpose=false, xtitle="Time", ytitle="Magnitude", timescale::Bool=true, datestart=nothing, dateincrement::String="Dates.Day", dateend=nothing, functionname="Statistics.mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), xmin=datestart, xmax=dateend, ymin=nothing, ymax=nothing, prefix=nothing, maxcomponent=false, savetensorslices=false, transform=nothing, transform2d=nothing, kw...)
+function plotallMtensorsandcomponents(t::TensorDecompositions.Tucker, M::Integer, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; mask=nothing, csize::Tuple=TensorToolbox.mrank(t.core), transpose=false, xtitle="Time", ytitle="Magnitude", timescale::Bool=true, datestart=nothing, dateincrement::String="Dates.Day", dateend=nothing, functionname="Statistics.mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), xmin=datestart, xmax=dateend, ymin=nothing, ymax=nothing, prefix=nothing, maxcomponent=false, savetensorslices=false, transform=nothing, transform2d=nothing, tensorfilter=(), gm=[], kw...)
 	ndimensons = length(t.factors)
 	if !checkdimension(dim, ndimensons) || !checkdimension(pdim, ndimensons)
 		return
 	end
-	nc = size(t.factors[pdim], 2)
+	nc = length(order)
 	np = convert(Int, ceil(nc / M))
 	x = reshape(collect(1:M*np), (M, np))
 	x[x.>nc] .= nc
-	X = gettensorcomponents(t, dim, pdim; transpose=transpose, prefix=prefix, mask=mask, transform=transform, order=order, maxcomponent=maxcomponent, savetensorslices=savetensorslices)
+	X = gettensorcomponents(t, dim, pdim; transpose=transpose, prefix=prefix, filter=tensorfilter, mask=mask, transform=transform, order=order, maxcomponent=maxcomponent, savetensorslices=savetensorslices)
 	for i = 1:np
 		filter = vec(x[:,i])
-		s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, code=true, order=order, filter=filter, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, transform=transform2d)
+		s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, code=true, order=order, filter=filter, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, transform=transform2d, gm=gm)
 		progressbar_2d = make_progressbar_2d(s2)
 		prefixnew = prefix == "" ? "" : prefix * "-$(join(filter, "_"))"
 		plotMtensorcomponents(t, M, dim, pdim; csize=csize, transpose=transpose, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], prefix=prefixnew, X=X, maxcomponent=maxcomponent, savetensorslices=savetensorslices, mask=mask, signalnames=["T$i" for i = filter], kw...)
@@ -250,7 +250,7 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 	end
 end
 
-function plotMtensorcomponents(t::TensorDecompositions.Tucker, M::Integer, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, transform=nothing, order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, barratio=(maxcomponent) ? 1/2 : 1/3,savetensorslices::Bool=false, X=nothing, kw...)
+function plotMtensorcomponents(t::TensorDecompositions.Tucker, M::Integer, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::String="", filter=(), mask=nothing, transform=nothing, order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, barratio=(maxcomponent) ? 1/2 : 1/3,savetensorslices::Bool=false, X=nothing, gla=[], kw...)
 	if X == nothing
 		X = gettensorcomponents(t, dim, pdim; transpose=transpose, prefix=prefix, filter=filter, mask=mask, transform=transform, order=order, maxcomponent=maxcomponent, savetensorslices=savetensorslices)
 	end
@@ -259,7 +259,16 @@ function plotMtensorcomponents(t::TensorDecompositions.Tucker, M::Integer, dim::
 	for i = 1:M
 		XM[i] = permutedims(X[order[i]], pt)
 	end
-	plotMtensors(XM, 1; prefix=prefix, barratio=barratio, kw...)
+	nc = length(X)
+	if length(gla) > 1
+		@assert length(gla) == nc
+	else
+		gla = Vector{Any}(undef, nc)
+		for i = 1:nc
+			gla[i] = []
+		end
+	end
+	plotMtensors(XM, 1; prefix=prefix, barratio=barratio, gla=[gla[order[i]] for i=1:M], kw...)
 	if maxcomponent && prefix != ""
 		recursivemkdir(prefix)
 		mv("$prefix-frame000001.png", "$prefix-max.png"; force=true)

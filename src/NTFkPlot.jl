@@ -164,9 +164,9 @@ function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::Abstra
 		framename = "$(dimname[dim]) $i / $(sizes[dim])"
 		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
 		if overlap
-			g1 = plotmatrix(X1[nt...]; minvalue=minvalue, maxvalue=maxvalue, key_label_font_size=key_label_font_size, title=ltitle, colormap=nothing, defaultcolor=Colors.RGBA(1.0,0.0,0.0,opacity), code=overlap, gl=gla[1], kw...)
-			g2 = plotmatrix(X2[nt...]; minvalue=minvalue2, maxvalue=maxvalue2, key_label_font_size=key_label_font_size, title=ctitle, colormap=nothing, defaultcolor=Colors.RGBA(0.0,0.0,1.0,opacity), code=overlap, gl=gla[2], kw...)
-			g3 = plotmatrix(X3[nt...]; minvalue=minvalue3, maxvalue=maxvalue3, key_label_font_size=key_label_font_size, title=rtitle, colormap=nothing, defaultcolor=Colors.RGBA(0.0,0.502,0.0,opacity), code=overlap, gl=gla[3], kw...)
+			g1 = plotmatrix(X1[nt...]; minvalue=minvalue, maxvalue=maxvalue, key_label_font_size=key_label_font_size, title=ltitle, colormap=nothing, defaultcolor=Colors.RGBA(1.0,0.0,0.0,opacity), code=true, gl=gla[1], kw...)
+			g2 = plotmatrix(X2[nt...]; minvalue=minvalue2, maxvalue=maxvalue2, key_label_font_size=key_label_font_size, title=ctitle, colormap=nothing, defaultcolor=Colors.RGBA(0.0,0.0,1.0,opacity), code=true, gl=gla[2], kw...)
+			g3 = plotmatrix(X3[nt...]; minvalue=minvalue3, maxvalue=maxvalue3, key_label_font_size=key_label_font_size, title=rtitle, colormap=nothing, defaultcolor=Colors.RGBA(0.0,0.502,0.0,opacity), code=true, gl=gla[3], kw...)
 			g = Compose.hstack(Gadfly.plot(g1..., g2..., g3..., Gadfly.Guide.manual_color_key("", signalnames, ["red", "blue", "green"])))
 		else
 			g1 = plotmatrix(X1[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ltitle, colormap=colormap1, key_label_font_size=key_label_font_size, gl=gla[1], kw...)
@@ -221,27 +221,39 @@ function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::Abstra
 	end
 end
 
-function plotMtensors(X::Vector{AbstractArray}, dim::Integer=1; sizes=size(X[1]), N=length(sizes), M = length(X), mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan(map(i->minimumnan(X[i]), 1:M)), maxvalue=maximumnan(map(i->maximumnan(X[i]), 1:M)), prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi,moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::String="Dates.Day", dateend=nothing, progressbar=progressbar_regular, barratio::Number=1/2, uniformscaling::Bool=true, vspeed=1.0, movieformat="mp4", movieopacity::Bool=false, colormap=colormap_gyr, overlap::Bool=false, key_label_font_size=16Gadfly.pt, opacity=0.8, signalnames=["T1", "T2", "T3"], signalcolors=colors[1:M], kw...)
+function plotMtensors(X::Vector{AbstractArray}, dim::Integer=1; sizes=size(X[1]), N=length(sizes), M=length(X), mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan(map(i->minimumnan(X[i]), 1:M)), maxvalue=maximumnan(map(i->maximumnan(X[i]), 1:M)), prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi,moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::String="Dates.Day", dateend=nothing, progressbar=progressbar_regular, barratio::Number=1/2, uniformscaling::Bool=true, vspeed=1.0, movieformat="mp4", movieopacity::Bool=false, colormap=colormap_gyr, overlap::Bool=false, key_label_font_size=16Gadfly.pt, opacity=0.8, gla=[], signalnames=["T$i" for i=1:M], signalcolors=colors[1:M], kw...)
 	recursivemkdir(prefix)
 	if !checkdimension(dim, N)
 		return
 	end
 	recursivemkdir(moviedir; filename=false)
 	dimname = namedimension(N; char="D", names=("Row", "Column", "Layer"))
+	if length(gla) > 1
+		@assert length(gla) == M
+	else
+		gla = Vector{Any}(undef, M)
+		for i = 1:M
+			gla[i] = []
+		end
+	end
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i / $(sizes[dim])"
 		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
 		gv = Vector{Any}(undef, M)
 		if overlap
 			for m = 1:M
-				gv[m] = plotmatrix(X[m][nt...]; minvalue=minvalue, maxvalue=maxvalue, key_label_font_size=key_label_font_size, title=ltitle, colormap=nothing, defaultcolor=Colors.RGBA(parse.(Colors.Colorant, colors[m]),opacity), code=overlap, kw...)
+				gv[m] = plotmatrix(X[m][nt...]; minvalue=minvalue, maxvalue=maxvalue, key_label_font_size=key_label_font_size, title=ltitle, colormap=nothing, defaultcolor=Colors.RGBA(parse.(Colors.Colorant, colors[m]),opacity), code=true, kw...)
 			end
 			g = Compose.hstack(Gadfly.plot(vcat(map(x->[x...], gv)...)..., Gadfly.Guide.manual_color_key("", signalnames, signalcolors)))
 		else
 			for m = 1:M
-				gv[i] = plotmatrix(X[m][nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ltitle, colormap=colormap[m], key_label_font_size=key_label_font_size, kw...)
+				if length(colormap) == M
+					gv[m] = plotmatrix(X[m][nt...]; minvalue=minvalue, maxvalue=maxvalue, key_label_font_size=key_label_font_size, title=ltitle, colormap=colormap[m], kw...)
+				else
+					gv[m] = plotmatrix(X[m][nt...]; minvalue=minvalue, maxvalue=maxvalue, key_label_font_size=key_label_font_size, title=ltitle, colormap=colormap, kw...)
+				end
 			end
-			g = Compose.hstack(vcat(map(x->[x...], gv)...)...)
+			g = Compose.hstack(gv...)
 		end
 		if progressbar != nothing
 			if sizes[dim] == 1
@@ -258,13 +270,13 @@ function plotMtensors(X::Vector{AbstractArray}, dim::Integer=1; sizes=size(X[1])
 				if overlap
 					Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), g), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f)))); println()
 				else
-					Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), Compose.hstack(vcat(map(x->[x...], gv)...)...)), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f)))); println()
+					Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), Compose.hstack(gv...)), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f)))); println()
 				end
 			else
 				if overlap
 					Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(g, f)); println()
 				else
-					Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(Compose.hstack(vcat(map(x->[x...], gv)...)...), f)); println()
+					Gadfly.draw(Gadfly.PNG(hsize, vsize), Compose.vstack(Compose.hstack(gv...), f)); println()
 				end
 			end
 		end
@@ -274,13 +286,13 @@ function plotMtensors(X::Vector{AbstractArray}, dim::Integer=1; sizes=size(X[1])
 				if overlap
 					Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), g), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f))))
 				else
-					Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), Compose.hstack(vcat(map(x->[x...], gv)...)...)), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f))))
+					Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), Compose.hstack(gv...)), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f))))
 				end
 			else
 				if overlap
 					Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Compose.vstack(g, f))
 				else
-					Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Compose.vstack(Compose.hstack(vcat(map(x->[x...], gv)...)...), f))
+					Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Compose.vstack(Compose.hstack(gv...), f))
 				end
 			end
 		end
