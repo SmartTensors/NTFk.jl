@@ -62,7 +62,7 @@ function arrayoperation(A::AbstractArray{T,N}, tmap=ntuple(k->(Colon()), N), fun
 	t = ntuple(k->(k == nci ? v : Colon()), N)
 	B = A[t...]
 	t = ntuple(k->(k == nci ? el[1] : Colon()), N)
-	B[t...] = Core.eval(Main, Meta.parse(functionname))(A[tmap...], nci)
+	B[t...] = Core.eval(NTFk, Meta.parse(functionname))(A[tmap...], nci)
 	return B
 end
 
@@ -81,7 +81,7 @@ function movingwindow(A::AbstractArray{T, N}, windowsize::Number=1; functionname
 		for J in CartesianIndices(ci)
 			push!(s, A[J])
 		end
-		B[I] = Core.eval(Main, Meta.parse(functionname))(s)
+		B[I] = Core.eval(NTFk, Meta.parse(functionname))(s)
 	end
 	return B
 end

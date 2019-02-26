@@ -100,7 +100,7 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 		end
 		X2 = TensorDecompositions.compose(tt)
 		tt.core .= t.core
-		tm = Core.eval(Main, Meta.parse(functionname))(X2; dims=dp)
+		tm = Core.eval(NTFk, Meta.parse(functionname))(X2; dims=dp)
 		if transform != nothing
 			tm = transform.(tm)
 		end
@@ -156,17 +156,17 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 		end
 		X2 = TensorDecompositions.compose(tt)
 		tt.core .= t.core
-		tm = Core.eval(Main, Meta.parse(functionname1))(X2; dims=dp)
+		tm = Core.eval(NTFk, Meta.parse(functionname1))(X2; dims=dp)
 		if transform != nothing
 			tm = transform.(tm)
 		end
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
 		pl[i] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth, default_color=cc))
 	end
-	tm = map(j->Core.eval(Main, Meta.parse(functionname2))(vec(X[ntuple(k->(k == dim ? j : Colon()), ndimensons)...])), 1:nx)
+	tm = map(j->Core.eval(NTFk, Meta.parse(functionname2))(vec(X[ntuple(k->(k == dim ? j : Colon()), ndimensons)...])), 1:nx)
 	pl[crank+1] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth+1Gadfly.pt, line_style=[:dot], default_color="gray"))
 	Xe = TensorDecompositions.compose(t)
-	tm = map(j->Core.eval(Main, Meta.parse(functionname2))(vec(Xe[ntuple(k->(k == dim ? j : Colon()), ndimensons)...])), 1:nx)
+	tm = map(j->Core.eval(NTFk, Meta.parse(functionname2))(vec(Xe[ntuple(k->(k == dim ? j : Colon()), ndimensons)...])), 1:nx)
 	pl[crank+2] = Gadfly.layer(x=xvalues, y=tm, Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth, default_color="gray85"))
 	tc = loopcolors ? [] : [Gadfly.Guide.manual_color_key("", [componentnames; "Est."; "True"], [colors[1:crank]; "gray85"; "gray"])]
 	if code
