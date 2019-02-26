@@ -261,7 +261,7 @@ function plotMtensorcomponents(t::TensorDecompositions.Tucker, M::Integer, dim::
 	plotMtensors(XM, 1; prefix=prefix, barratio=barratio, kw...)
 	if maxcomponent && prefix != ""
 		recursivemkdir(prefix)
-		mv("$prefix-frame000001.png", "$prefix-max.png"; remove_destination=true)
+		mv("$prefix-frame000001.png", "$prefix-max.png"; force=true)
 	end
 end
 
