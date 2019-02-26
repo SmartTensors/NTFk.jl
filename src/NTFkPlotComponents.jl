@@ -246,6 +246,7 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 	if maxcomponent && prefix != ""
 		recursivemkdir(prefix)
 		mv("$prefix-frame000001.png", "$prefix-max.png"; force=true)
+		return
 	end
 end
 
