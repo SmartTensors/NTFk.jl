@@ -5,6 +5,25 @@ import TensorToolbox
 import TensorDecompositions
 import Statistics
 
+function movie2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet::Bool=false, timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", movie=true, prefix="", dpi::Integer=imagedpi, hsize=12Compose.inch, vsize=2Compose.inch, moviedir=".", vspeed=1.0, keyword="frame", movieformat="mp4", movieopacity::Bool=false, cleanup::Bool=true, kw...)
+	s = plot2dtensorcomponents(t, dim; kw..., timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, code=true)
+	nt = size(t.factors[dim], 1)
+	timestep = 1 / nt
+	progressbar_2d = make_progressbar_2d(s)
+	for i = 1:nt
+		framename = "Time $i"
+		p = progressbar_2d(i, timescale, timestep, datestart, dateend, dateincrement)
+		!quiet && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=dpi), p); println())
+		if prefix != ""
+			filename = setnewfilename(prefix, i; keyword=keyword)
+			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), p)
+		end
+	end
+	if movie && prefix != ""
+		makemovie(movieformat=movieformat, movieopacity=movieopacity, moviedir=moviedir, prefix=prefix, keyword=keyword, cleanup=cleanup, quiet=quiet, vspeed=vspeed)
+	end
+end
+
 function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, dpi::Integer=imagedpi, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), xmin=datestart, xmax=dateend, xfilter=nothing, transform=nothing, linewidth=2Gadfly.pt, separate::Bool=false)
 	recursivemkdir(figuredir; filename=false)
 	recursivemkdir(filename)

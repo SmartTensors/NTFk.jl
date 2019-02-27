@@ -118,7 +118,7 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 	plot3tensors(permutedims(X1, pt), permutedims(X2[order[1]], pt), permutedims(X2[order[2]], pt), 1; prefix=prefix, kw...)
 end
 
-function plottensorandsomething(X::Array, something, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; minvalue=minimumnan(X), maxvalue=maximumnan(X), sizes=size(X), xtitle="Time", ytitle="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::String="Dates.Day", dateend=(datestart != nothing) ? datestart + Core.eval(Main, Meta.parse(dateincrement))(sizes[dim]) : nothing, cleanup::Bool=true, movie::Bool=false, moviedir=".", prefix::String="", vspeed=1.0, keyword="frame", quiet::Bool=false, hsize=6Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi, movieformat="mp4", movieopacity::Bool=false, kw...)
+function plottensorandsomething(X::Array, something, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; minvalue=minimumnan(X), maxvalue=maximumnan(X), sizes=size(X), xtitle="Time", ytitle="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::String="Dates.Day", dateend=(datestart != nothing) ? datestart + Core.eval(Main, Meta.parse(dateincrement))(sizes[dim]) : nothing, cleanup::Bool=true, movie::Bool=false, moviedir=".", prefix::String="", vspeed=1.0, keyword="frame", quiet::Bool=false, hsize=6Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi, movieformat="mp4", movieopacity::Bool=false, barratio=2/3, kw...)
 	ndimensons = length(sizes)
 	recursivemkdir(moviedir; filename=false)
 	recursivemkdir(prefix)
@@ -129,10 +129,10 @@ function plottensorandsomething(X::Array, something, dim::Integer=1, pdim::Union
 		nt = ntuple(k->(k == dim ? i : Colon()), ndimensons)
 		p1 = plotmatrix(X[nt...]; minvalue=minvalue, maxvalue=maxvalue, kw...)
 		p2 = progressbar_2d(i, timescale, timestep, datestart, dateend, dateincrement)
-		!quiet && (sizes[dim] > 1) && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=dpi), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 2/3), Gadfly.render(p1)), Compose.compose(Compose.context(0, 0, 1, 1/3), Gadfly.render(p2)))); println())
+		!quiet && (sizes[dim] > 1) && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=dpi), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(p1)), Compose.compose(Compose.context(0, 0, 1, 1 - barratio), Gadfly.render(p2)))); println())
 		if prefix != ""
 			filename = setnewfilename(prefix, i; keyword=keyword)
-			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 2/3), Gadfly.render(p1)), Compose.compose(Compose.context(0, 0, 1, 1/3), Gadfly.render(p2))))
+			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(p1)), Compose.compose(Compose.context(0, 0, 1, 1-barratio), Gadfly.render(p2))))
 		end
 	end
 	if movie && prefix != ""

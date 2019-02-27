@@ -63,7 +63,7 @@ macro tryimport(s::Symbol)
 	return :($(esc(q)))
 end
 
-global imagedpi = 150
+global imagedpi = 300
 global DMAXITER = 1000
 
 import NMFk
