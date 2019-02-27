@@ -5,22 +5,39 @@ import TensorToolbox
 import TensorDecompositions
 import Statistics
 
-function movie2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet::Bool=false, timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", movie=true, prefix="", dpi::Integer=imagedpi, hsize=12Compose.inch, vsize=2Compose.inch, moviedir=".", vspeed=1.0, keyword="frame", movieformat="mp4", movieopacity::Bool=false, cleanup::Bool=true, kw...)
-	s = plot2dtensorcomponents(t, dim; kw..., timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, code=true)
-	nt = size(t.factors[dim], 1)
-	timestep = 1 / nt
-	progressbar_2d = make_progressbar_2d(s)
-	for i = 1:nt
-		framename = "Time $i"
-		p = progressbar_2d(i, timescale, timestep, datestart, dateend, dateincrement)
-		!quiet && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=dpi), p); println())
-		if prefix != ""
-			filename = setnewfilename(prefix, i; keyword=keyword)
-			Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), p)
-		end
+function movie2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, M=nothing; order=gettensorcomponentorder(t, dim; method=:factormagnitude), quiet::Bool=false, timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", movie=true, prefix="", dpi::Integer=imagedpi, hsize=12Compose.inch, vsize=2Compose.inch, moviedir=".", vspeed=1.0, keyword="frame", movieformat="mp4", movieopacity::Bool=false, cleanup::Bool=true, kw...)
+	nc = length(order)
+	if M != nothing
+		np = convert(Int, ceil(nc / 3))
+		x = reshape(collect(1:3*np), (3, np))
+		x[x.>nc] .= nc
+	else
+		np = 1
 	end
-	if movie && prefix != ""
-		makemovie(movieformat=movieformat, movieopacity=movieopacity, moviedir=moviedir, prefix=prefix, keyword=keyword, cleanup=cleanup, quiet=quiet, vspeed=vspeed)
+	for f = 1:np
+		if M != nothing
+			filter = vec(x[:,f])
+			prefixnew = prefix == "" ? "" : prefix * "-$(join(filter, "_"))"
+		else
+			filter = 1:nc
+			prefixnew = prefix
+		end
+		s = plot2dtensorcomponents(t, dim; kw..., order=order, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, code=true, filter=filter)
+		nt = size(t.factors[dim], 1)
+		timestep = 1 / nt
+		progressbar_2d = make_progressbar_2d(s)
+		for i = 1:nt
+			framename = "Time $i"
+			p = progressbar_2d(i, timescale, timestep, datestart, dateend, dateincrement)
+			!quiet && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=dpi), p); println())
+			if prefixnew != ""
+				filename = setnewfilename(prefixnew, i; keyword=keyword)
+				Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), p)
+			end
+		end
+		if movie && prefix != ""
+			makemovie(movieformat=movieformat, movieopacity=movieopacity, moviedir=moviedir, prefix=prefixnew, keyword=keyword, cleanup=cleanup, quiet=quiet, vspeed=vspeed)
+		end
 	end
 end
 
