@@ -14,6 +14,7 @@ Gadfly
 Colors
 Measures
 PyPlot
+PyCall
 Compose
 JLD
 JLD2
