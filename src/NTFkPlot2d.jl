@@ -26,13 +26,21 @@ function movie2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1,
 		nt = size(t.factors[dim], 1)
 		timestep = 1 / nt
 		progressbar_2d = make_progressbar_2d(s)
-		for i = 1:nt
-			framename = "Time $i"
-			p = progressbar_2d(i, timescale, timestep, datestart, dateend, dateincrement)
-			!quiet && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=dpi), p); println())
+		if movie
+			for i = 1:nt
+				framename = "Time $i"
+				p = progressbar_2d(i, timescale, timestep, datestart, dateend, dateincrement)
+				!quiet && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=dpi), p); println())
+				if prefixnew != ""
+					filename = setnewfilename(prefixnew, i; keyword=keyword)
+					Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), p)
+				end
+			end
+		else
+			!quiet && (Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=dpi), Gadfly.plot(s...)); println())
 			if prefixnew != ""
-				filename = setnewfilename(prefixnew, i; keyword=keyword)
-				Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), p)
+				filename = prefixnew * ".png"
+				Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Gadfly.plot(s...))
 			end
 		end
 		if movie && prefix != ""
