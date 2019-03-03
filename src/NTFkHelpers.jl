@@ -764,7 +764,7 @@ function makemovie(; movieformat="mp4", movieopacity::Bool=false, moviedir=".", 
 		imgformat = "jpg"
 	end
 	# c = `ffmpeg -i $p-$(keyword)%06d.png -vcodec png -pix_fmt rgba -f mp4 -filter:v "setpts=$vspeed*PTS" -y $p.mp4`
-	if movieformat == "png"
+	if movieformat == "avi"
 		c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -vcodec png -filter:v "setpts=$vspeed*PTS" -y $p.avi`
 	elseif movieformat == "webm"
 		c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -vcodec libvpx -pix_fmt yuva420p -auto-alt-ref 0 -filter:v "setpts=$vspeed*PTS" -y $p.webm`
@@ -774,6 +774,7 @@ function makemovie(; movieformat="mp4", movieopacity::Bool=false, moviedir=".", 
 		c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -vcodec libx264 -pix_fmt yuv420p -f mp4 -filter:v "setpts=$vspeed*PTS" -y $p.mp4`
 	else
 		@warn("Unknown movie format $movieformat; mp4 will be used!")
+		movieformat = "mp4"
 		c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -vcodec libx264 -pix_fmt yuv420p -f mp4 -filter:v "setpts=$vspeed*PTS" -y $p.mp4`
 	end
 	if quiet
@@ -782,4 +783,35 @@ function makemovie(; movieformat="mp4", movieopacity::Bool=false, moviedir=".", 
 		run(c)
 	end
 	cleanup && run(`find $moviedir -name $prefix-$(keyword)"*".$imgformat -delete`)
+	return "$p.$movieformat"
+end
+
+function movievstack(movies...; vspeed::Number=1.0, newname="seismicity"=>"all")
+	nm = length(movies)
+	moviesall = nothing
+	for m = 1:nm
+		if occursin(newname[1], movies[m][1])
+			moviesall = map(i->replace(i, "seismicity"=>"all"), movies[m])
+			break
+		end
+	end
+	if moviesall != nothing
+		for i = 1:length(movies[1])
+			c = "ffmpeg"
+			v = ""
+			z = ""
+			for m = 1:nm
+				c *= " -i $(movies[m][i])"
+				v *= "[$(m-1):v]setpts=$(vspeed)*PTS[v$m];"
+				z *= "[v$m]"
+			end
+			@show v
+			c *= " -filter_complex \"$(v) $(z)vstack=inputs=$(nm)[v]\" -map \"[v]\" $(moviesall[i])"
+			@show c
+			run(`bash -c $c`)
+		end
+		return moviesall
+	else
+		@warn("Movie filenames cannot be renamed $(newname)!")
+	end
 end

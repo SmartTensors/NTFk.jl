@@ -14,6 +14,7 @@ function movie2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1,
 	else
 		np = 1
 	end
+	movie && prefix != "" && (moviefiles = Vector{String}(undef, np))
 	for f = 1:np
 		if M != nothing
 			filter = vec(x[:,f])
@@ -44,8 +45,11 @@ function movie2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1,
 			end
 		end
 		if movie && prefix != ""
-			makemovie(movieformat=movieformat, movieopacity=movieopacity, moviedir=moviedir, prefix=prefixnew, keyword=keyword, cleanup=cleanup, quiet=quiet, vspeed=vspeed)
+			moviefiles[f] = makemovie(movieformat=movieformat, movieopacity=movieopacity, moviedir=moviedir, prefix=prefixnew, keyword=keyword, cleanup=cleanup, quiet=quiet, vspeed=vspeed)
 		end
+	end
+	if movie && prefix != ""
+		return moviefiles
 	end
 end
 

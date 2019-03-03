@@ -178,10 +178,43 @@ function plotall3tensors(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::U
 			gla = []
 		end
 	end
+	moviefiles = Vector{Any}(undef, np)
 	for i = 1:np
 		filter = vec(x[:,i])
 		prefixnew = prefix == "" ? "" : prefix * "-$(join(filter, "_"))"
-		plot3tensorcomponents(t, dim, pdim; csize=csize, transpose=transpose, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=nothing, hsize=hsize, vsize=vsize, order=order[filter], prefix=prefixnew, X=X, maxcomponent=maxcomponent, savetensorslices=savetensorslices, mask=mask, signalnames=["T$i" for i = filter], gla=gla, kw...)
+		moviefiles[i] = plot3tensorcomponents(t, dim, pdim; csize=csize, transpose=transpose, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=nothing, hsize=hsize, vsize=vsize, order=order[filter], prefix=prefixnew, X=X, maxcomponent=maxcomponent, savetensorslices=savetensorslices, mask=mask, signalnames=["T$i" for i = filter], gla=gla, kw...)
+	end
+	if moviefiles[1] != nothing
+		return convert(Vector{String}, moviefiles)
+	end
+end
+
+function plotallMtensors(t::TensorDecompositions.Tucker, M::Integer, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; mask=nothing, csize::Tuple=TensorToolbox.mrank(t.core), transpose=false, xtitle="Time", ytitle="Magnitude", hsize=12Compose.inch, vsize=3Compose.inch, timescale::Bool=true, datestart=nothing, dateincrement::String="Dates.Day", dateend=nothing, functionname="Statistics.mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), prefix=nothing, maxcomponent=false, savetensorslices=false, transform=nothing, tensorfilter=(), gla=[], kw...)
+	ndimensons = length(t.factors)
+	if !checkdimension(dim, ndimensons) || !checkdimension(pdim, ndimensons)
+		return
+	end
+	nc = length(order)
+	np = convert(Int, ceil(nc / M))
+	x = reshape(collect(1:M*np), (M, np))
+	x[x.>nc] .= nc
+	X = gettensorcomponents(t, dim, pdim; transpose=transpose, prefix=prefix, mask=mask, transform=transform, order=order, maxcomponent=maxcomponent, savetensorslices=savetensorslices, filter=tensorfilter)
+	if length(gla) > 1
+		@assert length(gla) == nc
+	else
+		gla = Vector{Any}(undef, nc)
+		for i = 1:nc
+			gla = []
+		end
+	end
+	moviefiles = Vector{Any}(undef, np)
+	for i = 1:np
+		filter = vec(x[:,i])
+		prefixnew = prefix == "" ? "" : prefix * "-$(join(filter, "_"))"
+		moviefiles[i] = plotMtensorcomponents(t, M, dim, pdim; csize=csize, transpose=transpose, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=nothing, hsize=hsize, vsize=vsize, order=order[filter], prefix=prefixnew, X=X, maxcomponent=maxcomponent, savetensorslices=savetensorslices, mask=mask, signalnames=["T$i" for i = filter], gla=gla, kw...)
+	end
+	if moviefiles[1] != nothing
+		return convert(Vector{String}, moviefiles)
 	end
 end
 
@@ -242,11 +275,13 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 		end
 	end
 	pt = getptdimensions(pdim, length(csize), transpose)
-	plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt), 1; prefix=prefix, barratio=barratio, gla=[gla[order[1]], gla[order[2]], gla[order[3]]], kw...)
+	filename = plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt), 1; prefix=prefix, barratio=barratio, gla=[gla[order[1]], gla[order[2]], gla[order[3]]], kw...)
 	if maxcomponent && prefix != ""
 		recursivemkdir(prefix)
 		mv("$prefix-frame000001.png", "$prefix-max.png"; force=true)
 		return
+	else
+		return filename
 	end
 end
 
@@ -268,10 +303,12 @@ function plotMtensorcomponents(t::TensorDecompositions.Tucker, M::Integer, dim::
 			gla[i] = []
 		end
 	end
-	plotMtensors(XM, 1; prefix=prefix, barratio=barratio, gla=[gla[order[i]] for i=1:M], kw...)
+	filename = plotMtensors(XM, 1; prefix=prefix, barratio=barratio, gla=[gla[order[i]] for i=1:M], kw...)
 	if maxcomponent && prefix != ""
 		recursivemkdir(prefix)
 		mv("$prefix-frame000001.png", "$prefix-max.png"; force=true)
+	else
+		return filename
 	end
 end
 

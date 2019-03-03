@@ -217,7 +217,7 @@ function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::Abstra
 		end
 	end
 	if movie && prefix != ""
-		makemovie(movieformat=movieformat, movieopacity=movieopacity, moviedir=moviedir, prefix=prefix, keyword=keyword, cleanup=cleanup, quiet=quiet, vspeed=vspeed)
+		return makemovie(movieformat=movieformat, movieopacity=movieopacity, moviedir=moviedir, prefix=prefix, keyword=keyword, cleanup=cleanup, quiet=quiet, vspeed=vspeed)
 	end
 end
 
