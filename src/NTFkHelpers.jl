@@ -791,7 +791,7 @@ function movievstack(movies...; vspeed::Number=1.0, newname="seismicity"=>"all")
 	moviesall = nothing
 	for m = 1:nm
 		if occursin(newname[1], movies[m][1])
-			moviesall = map(i->replace(i, "seismicity"=>"all"), movies[m])
+			moviesall = map(i->replace(i, newname), movies[m])
 			break
 		end
 	end
