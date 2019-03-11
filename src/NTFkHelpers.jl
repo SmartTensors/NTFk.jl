@@ -1,5 +1,6 @@
 import Interpolations
 import DelimitedFiles
+import DocumentFunction
 
 "Convert `@sprintf` macro into `sprintf` function"
 sprintf(args...) = eval(:@sprintf($(args...)))
