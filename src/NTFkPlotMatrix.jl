@@ -31,9 +31,9 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 	if polygon != nothing
 		if xplot == nothing && yplot == nothing
 			xplot = Vector{Float64}(undef, 2)
-			yplot = Vector{Float64}(undef, 2)
 			xplot[1] = minimum(polygon[:,1])
 			xplot[2] = maximum(polygon[:,1])
+			yplot = Vector{Float64}(undef, 2)
 			yplot[1] = minimum(polygon[:,2])
 			yplot[2] = maximum(polygon[:,2])
 		else
@@ -43,26 +43,37 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 			yplot[2] = max(yplot[2], maximum(polygon[:,2]))
 		end
 	end
-	if xmatrix == nothing && ymatrix == nothing
-		xmin = 0.5; xmax = m+.5; ymin = 0.5; ymax = n+.5; yflip = true
-	else
-		xmatrixmin = xmatrix[1]; xmatrixmax = xmatrix[2]; ymatrixmin = ymatrix[1]; ymatrixmax = ymatrix[2]; yflip = false
+	xmatrixmin = 0; xmatrixmax = m; ymatrixmin = 0; ymatrixmax = n; yflip = false
+	sx = m
+	sy = n
+	if xmatrix != nothing
+		xmatrixmin = xmatrix[1]; xmatrixmax = xmatrix[2];
 		sx = xmatrixmax - xmatrixmin
+	end
+	if ymatrix != nothing
+		ymatrixmin = ymatrix[1]; ymatrixmax = ymatrix[2]; yflip = false
 		sy = ymatrixmax - ymatrixmin
-		dx = sx / m
-		dy = sy / n
-		xs = (xs .- 1) ./ m * sx .+ xmatrixmin
-		ys = (-1 .- ys) ./ n * sy .+ ymatrixmax
+	end
+	dx = sx / m
+	dy = sy / n
+	xs = (xs .- 1) ./ m * sx .+ xmatrixmin
+	ys = (-1 .- ys) ./ n * sy .+ ymatrixmax
+	if polygon != nothing
 		xmax = max(xplot[2], xmatrixmax + dx / 2)
 		xmin = min(xplot[1], xmatrixmin - dx / 2)
 		ymax = max(yplot[2], ymatrixmax + dy / 2)
 		ymin = min(yplot[1], ymatrixmin - dy / 2)
-		if rect
-			xrectmin = xs .- dx / 2
-			xrectmax = xs .+ dx / 2
-			yrectmin = ys .- dx / 2
-			yrectmax = ys .+ dx / 2
-		end
+	else
+		xmax = xmatrixmax + dx / 2
+		xmin = xmatrixmin - dx / 2
+		ymax = ymatrixmax + dy / 2
+		ymin = ymatrixmin - dy / 2
+	end
+	if rect
+		xrectmin = xs .- dx / 2
+		xrectmax = xs .+ dx / 2
+		yrectmin = ys .- dx / 2
+		yrectmax = ys .+ dx / 2
 	end
 	gt = [Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Theme(major_label_font_size=major_label_font_size, key_label_font_size=key_label_font_size, key_title_font_size=key_title_font_size, bar_spacing=0Gadfly.mm), Gadfly.Scale.x_continuous, Gadfly.Scale.y_continuous, Gadfly.Coord.cartesian(yflip=yflip, fixed=true, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)]
 	if defaultcolor == nothing
@@ -95,7 +106,14 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 		end
 	end
 	if polygon == nothing && contour == nothing
-		c = l..., gl..., ds..., cm..., cs..., gm..., gt...
+		if l != nothing
+			c = l..., gl..., ds..., cm..., cs..., gm..., gt...
+		else
+			if maxvalue != nothing && minvalue != nothing
+				l = Gadfly.layer(x=[xmin, xmax], y=[ymin, ymax], color=[minvalue, maxvalue], Gadfly.Theme(point_size=0Gadfly.pt, highlight_width=0Gadfly.pt))
+			end
+			c = l..., gl..., ds..., cm..., cs..., gm..., gt...
+		end
 	else
 		if polygon != nothing
 			c = Gadfly.layer(x=polygon[:,1], y=polygon[:,2], Gadfly.Geom.polygon(preserve_order=true, fill=false), Gadfly.Theme(line_width=linewidth, default_color=linecolor))
