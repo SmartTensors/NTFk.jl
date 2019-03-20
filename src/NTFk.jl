@@ -81,7 +81,7 @@ import Gadfly
 
 modules = ["NTFk", "NMFk", "CanDecomp"]
 
-const ntfkdir = splitdir(Base.source_path())[1]
+const ntfkdir = splitdir(splitdir(pathof(NTFk))[1])[1]
 
 include("NTFkHelp.jl")
 include("NTFkHelpers.jl")
