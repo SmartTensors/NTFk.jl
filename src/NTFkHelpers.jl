@@ -18,7 +18,11 @@ Set image dpi
 $(DocumentFunction.documentfunction(setdpi))
 """
 function setdpi(dpi::Integer)
-	global imagedpi = dpi;
+	global imagedpi = dpi
+end
+
+function setoutputformat(extension::String)
+	global outputformat = extension
 end
 
 function maximumnan(X, c...; kw...)
@@ -121,7 +125,7 @@ function indicize(v; rev=false, nbins=length(v), minvalue=minimum(v), maxvalue=m
 	return iv
 end
 
-function getcsize(case::String; resultdir::String=".", longname=false, extension="jld")
+function getcsize(case::String; resultdir::String=".", longname=false, extension=outputformat)
 	files = searchdir(case, resultdir)
 	csize = Vector{Vector{Int64}}(undef, 0)
 	kwa = Vector{String}(undef, 0)
@@ -410,7 +414,7 @@ function savetensorslices(X::AbstractArray, pt, sz, order, prefix::String="")
 	for (i, e) in enumerate(order)
 		ii = lpad("$i", 4, "0")
 		DelimitedFiles.writedlm("$prefix-tensorslice$ii.dat", reshape(permutedims(X[e], pt), sz)[:,:])
-		# JLD.save("$prefix-tensorslice$ii.jld", "X", permutedims(X[order[e]], pt))
+		# FileIO.save("$prefix-tensorslice$ii.$(outputformat)", "X", permutedims(X[order[e]], pt))
 	end
 end
 

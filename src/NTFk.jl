@@ -65,6 +65,7 @@ end
 
 global imagedpi = 300
 global DMAXITER = 1000
+global outputformat = "jld"
 
 import NMFk
 import CanDecomp
@@ -72,13 +73,15 @@ import TensorDecompositions
 import TensorOperations
 import TensorToolbox
 import JLD
+import JLD2
+import FileIO
 import PyPlot
 import Gadfly
 @tryimport MATLAB
 
 modules = ["NTFk", "NMFk", "CanDecomp"]
 
-const dntfdir = splitdir(Base.source_path())[1]
+const ntfkdir = splitdir(Base.source_path())[1]
 
 include("NTFkHelp.jl")
 include("NTFkHelpers.jl")

@@ -44,9 +44,9 @@ function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Int
 	csize = TensorToolbox.mrank(tucker_spnn[ibest].core)
 	@info("Estimated true core size based on the reconstruction: $(csize)")
 	if nruns > 1
-		JLD.save("$(resultdir)/$(prefix)-$(mapsize(csize)).jld", "tucker_vector", tucker_spnn)
+		FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "tucker_vector", tucker_spnn)
 	else
-		JLD.save("$(resultdir)/$(prefix)-$(mapsize(csize)).jld", "tucker", tucker_spnn[1])
+		FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "tucker", tucker_spnn[1])
 	end
 	return tucker_spnn, csize, ibest
 end
@@ -120,7 +120,7 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 	if saveall
 		recursivemkdir(resultdir; filename=false)
 		recursivemkdir(prefix; filename=false)
-		JLD.save("$(resultdir)/$(prefix)-$(mapsize(csize))->$(mapsize(csize_new)).jld", "tucker", tsi[imin])
+		FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize))->$(mapsize(csize_new)).$(outputformat)", "tucker", tsi[imin])
 	end
 	if sum(nans) > 0
 		X[nans] .= NaN

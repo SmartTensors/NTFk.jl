@@ -54,7 +54,7 @@ function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1,
 	if saveall
 		recursivemkdir(resultdir; filename=false)
 		recursivemkdir(prefix; filename=false)
-		JLD.save("$(resultdir)/$(prefix)-$(mapsize(csize)).jld", "cp", cpi[imin])
+		FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "cp", cpi[imin])
 	end
 	return cpi[imin], residues[imin], correlations, minsilhouette
 end
@@ -101,9 +101,9 @@ function analysis(X::AbstractArray{T,N}, tranks::Vector{Int}, nTF=1; seed::Numbe
 	csize = length(cpf[ibest].lambdas)
 	@info("Estimated true core size (diagonal length): $(csize)")
 	if nruns > 1
-		JLD.save("$(resultdir)/$(prefix)-$(csize).jld", "cp_vector", cpf)
+		FileIO.save("$(resultdir)/$(prefix)-$(csize).$(outputformat)", "cp_vector", cpf)
 	else
-		JLD.save("$(resultdir)/$(prefix)-$(csize).jld", "cp", cpf[1])
+		FileIO.save("$(resultdir)/$(prefix)-$(csize).$(outputformat)", "cp", cpf[1])
 	end
 	return cpf, csize, ibest
 end
