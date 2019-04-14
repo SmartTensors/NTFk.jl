@@ -1,4 +1,5 @@
 import Interpolations
+import Dates
 import DelimitedFiles
 import DocumentFunction
 
@@ -819,4 +820,12 @@ function movievstack(movies...; vspeed::Number=1.0, newname="seismicity"=>"all")
 	else
 		@warn("Movie filenames cannot be renamed $(newname)!")
 	end
+end
+
+function float2date(f::AbstractFloat, period::Type{<:Dates.Period}=Dates.Nanosecond)
+	integer, reminder = divrem(f, 1)
+	year_start = Dates.DateTime(integer)
+	year = period((year_start + Dates.Year(1)) - year_start)
+	partial = period(round(Dates.value(year) * reminder))
+	return year_start + partial
 end
