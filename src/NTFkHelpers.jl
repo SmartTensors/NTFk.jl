@@ -398,12 +398,12 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 	return X
 end
 
-function savetensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, prefix::String="", transform=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude))
+function savetensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, prefix::String="", transform=nothing, mask=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude))
 	cs = size(t.core)
 	ndimensons = length(cs)
 	@assert dim >= 1 && dim <= ndimensons
 	dimname = namedimension(ndimensons)
-	X = gettensorcomponents(t, dim, pdim; transpose=transpose, prefix=prefix, mask=nothing, transform=transform, filter=filter, order=order, maxcomponent=true)
+	X = gettensorcomponents(t, dim, pdim; transpose=transpose, prefix=prefix, mask=mask, transform=transform, filter=filter, order=order, maxcomponent=true)
 	pt = getptdimensions(pdim, ndimensons)
 	nt = ntuple(k->(k == dim ? 1 : Colon()), ndimensons)
 	sz = size(X[1][nt...])
@@ -414,6 +414,7 @@ function savetensorslices(X::AbstractArray, pt, sz, order, prefix::String="")
 	recursivemkdir(prefix)
 	for (i, e) in enumerate(order)
 		ii = lpad("$i", 4, "0")
+		# @show minimumnan(X[e]), maximumnan(X[e])
 		DelimitedFiles.writedlm("$prefix-tensorslice$ii.dat", reshape(permutedims(X[e], pt), sz)[:,:])
 		# FileIO.save("$prefix-tensorslice$ii.$(outputformat)", "X", permutedims(X[order[e]], pt))
 	end
@@ -580,7 +581,7 @@ end
 
 function nanmask!(X::Array, mask::Union{Nothing,Number})
 	if mask != nothing
-		X[X.<=mask] .= NaN
+		X[X .<= mask] .= NaN
 	end
 	return nothing
 end
