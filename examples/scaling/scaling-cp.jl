@@ -1,5 +1,6 @@
 import TensorDecompositions
 import NTFk
+import Random
 
 Random.seed!(1)
 trank = 3
