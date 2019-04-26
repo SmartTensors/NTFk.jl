@@ -48,4 +48,3 @@ end
 composedistributed(decomp::TensorDecompositions.CANDECOMP) = composedistributed(decomp.factors, decomp.lambdas)
 
 composedistributed!(dest::DistributedArrays.DArray{T,N,Array{T,N}}, decomp::TensorDecompositions.CANDECOMP{T,N}) where {T,N} = composedistributed!(dest, decomp.factors, decomp.lambdas)
-
