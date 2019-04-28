@@ -22,6 +22,7 @@ b = rand(1_000_000);
 @time sum(a .* b)
 @time sum(da .* db)
 
+import Pkg; Pkg.add("BenchmarkTools")
 @everywhere using DistributedArrays
 @everywhere using ParallelDataTransfer
 @eval @everywhere s = sum(DistributedArrays.localpart($da) .* DistributedArrays.localpart($db))

@@ -18,14 +18,14 @@ function printresults(results)
 	end
 end
 
-function setbenchmark(A=Array, T=Float32, N=10; nsamples=10, nevals=1)
-	@BenchmarkTools.benchmarkable A * B setup=(A = $A(rand($T, $N, $N)); B = $A(rand($T, $N, $N))) samples=nsamples evals=nevals
+function setbenchmark(A=Array, T=Float32, N=10; nsamples=10, nevals=1, nseconds=60)
+	@BenchmarkTools.benchmarkable A * B setup=(A = $A(rand($T, $N, $N)); B = $A(rand($T, $N, $N))) samples=nsamples evals=nevals seconds=nseconds
 end
 
-function setbenchmark(r::Integer=7, T=Float32; nsamples=10, nevals=1)
+function setbenchmark(r::Integer=7, T=Float32; nsamples=10, nevals=1, nseconds=60)
 	for N in (2^i for i = 5:r)
-		suite["Local"][N] = setbenchmark(Array, T, N; nsamples=nsamples)
-		suite["Distributed"][N] = setbenchmark(DistributedArrays.distribute, T, N; nsamples=nsamples, nevals=nevals)
+		suite["Local"][N] = setbenchmark(Array, T, N; nsamples=nsamples, nevals=nevals, nseconds=nseconds)
+		suite["Distributed"][N] = setbenchmark(DistributedArrays.distribute, T, N; nsamples=nsamples, nevals=nevals, nseconds=nseconds)
 	end
 end
 
@@ -38,7 +38,7 @@ suite = BenchmarkTools.BenchmarkGroup()
 suite["Local"] = BenchmarkTools.BenchmarkGroup()
 suite["Distributed"] = BenchmarkTools.BenchmarkGroup()
 
-setbenchmark(13, Float16; nsamples=10, nevals=1)
+setbenchmark(13, Float32; nsamples=100, nevals=1, nseconds=60)
 BenchmarkTools.tune!(suite)
 results = BenchmarkTools.run(suite)
 printresults(results)
