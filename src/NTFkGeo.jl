@@ -1,0 +1,10 @@
+import Geodesy
+
+function latlon_to_xy(lat, lon; zone=14, north=true, datum=Geodesy.nad83, utm_map=Geodesy.UTMfromLLA(zone, north, datum))
+	l = length(lat)
+	@assert l == length(lon)
+	utm = utm_map.([Geodesy.LLA([lat lon][i,:]...) for i=1:l])
+	x = [utm[i].x for i=1:l]
+	y = [utm[i].y for i=1:l]
+	return x, y
+end

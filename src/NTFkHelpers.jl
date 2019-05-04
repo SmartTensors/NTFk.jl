@@ -147,7 +147,7 @@ function bincoordinates(v; rev=false, nbins=length(v), minvalue=minimum(v), maxv
 	halfstepv = stepv / 2.
  	vs = collect(Base.range(minvalue + halfstepv, maxvalue - halfstepv; step=stepv))
 	if rev == true
-		reverse(vs)
+		vs = reverse(vs)
 	end
 	return vs
 end
