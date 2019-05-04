@@ -433,8 +433,7 @@ function gettensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::U
 	pt = getptdimensions(pdim, ndimensons)
 	nt = ntuple(k->(k == dim ? 1 : Colon()), ndimensons)
 	sz = size(X[1][nt...])
-	NTFk.savetensorslices(X, pt, sz, order, prefix)
-	Xs = []
+	Xs = Vector{Array{Float64,2}}(undef, 0)
 	for (i, e) in enumerate(order)
 		push!(Xs, reshape(permutedims(X[e], pt), sz)[:,:])
 	end
