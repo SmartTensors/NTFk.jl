@@ -143,9 +143,8 @@ function bincoordinates(v; rev=false, nbins=length(v), minvalue=minimum(v), maxv
 			nbins = convert(Int, ceil.((maxvalue - minvalue) / float(stepvalue)))
 		end
 	end
-	stepv =  (maxvalue - minvalue) / float(nbins)
-	halfstepv = stepv / 2.
- 	vs = collect(Base.range(minvalue + halfstepv, maxvalue - halfstepv; step=stepv))
+	halfstepv = (maxvalue - minvalue) / float(2 * nbins)
+ 	vs = collect(Base.range(minvalue + halfstepv, maxvalue - halfstepv; length=nbins))
 	if rev == true
 		vs = reverse(vs)
 	end

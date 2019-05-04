@@ -6,5 +6,9 @@ function latlon_to_xy(lat, lon; zone=14, north=true, datum=Geodesy.nad83, utm_ma
 	utm = utm_map.([Geodesy.LLA([lat lon][i,:]...) for i=1:l])
 	x = [utm[i].x for i=1:l]
 	y = [utm[i].y for i=1:l]
-	return x, y
+	if l == 1
+		return x[1], y[1]
+	else
+		return x, y
+	end
 end
