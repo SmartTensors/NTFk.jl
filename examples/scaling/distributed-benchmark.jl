@@ -1,5 +1,6 @@
 import Distributed
 Distributed.addprocs(4)
+Distributed.addprocs(["madsmin","mads12", "mads14"])
 
 import LinearAlgebra
 import BenchmarkTools

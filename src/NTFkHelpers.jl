@@ -126,6 +126,32 @@ function indicize(v; rev=false, nbins=length(v), minvalue=minimum(v), maxvalue=m
 	return iv
 end
 
+function bincoordinates(v; rev=false, nbins=length(v), minvalue=minimum(v), maxvalue=maximum(v), stepvalue=nothing)
+	if stepvalue != nothing
+		if typeof(minvalue) <: DateTime
+			maxvalue = ceil(maxvalue, stepvalue)
+			minvalue = floor(minvalue, stepvalue)
+			nbins = convert(Int, (maxvalue - minvalue) / convert(Dates.Millisecond, stepvalue))
+		elseif typeof(minvalue) <: Date
+			maxvalue = ceil(maxvalue, stepvalue)
+			minvalue = floor(minvalue, stepvalue)
+			nbins = convert(Int, (maxvalue - minvalue) / Core.eval(Main, Meta.parse(stepvalue))(1))
+		else
+			granularity = -convert(Int, ceil(log10(stepvalue)))
+			maxvalue = ceil(maxvalue, granularity)
+			minvalue = floor(minvalue, granularity)
+			nbins = convert(Int, ceil.((maxvalue - minvalue) / float(stepvalue)))
+		end
+	end
+	stepv =  (maxvalue - minvalue) / float(nbins)
+	halfstepv = stepv / 2.
+ 	vs = collect(Base.range(minvalue + halfstepv, maxvalue - halfstepv; step=stepv))
+	if rev == true
+		reverse(vs)
+	end
+	return vs
+end
+
 function getcsize(case::String; resultdir::String=".", longname=false, extension=outputformat)
 	files = searchdir(case, resultdir)
 	csize = Vector{Vector{Int64}}(undef, 0)
@@ -398,11 +424,28 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 	return X
 end
 
+function gettensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, prefix::String="", transform=nothing, mask=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude))
+	cs = size(t.core)
+	ndimensons = length(cs)
+	@assert dim >= 1 && dim <= ndimensons
+
+	X = gettensorcomponents(t, dim, pdim; transpose=transpose, prefix=prefix, mask=mask, transform=transform, filter=filter, order=order, maxcomponent=true)
+	pt = getptdimensions(pdim, ndimensons)
+	nt = ntuple(k->(k == dim ? 1 : Colon()), ndimensons)
+	sz = size(X[1][nt...])
+	NTFk.savetensorslices(X, pt, sz, order, prefix)
+	Xs = []
+	for (i, e) in enumerate(order)
+		push!(Xs, reshape(permutedims(X[e], pt), sz)[:,:])
+	end
+	return Xs
+end
+
 function savetensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, prefix::String="", transform=nothing, mask=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude))
 	cs = size(t.core)
 	ndimensons = length(cs)
 	@assert dim >= 1 && dim <= ndimensons
-	dimname = namedimension(ndimensons)
+
 	X = gettensorcomponents(t, dim, pdim; transpose=transpose, prefix=prefix, mask=mask, transform=transform, filter=filter, order=order, maxcomponent=true)
 	pt = getptdimensions(pdim, ndimensons)
 	nt = ntuple(k->(k == dim ? 1 : Colon()), ndimensons)

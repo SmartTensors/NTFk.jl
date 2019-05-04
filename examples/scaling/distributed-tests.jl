@@ -31,3 +31,9 @@ for w in workers()
 	global s += getfrom(w, :s)
 end
 @show s
+
+function life_step(d::DArray)
+    DArray(size(d),procs(d)) do I
+    	@show I
+    end
+end

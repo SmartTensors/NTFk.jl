@@ -62,7 +62,7 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	crank = csize[dim]
 	nx, ny = size(t.factors[dim])
 	if datestart != nothing
-		xvalues = NTFk.range(datestart, nx; dateend=dateend, dateincrement=dateincrement)
+		xvalues = NTFk.daterange(datestart, nx; dateend=dateend, dateincrement=dateincrement)
 	else
 		if xmax == nothing
 			xmax = timescale ? 1 : nx
@@ -121,7 +121,7 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	loopcolors = crank > ncolors ? true : false
 	nx, ny = size(t.factors[dim])
 	if datestart != nothing
-		xvalues = NTFk.range(datestart, nx; dateend=dateend, dateincrement=dateincrement)
+		xvalues = NTFk.daterange(datestart, nx; dateend=dateend, dateincrement=dateincrement)
 		xmin = minimum(xvalues)
 		xmax = maximum(xvalues)
 	else
@@ -178,7 +178,7 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	loopcolors = crank > ncolors ? true : false
 	nx, ny = size(t.factors[dim])
 	if datestart != nothing
-		xvalues = NTFk.range(datestart, nx; dateend=dateend, dateincrement=dateincrement)
+		xvalues = NTFk.daterange(datestart, nx; dateend=dateend, dateincrement=dateincrement)
 		xmin=minimum(xvalues)
 		xmax=maximum(xvalues)
 	else
@@ -316,7 +316,7 @@ function plot2d(T::AbstractArray, Te::AbstractArray=T; quiet::Bool=false, wellna
 	end
 end
 
-function range(datestart, nx; dateend=nothing, dateincrement::String="Dates.Day")
+function daterange(datestart, nx; dateend=nothing, dateincrement::String="Dates.Day")
 	if dateend == nothing
 		xvalues = datestart .+ vec(collect(Core.eval(Main, Meta.parse(dateincrement))(0):Core.eval(Main, Meta.parse(dateincrement))(1):Core.eval(Main, Meta.parse(dateincrement))(nx-1)))
 	else
