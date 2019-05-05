@@ -194,10 +194,7 @@ function plotallMtensors(t::TensorDecompositions.Tucker, M::Integer, dim::Intege
 	if !checkdimension(dim, ndimensons) || !checkdimension(pdim, ndimensons)
 		return
 	end
-	nc = length(order)
-	np = convert(Int, ceil(nc / M))
-	x = reshape(collect(1:M*np), (M, np))
-	x[x.>nc] .= nc
+	v = getbalancedvectors(length(order), M)
 	X = gettensorcomponents(t, dim, pdim; transpose=transpose, prefix=prefix, mask=mask, transform=transform, order=order, maxcomponent=maxcomponent, savetensorslices=savetensorslices, filter=tensorfilter)
 	if length(gla) > 1
 		@assert length(gla) == nc
@@ -208,10 +205,9 @@ function plotallMtensors(t::TensorDecompositions.Tucker, M::Integer, dim::Intege
 		end
 	end
 	moviefiles = Vector{Any}(undef, np)
-	for i = 1:np
-		filter = vec(x[:,i])
+	for filter in v
 		prefixnew = prefix == "" ? "" : prefix * "-$(join(filter, "_"))"
-		moviefiles[i] = plotMtensorcomponents(t, M, dim, pdim; csize=csize, transpose=transpose, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=nothing, hsize=hsize, vsize=vsize, order=order[filter], prefix=prefixnew, X=X, maxcomponent=maxcomponent, savetensorslices=savetensorslices, mask=mask, signalnames=["T$i" for i = filter], gla=gla, kw...)
+		moviefiles[i] = plotMtensorcomponents(t, length(filter), dim, pdim; csize=csize, transpose=transpose, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=nothing, hsize=hsize, vsize=vsize, order=order[filter], prefix=prefixnew, X=X, maxcomponent=maxcomponent, savetensorslices=savetensorslices, mask=mask, signalnames=["T$i" for i = filter], gla=gla, kw...)
 	end
 	if moviefiles[1] != nothing
 		return convert(Vector{String}, moviefiles)
@@ -243,17 +239,13 @@ function plotallMtensorsandcomponents(t::TensorDecompositions.Tucker, M::Integer
 	if !checkdimension(dim, ndimensons) || !checkdimension(pdim, ndimensons)
 		return
 	end
-	nc = length(order)
-	np = convert(Int, ceil(nc / M))
-	x = reshape(collect(1:M*np), (M, np))
-	x[x.>nc] .= nc
+	v = getbalancedvectors(length(order), M)
 	X = gettensorcomponents(t, dim, pdim; transpose=transpose, prefix=prefix, filter=tensorfilter, mask=mask, transform=transform, order=order, maxcomponent=maxcomponent, savetensorslices=savetensorslices)
-	for i = 1:np
-		filter = vec(x[:,i])
+	for filter in v
 		s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, code=true, order=order, filter=filter, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, transform=transform2d, gm=gm)
 		progressbar_2d = make_progressbar_2d(s2)
 		prefixnew = prefix == "" ? "" : prefix * "-$(join(filter, "_"))"
-		plotMtensorcomponents(t, M, dim, pdim; csize=csize, transpose=transpose, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], prefix=prefixnew, X=X, maxcomponent=maxcomponent, savetensorslices=savetensorslices, mask=mask, signalnames=["T$i" for i = filter], kw...)
+		plotMtensorcomponents(t, length(filter), dim, pdim; csize=csize, transpose=transpose, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], prefix=prefixnew, X=X, maxcomponent=maxcomponent, savetensorslices=savetensorslices, mask=mask, signalnames=["T$i" for i = filter], kw...)
 	end
 end
 
@@ -321,4 +313,15 @@ function plotalltensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1,
 		p = plotmatrix(permutedims(X[order[i]], pt)[mdfilter...]; filename=filename, kw...)
 		!quiet && (@info("Slice $i"); display(p); println();)
 	end
+end
+
+function getbalancedvectors(nc, M)
+	np = convert(Int, floor(nc / M))
+	np1 = convert(Int, ceil(nc / M))
+	x = reshape(collect(1:M*np), (M, np))
+	v = [x[:,i] for i=1:np]
+	if np1 > np
+		push!(v, collect(np * M + 1 : nc))
+	end
+	return v
 end
