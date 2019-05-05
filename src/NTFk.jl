@@ -12,8 +12,6 @@ using SparseArrays
 using Distributed
 using Statistics
 
-const ntfkdir = splitdir(splitdir(Base.source_path())[1])[1]
-
 "Test NTFk functions"
 function test()
 	include(joinpath(ntfkdir, "test", "runtests.jl"))
@@ -65,7 +63,7 @@ end
 
 global imagedpi = 300
 global DMAXITER = 1000
-global outputformat = "jld"
+global outputformat = "jld2"
 
 import NMFk
 import CanDecomp
@@ -92,6 +90,7 @@ include("NTFkPlotProgressBar.jl")
 include("NTFkPlot.jl")
 include("NTFkPlotComponents.jl")
 include("NTFkGeo.jl")
+include("NTFkSeismic.jl")
 include("NTFkAnalysis.jl")
 include("NTFkAnalysis-mixing.jl")
 include("NTFkAnalysis-helpers.jl")

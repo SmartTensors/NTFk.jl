@@ -103,11 +103,11 @@ end
 
 function indicize(v; rev=false, nbins=length(v), minvalue=minimum(v), maxvalue=maximum(v), stepvalue=nothing)
 	if stepvalue != nothing
-		if typeof(minvalue) <: DateTime
+		if typeof(minvalue) <: Dates.DateTime
 			maxvalue = ceil(maxvalue, stepvalue)
 			minvalue = floor(minvalue, stepvalue)
 			nbins = convert(Int, (maxvalue - minvalue) / convert(Dates.Millisecond, stepvalue))
-		elseif typeof(minvalue) <: Date
+		elseif typeof(minvalue) <: Dates.Date
 			maxvalue = ceil(maxvalue, stepvalue)
 			minvalue = floor(minvalue, stepvalue)
 			nbins = convert(Int, (maxvalue - minvalue) / Core.eval(Main, Meta.parse(stepvalue))(1))
@@ -128,11 +128,11 @@ end
 
 function bincoordinates(v; rev=false, nbins=length(v), minvalue=minimum(v), maxvalue=maximum(v), stepvalue=nothing)
 	if stepvalue != nothing
-		if typeof(minvalue) <: DateTime
+		if typeof(minvalue) <: Dates.DateTime
 			maxvalue = ceil(maxvalue, stepvalue)
 			minvalue = floor(minvalue, stepvalue)
 			nbins = convert(Int, (maxvalue - minvalue) / convert(Dates.Millisecond, stepvalue))
-		elseif typeof(minvalue) <: Date
+		elseif typeof(minvalue) <: Dates.Date
 			maxvalue = ceil(maxvalue, stepvalue)
 			minvalue = floor(minvalue, stepvalue)
 			nbins = convert(Int, (maxvalue - minvalue) / Core.eval(Main, Meta.parse(stepvalue))(1))
@@ -143,8 +143,14 @@ function bincoordinates(v; rev=false, nbins=length(v), minvalue=minimum(v), maxv
 			nbins = convert(Int, ceil.((maxvalue - minvalue) / float(stepvalue)))
 		end
 	end
-	halfstepv = (maxvalue - minvalue) / float(2 * nbins)
- 	vs = collect(Base.range(minvalue + halfstepv, maxvalue - halfstepv; length=nbins))
+	if typeof(minvalue) <: Dates.DateTime || typeof(minvalue) <: Dates.Date
+		stepv = (maxvalue - minvalue) / float(nbins)
+		halfstepv = stepv / float(2)
+		vs = collect(Base.range(minvalue + halfstepv, maxvalue - halfstepv; step=stepv))
+	else
+		halfstepv = (maxvalue - minvalue) / (2 * nbins)
+		vs = collect(Base.range(minvalue + halfstepv, maxvalue - halfstepv; length=nbins))
+	end
 	if rev == true
 		vs = reverse(vs)
 	end
