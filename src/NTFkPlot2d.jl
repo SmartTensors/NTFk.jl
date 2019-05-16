@@ -234,7 +234,7 @@ end
 colors=[parse(Colors.Colorant, "green"), parse(Colors.Colorant, "orange"), parse(Colors.Colorant, "blue"), parse(Colors.Colorant, "gray")]
 gm=[Gadfly.Guide.manual_color_key("", ["Oil", "Gas", "Water"], colors[1:3]), Gadfly.Theme(major_label_font_size=16Gadfly.pt, key_label_font_size=14Gadfly.pt, minor_label_font_size=12Gadfly.pt)]
 """
-function plot2d(T::AbstractArray, Te::AbstractArray=T; quiet::Bool=false, wellnames=nothing, Tmax=nothing, Tmin=nothing, xtitle::String="", ytitle::String="", titletext::String="", figuredir::String="results", hsize=8Gadfly.inch, vsize=4Gadfly.inch, dpi::Integer=imagedpi, keyword::String="", dimname::String="Column", colors=NTFk.colors, gm=[Gadfly.Theme(major_label_font_size=16Gadfly.pt, key_label_font_size=14Gadfly.pt, minor_label_font_size=12Gadfly.pt)], linewidth::Measures.Length{:mm,Float64}=2Gadfly.pt, xaxis=1:size(Te,2), xmin=nothing, xmax=nothing, ymin=nothing, ymax=nothing, xintercept=[])
+function plot2d(T::AbstractArray, Te::AbstractArray=T; quiet::Bool=false, wellnames=nothing, Tmax=nothing, Tmin=nothing, xtitle::String="", ytitle::String="", titletext::String="", figuredir::String="results", hsize=8Gadfly.inch, vsize=4Gadfly.inch, dpi::Integer=imagedpi, keyword::String="", dimname::String="Column", colors=NTFk.colors, linewidth::Measures.Length{:mm,Float64}=2Gadfly.pt, gm=[Gadfly.Theme(key_position=:right, background_color=nothing, major_label_font_size=16Gadfly.pt, key_label_font_size=14Gadfly.pt, minor_label_font_size=12Gadfly.pt)], xaxis=1:size(Te,2), xmin=nothing, xmax=nothing, ymin=nothing, ymax=nothing, xintercept=[])
 	recursivemkdir(figuredir)
 	c = size(T)
 	if length(c) == 2
@@ -288,18 +288,19 @@ function plot2d(T::AbstractArray, Te::AbstractArray=T; quiet::Bool=false, wellna
 			pc += 1
 		end
 		if wellnames != nothing
-			tm = [Gadfly.Guide.title("$dimname $(wellnames[w]) $titletext")]
 			if dimname != ""
-				filename = "$(figuredir)/$(lowercase(dimname))_$(wellnames[w])$(append).png"
+				tm = [Gadfly.Guide.title("$dimname $(wellnames[w]) $titletext")]
+				filename = "$(figuredir)/$(lowercase(dimname))_$(wellnames[w])$(append).pdf"
 			else
-				filename = "$(figuredir)/$(wellnames[w])$(append).png"
+				tm = []
+				filename = "$(figuredir)/$(wellnames[w])$(append).pdf"
 			end
 		else
 			tm = []
 			if dimname != ""
-				filename = "$(figuredir)/$(lowercase(dimname))$(append).png"
+				filename = "$(figuredir)/$(lowercase(dimname))$(append).pdf"
 			else
-				filename = "$(figuredir)/$(append[2:end]).png"
+				filename = "$(figuredir)/$(append[2:end]).pdf"
 			end
 		end
 		yming = ymin
@@ -310,8 +311,9 @@ function plot2d(T::AbstractArray, Te::AbstractArray=T; quiet::Bool=false, wellna
 		if ymax != nothing && length(ymax) > 1
 			ymaxg = ymax[w]
 		end
-		f = Gadfly.plot(p..., tm..., Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., Gadfly.Coord.Cartesian(xmin=xmin, xmax=xmax, ymin=yming, ymax=ymaxg))
-		Gadfly.draw(Gadfly.PNG(filename, hsize, vsize, dpi=dpi), f)
+		f = Gadfly.plot(p..., tm..., Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), Gadfly.Coord.Cartesian(xmin=xmin, xmax=xmax, ymin=yming, ymax=ymaxg), gm...)
+		# Gadfly.draw(Gadfly.PNG(filename, hsize, vsize, dpi=dpi), f)
+		Gadfly.draw(Gadfly.PDF(filename, hsize, vsize), f)
 		!quiet && (display(f); println())
 	end
 end
