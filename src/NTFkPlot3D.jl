@@ -1,7 +1,7 @@
 import PyPlot
 import PyCall
 
-function plotcube(A::Array; minvalue=minimumnan(A), maxvalue=maximumnan(A), nlevels=10, showaxes::Bool=false, showlegend::Bool=false, alpha::Number=1, cmap="RdYlGn")
+function plotcube(A::Array; minvalue=minimumnan(A), maxvalue=maximumnan(A), nlevels=10, showaxes::Bool=false, showlegend::Bool=false, alpha::Number=1, cmap="RdYlGn", azim=-60, elev=30)
 	nx, ny, nz = size(A)
 
 	m3d = PyCall.pyimport("mpl_toolkits.mplot3d")
@@ -21,6 +21,7 @@ function plotcube(A::Array; minvalue=minimumnan(A), maxvalue=maximumnan(A), nlev
 	fig.patch.set_facecolor("none")
 	fig.patch.set_alpha(0.0)
 	ax = fig.gca(projection="3d")
+	ax.view_init(elev, azim)
 	ax.patch.set_facecolor("none")
 	ax.patch.set_alpha(0.0)
 
