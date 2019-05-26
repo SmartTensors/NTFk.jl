@@ -42,7 +42,7 @@ end
 	tsize = (5, 10, 15)
 	tucker_orig = NTFk.rand_tucker(csize, tsize, factors_nonneg=true, core_nonneg=true)
 	T_orig = TensorDecompositions.compose(tucker_orig)
-	for backend = ["tensorflow", "pytorch", "mxnet", "numpy"]
+	for backend = ["pytorch", "mxnet", "numpy"]
 		tucker_est, csize_est, ibest = NTFk.analysis(T_orig, [csize], 1; seed=1, method="tensorly_", eigmethod=[false,false,false], progressbar=false, tol=1e-12, maxiter=100, backend=backend, verbose=true)
 		T_est = TensorDecompositions.compose(tucker_est[ibest])
 		@Test.test csize == csize_est
