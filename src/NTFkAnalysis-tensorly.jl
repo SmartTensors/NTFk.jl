@@ -13,7 +13,7 @@ end
 """
 functionname = "non_negative_tucker", "non_negative_cp"
 backend = "tensorflow", "pytorch", "mxnet", "numpy"
-converter = :numpy, :numpy, :asnumpy, (conversion not needed)
+converter = "numpy", "numpy", "asnumpy", (conversion not needed)
 """
 function tlanalysis(X::Array{T,N}, crank::NTuple{N, Int}; seed::Number=1, backend="tensorflow", converter="numpy", functionname::AbstractString="non_negative_tucker", init::String="svd", maxiter::Integer=DMAXITER, tol::Number=1e-4, verbose::Bool=false) where {T, N}
 	tensorly.set_backend(backend)
