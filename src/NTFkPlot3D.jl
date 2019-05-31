@@ -1,8 +1,9 @@
 import PyPlot
 import PyCall
 
-function plotcube(A::Array; minvalue=minimumnan(A), maxvalue=maximumnan(A), nlevels=10, showaxes::Bool=false, showlegend::Bool=false, alpha::Number=1, cmap="RdYlGn", azim=-60, elev=30)
+function plotcube(A::Array; minvalue=minimumnan(A), maxvalue=maximumnan(A), nlevels=10, showaxes::Bool=false, showlegend::Bool=false, alpha::Number=1, cmap="RdYlGn", azim=120, elev=30, linewidth=0.8, filename="")
 	nx, ny, nz = size(A)
+	@show nx, ny, nz
 
 	m3d = PyCall.pyimport("mpl_toolkits.mplot3d")
 
@@ -15,8 +16,8 @@ function plotcube(A::Array; minvalue=minimumnan(A), maxvalue=maximumnan(A), nlev
 	PyPlot.matplotlib.rc("ytick"; color=color)
 
 	PyPlot.clf()
-	fig = PyPlot.figure()
-	ax = m3d.Axes3D(fig)
+	fig = PyPlot.figure(figsize=(8, 4))
+	ax = m3d.Axes3D(fig; proj_type = "ortho")
 
 	fig.patch.set_facecolor("none")
 	fig.patch.set_alpha(0.0)
@@ -33,13 +34,17 @@ function plotcube(A::Array; minvalue=minimumnan(A), maxvalue=maximumnan(A), nlev
 
 	xgrid, ygrid = meshgrid(nx, ny)
 	ax.contourf(xgrid, ygrid, A[:,:,nz], nlevels, vmin=minvalue, vmax=maxvalue, zdir="z", offset=nz, alpha=alpha, cmap=cmap)
+	ax.plot_wireframe(xgrid, ygrid, ones(size(A[:,:,1]))*nz; color="gray", linewidth=linewidth)
 	xgrid, zgrid = meshgrid(nx, nz)
-	ax.contourf(xgrid, A[:,1,:], zgrid, nlevels, vmin=minvalue, vmax=maxvalue, zdir="y", offset=1, alpha=alpha, cmap=cmap)
+	ax.contourf(xgrid, A[:,ny,:], zgrid, nlevels, vmin=minvalue, vmax=maxvalue, zdir="y", offset=ny, alpha=alpha, cmap=cmap)
+	ax.plot_wireframe(xgrid, ones(size(A[:,ny,:]))*ny, zgrid; color="gray", linewidth=linewidth)
 	ygrid, zgrid = meshgrid(ny, nz)
-	cax = ax.contourf(A[nx,:,:], ygrid, zgrid, nlevels, vmin=minvalue, vmax=maxvalue, zdir="x", offset=nx, alpha=alpha, cmap=cmap)
+	ax.contourf(A[1,:,:], ygrid, zgrid, nlevels, vmin=minvalue, vmax=maxvalue, zdir="x", offset=1, alpha=alpha, cmap=cmap, zorder=0)
+	ax.plot_wireframe(ones(size(A[1,:,:])), ygrid, zgrid; color="gray", linewidth=linewidth, zorder=10)
 
 	showlegend && PyPlot.colorbar(cax)
 	PyPlot.draw()
+	filename != "" && PyPlot.savefig(filename)
 	PyPlot.gcf()
 end
 
