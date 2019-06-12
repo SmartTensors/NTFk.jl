@@ -43,40 +43,48 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 			yplot[2] = max(yplot[2], maximum(polygon[:,2]))
 		end
 	end
-	xmatrixmin = 0; xmatrixmax = m; ymatrixmin = 0; ymatrixmax = n; yflip = false
-	sx = m
-	sy = n
-	if xmatrix != nothing
-		xmatrixmin = xmatrix[1]; xmatrixmax = xmatrix[2];
-		sx = xmatrixmax - xmatrixmin
-	end
-	if ymatrix != nothing
-		ymatrixmin = ymatrix[1]; ymatrixmax = ymatrix[2]; yflip = false
-		sy = ymatrixmax - ymatrixmin
-	end
-	dx = sx / m
-	dy = sy / n
-	xs = (xs .- 1) ./ m * sx .+ xmatrixmin
-	ys = (0 .- ys) ./ n * sy .+ ymatrixmax
-	if polygon != nothing
-		xmax = max(xplot[2], xmatrixmax + dx / 2)
-		xmin = min(xplot[1], xmatrixmin - dx / 2)
-		ymax = max(yplot[2], ymatrixmax + dy / 2)
-		ymin = min(yplot[1], ymatrixmin - dy / 2)
+	if rectbin && !rect
+		yflip = true
+		xmin = 0.5
+		xmax = m + 0.5
+		ymin = 0.5
+		ymax = n + 0.5
 	else
-		xmax = xmatrixmax - dx / 2
-		xmin = xmatrixmin - dx / 2
-		ymax = ymatrixmax - dy / 2
-		ymin = ymatrixmin - dy / 2
-	end
-	if rect
-		xrectmin = xs .- dx / 2
-		xrectmax = xs .+ dx / 2
-		yrectmin = ys .- dy / 2
-		yrectmax = ys .+ dy / 2
+		xmatrixmin = 0; xmatrixmax = m; ymatrixmin = 0; ymatrixmax = n;
+		yflip = false
+		sx = m
+		sy = n
+		if xmatrix != nothing
+			xmatrixmin = xmatrix[1]; xmatrixmax = xmatrix[2];
+			sx = xmatrixmax - xmatrixmin
+		end
+		if ymatrix != nothing
+			ymatrixmin = ymatrix[1]; ymatrixmax = ymatrix[2]; yflip = false
+			sy = ymatrixmax - ymatrixmin
+		end
+		dx = sx / m
+		dy = sy / n
+		xs = (xs .- 1) ./ m * sx .+ xmatrixmin
+		ys = (-1 .- ys) ./ n * sy .+ ymatrixmax
+		xmin = xmatrixmin + dx / 2
+		xmax = xmatrixmax + dx / 2
+		ymin = ymatrixmin + dy / 2
+		ymax = ymatrixmax + dy / 2
+		if polygon != nothing
+			xmin = min(xplot[1], xmin)
+			xmax = max(xplot[2], xmax)
+			ymin = min(yplot[1], ymin)
+			ymax = max(yplot[2], ymax)
+		end
+		if rect
+			xrectmin = xs .- dx / 2
+			xrectmax = xs .+ dx / 2
+			yrectmin = ys .- dy / 2
+			yrectmax = ys .+ dy / 2
+		end
 	end
 	# @show ymatrixmin ymatrixmax xmatrixmax xmatrixmin
-	gt = [Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Theme(major_label_font_size=major_label_font_size, key_label_font_size=key_label_font_size, key_title_font_size=key_title_font_size, bar_spacing=0Gadfly.mm), Gadfly.Scale.x_continuous, Gadfly.Scale.y_continuous, Gadfly.Coord.cartesian(yflip=yflip, fixed=true, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)]
+	gt = [Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Theme(major_label_font_size=major_label_font_size, key_label_font_size=key_label_font_size, key_title_font_size=key_title_font_size, bar_spacing=0Gadfly.mm), Gadfly.Coord.cartesian(yflip=yflip, fixed=true, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax), Gadfly.Scale.x_continuous, Gadfly.Scale.y_continuous]
 	if defaultcolor == nothing
 		if length(vs) > 0
 			if length(vs) < m * n && !rectbin
@@ -110,7 +118,7 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 		l = Gadfly.layer(x=[xmin, xmax], y=[ymin, ymax], color=[minvalue, maxvalue], Gadfly.Theme(point_size=0Gadfly.pt, highlight_width=0Gadfly.pt))
 	end
 	if polygon == nothing && contour == nothing && dots == nothing
-		c = l..., gl..., ds..., cm..., cs..., gm..., gt...
+		c = l..., gl..., ds..., cm..., cs..., gt..., gm...
 	else
 		c = []
 		if polygon != nothing
@@ -123,14 +131,13 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 			push!(c, Gadfly.layer(z=permutedims(contour .* (maxvalue - minvalue) .+ minvalue), x=collect(1:size(contour, 2)), y=collect(1:size(contour, 1)), Gadfly.Geom.contour(levels=[minvalue]), Gadfly.Theme(line_width=linewidth, default_color=linecolor)))
 		end
 		if l != nothing
-			@show poop
 			if mask != nothing
-				c =  l..., gl..., ds..., cm..., cs..., gm..., gt..., c...
+				c =  l..., gl..., ds..., cm..., cs..., gt..., gm..., c...
 			else
-				c = l..., gl..., ds..., cm..., cs..., gm..., gt..., c...
+				c = l..., gl..., ds..., cm..., cs..., gt..., gm..., c...
 			end
 		else
-			c = c..., gl..., ds..., cm..., gm..., gt...
+			c = c..., gl..., ds..., cm..., gt..., gm...
 		end
 	end
 	p = Gadfly.plot(c...)
