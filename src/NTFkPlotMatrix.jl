@@ -57,24 +57,25 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 	dx = sx / m
 	dy = sy / n
 	xs = (xs .- 1) ./ m * sx .+ xmatrixmin
-	ys = (-1 .- ys) ./ n * sy .+ ymatrixmax
+	ys = (0 .- ys) ./ n * sy .+ ymatrixmax
 	if polygon != nothing
 		xmax = max(xplot[2], xmatrixmax + dx / 2)
 		xmin = min(xplot[1], xmatrixmin - dx / 2)
 		ymax = max(yplot[2], ymatrixmax + dy / 2)
 		ymin = min(yplot[1], ymatrixmin - dy / 2)
 	else
-		xmax = xmatrixmax + dx / 2
+		xmax = xmatrixmax - dx / 2
 		xmin = xmatrixmin - dx / 2
-		ymax = ymatrixmax + dy / 2
+		ymax = ymatrixmax - dy / 2
 		ymin = ymatrixmin - dy / 2
 	end
 	if rect
 		xrectmin = xs .- dx / 2
 		xrectmax = xs .+ dx / 2
-		yrectmin = ys .- dx / 2
-		yrectmax = ys .+ dx / 2
+		yrectmin = ys .- dy / 2
+		yrectmax = ys .+ dy / 2
 	end
+	# @show ymatrixmin ymatrixmax xmatrixmax xmatrixmin
 	gt = [Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Theme(major_label_font_size=major_label_font_size, key_label_font_size=key_label_font_size, key_title_font_size=key_title_font_size, bar_spacing=0Gadfly.mm), Gadfly.Scale.x_continuous, Gadfly.Scale.y_continuous, Gadfly.Coord.cartesian(yflip=yflip, fixed=true, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)]
 	if defaultcolor == nothing
 		if length(vs) > 0
@@ -122,6 +123,7 @@ function plotmatrix(X::AbstractMatrix; minvalue=minimumnan(X), maxvalue=maximumn
 			push!(c, Gadfly.layer(z=permutedims(contour .* (maxvalue - minvalue) .+ minvalue), x=collect(1:size(contour, 2)), y=collect(1:size(contour, 1)), Gadfly.Geom.contour(levels=[minvalue]), Gadfly.Theme(line_width=linewidth, default_color=linecolor)))
 		end
 		if l != nothing
+			@show poop
 			if mask != nothing
 				c =  l..., gl..., ds..., cm..., cs..., gm..., gt..., c...
 			else
