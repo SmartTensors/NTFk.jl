@@ -37,9 +37,13 @@ end
 "Print error message"
 function printerrormsg(errmsg::Any)
 	Base.showerror(Base.stderr, errmsg)
-	if in(:msg, fieldnames(errmsg))
-		@warn(strip(errmsg.msg))
-	elseif typeof(errmsg) <: AbstractString
+	try
+		if in(:msg, fieldnames(errmsg))
+			@warn(strip(errmsg.msg))
+		elseif typeof(errmsg) <: AbstractString
+			@warn(errmsg)
+		end
+	catch
 		@warn(errmsg)
 	end
 end
