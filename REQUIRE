@@ -3,7 +3,7 @@ DocumentFunction
 CanDecomp
 NMFk
 LoadTensorDecompositions
-TensorOperations 0.0-1.0
+TensorOperations 0.7.1
 TensorDecompositions
 TensorToolbox
 Interpolations
@@ -11,6 +11,8 @@ Distributions
 DistributedArrays
 Arpack
 Gadfly
+Fontconfig
+Cairo
 Colors
 Measures
 PyPlot
@@ -20,5 +22,4 @@ JLD
 JLD2
 DelimitedFiles
 FileIO
-MATLAB
 Geodesy

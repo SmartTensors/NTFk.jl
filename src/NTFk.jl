@@ -108,8 +108,11 @@ include("NTFkAnalysis-hosvd.jl")
 include("NTFkAnalysis-tensorly.jl")
 include("NTFkLoadTensorDecompositions.jl")
 
-if isdefined(NTFk, :MATLAB)
+if isdefined(NTFk, :MATLAB) && haskey(ENV, "MATLAB_HOME")
+	@info("MATLAB is available!")
 	include("NTFkAnalysis-tensortoolbox.jl")
+else
+	@info("MATLAB is not installed!")
 end
 
 end

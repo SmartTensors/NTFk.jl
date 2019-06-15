@@ -4,6 +4,7 @@ const tensorly = PyCall.PyNULL()
 function __init__()
 	try
 		copy!(tensorly, PyCall.pyimport("tensorly"))
+		PyCall.pyimport("tensorly.decomposition")
 		@info("TensorLy is available")
 	catch
 		@warn("TensorLy is not available")
@@ -16,8 +17,17 @@ backend = "tensorflow", "pytorch", "mxnet", "numpy"
 converter = "numpy", "numpy", "asnumpy", (conversion not needed)
 """
 function tlanalysis(X::Array{T,N}, crank::NTuple{N, Int}; seed::Number=1, backend="tensorflow", converter="numpy", functionname::AbstractString="non_negative_tucker", init::String="svd", maxiter::Integer=DMAXITER, tol::Number=1e-4, verbose::Bool=false) where {T, N}
-	tensorly.set_backend(backend)
-	@info("Tensorly backend: $backend")
+	if NTFk.tensorly == PyCall.PyNULL()
+		@warn("TensorLy is not available")
+		return nothing
+	end
+	try
+		tensorly.set_backend(backend)
+		@info("Tensorly backend: $backend")
+	catch
+		@warn("Tensorly backend $backend is not available!")
+		return nothing
+	end
 	func = eval(:(tensorly.decomposition.$functionname))
 	core, factors = func(tensorly.backend.tensor(X), rank=[crank...], n_iter_max=maxiter, init=init, tol=tol, verbose=verbose);
 	nc = length(factors)

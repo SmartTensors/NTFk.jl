@@ -25,7 +25,10 @@ function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Int
 	else
 		s = nprocs() > 1 ? false : true
 		for i in 1:nruns
-			tucker_spnn[i], residues[i], correlations[i,:], minsilhouette[i] = analysis(X, csizes[i], nTF; clusterdim=clusterdim, resultdir=resultdir, prefix=prefix, serial=s, kw...)
+			a = analysis(X, csizes[i], nTF; clusterdim=clusterdim, resultdir=resultdir, prefix=prefix, serial=s, kw...)
+			if a != nothing
+				tucker_spnn[i], residues[i], correlations[i,:], minsilhouette[i] = a
+			end
 		end
 	end
 	@info("Decompositions (clustering dimension: $clusterdim)")
@@ -38,17 +41,24 @@ function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Int
 		end
 	end
 	for i in 1:nruns
-		println("$i - $(csizes[i]): residual $(residues[i]) worst tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core)) silhouette $(minsilhouette[i])")
+		if isassigned(tucker_spnn, i)
+			println("$i - $(csizes[i]): residual $(residues[i]) worst tensor correlations $(correlations[i,:]) rank $(TensorToolbox.mrank(tucker_spnn[i].core)) silhouette $(minsilhouette[i])")
+		end
 	end
 	# NTFk.atensor(tucker_spnn[ibest].core)
-	csize = TensorToolbox.mrank(tucker_spnn[ibest].core)
-	@info("Estimated true core size based on the reconstruction: $(csize)")
-	if nruns > 1
-		FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "tucker_vector", tucker_spnn)
+	if isassigned(tucker_spnn, ibest)
+		csize = TensorToolbox.mrank(tucker_spnn[ibest].core)
+		@info("Estimated true core size based on the reconstruction: $(csize)")
+		if nruns > 1
+			FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "tucker_vector", tucker_spnn)
+		else
+			FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "tucker", tucker_spnn[1])
+		end
+		return tucker_spnn, csize, ibest
 	else
-		FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "tucker", tucker_spnn[1])
+		@warn("Execution failed!")
+		return nothing
 	end
-	return tucker_spnn, csize, ibest
 end
 
 """
@@ -94,38 +104,50 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 		tsi = pmap(i->(Random.seed!(seed+i); NTFk.tucker(X, csize; seed=seed, method=method, kw..., progressbar=false)), 1:nTF)
 	else
 		for n = 1:nTF
-			@time tsi[n] = NTFk.tucker(X, csize; seed=seed, method=method, kw...)
+			@time a = NTFk.tucker(X, csize; seed=seed, method=method, kw...)
+			if a != nothing
+				tsi[n] = a
+			end
 		end
 	end
 	for n = 1:nTF
-		residues[n] = TensorDecompositions.rel_residue(tsi[n], X)
-		println("$(n): relative residual $(residues[n])")
-		normalizecore!(tsi[n])
-		f = permutedims(tsi[n].factors[clusterdim])
-		# f[f.==0] = max(minimum(f), 1e-6)
-		# p = NTFk.plotmatrix(cpi[n].factors[1]')
-		# display(p); println()
-		# p = NTFk.plotmatrix(f)
-		# display(p); println()
-		# @show minimum(cpi[n].lambdas), maximum(cpi[n].lambdas)
-		WBig[n] = hcat(f)
+		@show isassigned(tsi, 1)
+		if isassigned(tsi, n)
+			residues[n] = TensorDecompositions.rel_residue(tsi[n], X)
+			println("$(n): relative residual $(residues[n])")
+			normalizecore!(tsi[n])
+			f = permutedims(tsi[n].factors[clusterdim])
+			# f[f.==0] = max(minimum(f), 1e-6)
+			# p = NTFk.plotmatrix(cpi[n].factors[1]')
+			# display(p); println()
+			# p = NTFk.plotmatrix(f)
+			# display(p); println()
+			# @show minimum(cpi[n].lambdas), maximum(cpi[n].lambdas)
+			WBig[n] = hcat(f)
+		else
+			residues[n] = Inf
+		end
 	end
 	minsilhouette = nTF > 1 ? clusterfactors(WBig, quiet) : NaN
 	imin = argmin(residues)
-	X_esta = TensorDecompositions.compose(tsi[imin])
-	correlations = mincorrelations(X_esta, X)
-	# NTFk.atensor(tsi[imin].core)
-	csize_new = TensorToolbox.mrank(tsi[imin].core)
-	println("$(csize): relative residual $(residues[imin]) worst tensor correlations $(correlations) rank $(csize_new) silhouette $(minsilhouette)")
-	if saveall
-		recursivemkdir(resultdir; filename=false)
-		recursivemkdir(prefix; filename=false)
-		FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize))->$(mapsize(csize_new)).$(outputformat)", "tucker", tsi[imin])
+	if isassigned(tsi, imin)
+		X_esta = TensorDecompositions.compose(tsi[imin])
+		correlations = mincorrelations(X_esta, X)
+		# NTFk.atensor(tsi[imin].core)
+		csize_new = TensorToolbox.mrank(tsi[imin].core)
+		println("$(csize): relative residual $(residues[imin]) worst tensor correlations $(correlations) rank $(csize_new) silhouette $(minsilhouette)")
+		if saveall
+			recursivemkdir(resultdir; filename=false)
+			recursivemkdir(prefix; filename=false)
+			FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize))->$(mapsize(csize_new)).$(outputformat)", "tucker", tsi[imin])
+		end
+		if sum(nans) > 0
+			X[nans] .= NaN
+		end
+		return tsi[imin], residues[imin], correlations, minsilhouette
+	else
+		return nothing
 	end
-	if sum(nans) > 0
-		X[nans] .= NaN
-	end
-	return tsi[imin], residues[imin], correlations, minsilhouette
 end
 
 """

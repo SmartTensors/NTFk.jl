@@ -17,7 +17,8 @@ import Random
 	tsize = (5, 10, 15)
 	tucker_orig = NTFk.rand_tucker(csize, tsize, factors_nonneg=true, core_nonneg=true)
 	T_orig = TensorDecompositions.compose(tucker_orig)
-	tucker_est, csize_est, ibest = NTFk.analysis(T_orig, [csize], 1; seed=1, eigmethod=[false,false,false], progressbar=false, tol=1e-4, maxiter=100, lambda=0.)
+	a = NTFk.analysis(T_orig, [csize], 1; seed=1, eigmethod=[false,false,false], progressbar=false, tol=1e-4, maxiter=100, lambda=0.)
+	tucker_est, csize_est, ibest = a
 	T_est = TensorDecompositions.compose(tucker_est[ibest])
 	@Test.test csize == csize_est
 	@show norm(T_orig .- T_est)
@@ -36,18 +37,26 @@ end
 	@Test.test isapprox(norm(T_orig .- T_est), 0.047453937969484744, atol=1e-3)
 end
 
-@Test.testset "NTFk Tensorly Tucker analysis" begin
-	Random.seed!(1)
-	csize = (2, 3, 4)
-	tsize = (5, 10, 15)
-	tucker_orig = NTFk.rand_tucker(csize, tsize, factors_nonneg=true, core_nonneg=true)
-	T_orig = TensorDecompositions.compose(tucker_orig)
-	for backend = ["pytorch", "mxnet", "numpy"]
-		tucker_est, csize_est, ibest = NTFk.analysis(T_orig, [csize], 1; seed=1, method="tensorly_", eigmethod=[false,false,false], progressbar=false, tol=1e-12, maxiter=100, backend=backend, verbose=true)
-		T_est = TensorDecompositions.compose(tucker_est[ibest])
-		@Test.test csize == csize_est
-		@show norm(T_orig .- T_est)
-		@Test.test isapprox(norm(T_orig .- T_est), 0.913, atol=1e-3)
+if NTFk.tensorly == PyCall.PyNULL()
+	@warn("TensorLy is not available")
+else
+	@Test.testset "NTFk Tensorly Tucker analysis" begin
+		Random.seed!(1)
+		csize = (2, 3, 4)
+		tsize = (5, 10, 15)
+		tucker_orig = NTFk.rand_tucker(csize, tsize, factors_nonneg=true, core_nonneg=true)
+		T_orig = TensorDecompositions.compose(tucker_orig)
+		for backend = ["pytorch", "mxnet", "numpy"]
+			a = NTFk.analysis(T_orig, [csize], 1; seed=1, method="tensorly_", eigmethod=[false,false,false], progressbar=false, tol=1e-12, maxiter=100, backend=backend, verbose=true)
+			if a == nothing
+				continue
+			end
+			tucker_est, csize_est, ibest = a
+			T_est = TensorDecompositions.compose(tucker_est[ibest])
+			@Test.test csize == csize_est
+			@show norm(T_orig .- T_est)
+			@Test.test isapprox(norm(T_orig .- T_est), 0.913, atol=1e-3)
+		end
 	end
 end
 
