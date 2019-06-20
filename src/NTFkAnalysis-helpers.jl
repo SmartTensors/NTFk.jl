@@ -86,7 +86,7 @@ function movingwindow(A::AbstractArray{T, N}, windowsize::Number=1; functionname
 	return B
 end
 
-function clusterfactors(W, quiet)
+function clusterfactors(W, quiet=true)
 	clusterassignments, M = NMFk.clustersolutions(W)
 	if !quiet
 		@info("Cluster assignments:")
