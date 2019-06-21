@@ -79,7 +79,6 @@ import JLD2
 import FileIO
 import PyPlot
 import Gadfly
-@tryimport MATLAB
 
 modules = ["NTFk", "NMFk", "CanDecomp"]
 
@@ -108,7 +107,13 @@ include("NTFkAnalysis-hosvd.jl")
 include("NTFkAnalysis-tensorly.jl")
 include("NTFkLoadTensorDecompositions.jl")
 
-if isdefined(NTFk, :MATLAB) && haskey(ENV, "MATLAB_HOME")
+if haskey(ENV, "MATLAB_HOME")
+	@tryimport MATLAB
+else
+	@info("MATLAB_HOME environmental variable is not defined!")
+end
+
+if isdefined(NTFk, :MATLAB)
 	@info("MATLAB is available!")
 	include("NTFkAnalysis-tensortoolbox.jl")
 else
