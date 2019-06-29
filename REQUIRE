@@ -1,10 +1,10 @@
 julia 0.7
 DocumentFunction
-CanDecomp
 NMFk
+CanDecomp
 LoadTensorDecompositions
-TensorOperations 0.7.1
 TensorDecompositions
+TensorOperations 0.7.1
 TensorToolbox
 Interpolations
 Distributions
