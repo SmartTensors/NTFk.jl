@@ -1,5 +1,6 @@
 import TensorDecompositions
 import Random
+import Statistics
 
 "A series of analyses for different core sizes"
 function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Integer=1; clusterdim::Integer=1, resultdir::String=".", prefix::String="spnn", serial::Bool=false, seed::Integer=0, kw...) where {T,N}
@@ -94,11 +95,11 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 	residues = Vector{Float64}(undef, nTF)
 	tsi = Vector{TensorDecompositions.Tucker{T,N}}(undef, nTF)
 	WBig = Vector{Matrix}(undef, nTF)
-	nans = isnan.(X)
-	if sum(nans) > 0
-		@warn("The tensor has NaN's; they will be zeroed temporarily.")
-		X[nans] .= 0
-	end
+	# nans = isnan.(X)
+	# if sum(nans) > 0
+	# 	@warn("The tensor has NaN's; they will be zeroed temporarily.")
+	# 	X[nans] .= 0
+	# end
 	tsbest = nothing
 	if nprocs() > 1 && !serial
 		tsi = pmap(i->(Random.seed!(seed+i); NTFk.tucker(X, csize; seed=seed, method=method, kw..., progressbar=false)), 1:nTF)
@@ -128,6 +129,9 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 			residues[n] = Inf
 		end
 	end
+	# if sum(nans) > 0
+	# 	X[nans] .= NaN
+	# end
 	minsilhouette = nTF > 1 ? clusterfactors(WBig, quiet) : NaN
 	imin = argmin(residues)
 	if isassigned(tsi, imin)
@@ -140,9 +144,6 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 			recursivemkdir(resultdir; filename=false)
 			recursivemkdir(prefix; filename=false)
 			FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize))->$(mapsize(csize_new)).$(outputformat)", "tucker", tsi[imin])
-		end
-		if sum(nans) > 0
-			X[nans] .= NaN
 		end
 		return tsi[imin], residues[imin], correlations, minsilhouette
 	else
@@ -163,7 +164,17 @@ function tucker(X::AbstractArray{T, N}, csize::NTuple{N, Int}; seed::Number=0, m
 		c = tlanalysis(X, csize; seed=seed, functionname=split(functionname, "tensorly_")[2], maxiter=maxiter, tol=tol, kw...)
 	else
 		if ini_decomp == :ntfk_hosvd
+		    nans = isnan.(X)
+		    if sum(nans) > 0
+		        nanflag = true
+		        X[nans] .= Statistics.mean(X[.!nans])
+		    else
+		        nanflag = false
+		    end
 			ini_decomp = NTFk.hosvd(X, csize, eigmethod, eigreduce; pad_zeros=true, order=order, compute_error=compute_error, compute_rank=compute_rank, whichm=whichm, tol=hosvd_tol, maxiter=hosvd_maxiter, rtol=rtol)
+		    if nanflag
+		        X[nans] .= NaN
+		    end
 		end
 		c = TensorDecompositions.spnntucker(X, csize; ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=maxiter, tol=tol, lambdas=lambdas)
 	end

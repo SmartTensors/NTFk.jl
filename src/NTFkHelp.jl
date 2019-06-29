@@ -1,5 +1,4 @@
 import DocumentFunction
-import NTFk
 
 function functions(re::Regex; stdout::Bool=false, quiet::Bool=false)
 	n = 0
