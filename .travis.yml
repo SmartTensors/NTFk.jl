@@ -7,4 +7,4 @@ julia:
 notifications:
   email: false
 after_success:
-  - julia -e 'import NTFk; joinpath(dirname(pathof(NTFk)); Pkg.add("Coverage"); import Coverage; Coveralls.submit(Coveralls.process_folder()); Codecov.submit(Codecov.process_folder())'
+  - julia -e 'import Pkg; import NTFk; cd(joinpath(dirname(pathof(NTFk)))); Pkg.add("Coverage"); import Coverage; Coveralls.submit(Coveralls.process_folder()); Codecov.submit(Codecov.process_folder())'
