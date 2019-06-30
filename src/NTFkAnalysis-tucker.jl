@@ -1,8 +1,13 @@
 import TensorDecompositions
 import Random
 import Statistics
+import DocumentFunction
 
-"A series of analyses for different core sizes"
+"""
+Tucker deconstruction: Multiple analyses for different core sizes
+
+methods: spnntucker, tucker_als, tucker_sym, tensorly_
+"""
 function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Integer=1; clusterdim::Integer=1, resultdir::String=".", prefix::String="spnn", serial::Bool=false, seed::Integer=0, kw...) where {T,N}
 	@info("TensorDecompositions Tucker analysis for a series of $(length(csizes)) core sizes ...")
 	@info("Clustering Dimension: $clusterdim")
@@ -63,7 +68,8 @@ function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Int
 end
 
 """
-Single analysis of a given core size
+Tucker deconstruction: Single analysis of a given core size
+
 methods: spnntucker, tucker_als, tucker_sym, tensorly_
 
 $(DocumentFunction.documentfunction(analysis))
@@ -152,7 +158,8 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 end
 
 """
-Single analysis of a given core size
+Tucker deconstruction: Single analysis of a given core size
+
 methods: spnntucker, tucker_als, tucker_sym, tensorly_
 
 $(DocumentFunction.documentfunction(tucker))

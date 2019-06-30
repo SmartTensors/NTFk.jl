@@ -3,7 +3,7 @@ import Geodesy
 """
 Convert LAT/LON to Cartesian coordinates (x,y)
 
-(DocumentFunction.documentfunction(latlon_to_xy))
+$(DocumentFunction.documentfunction(latlon_to_xy))
 """
 function latlon_to_xy(lat, lon; zone=14, north=true, datum=Geodesy.nad83, utm_map=Geodesy.UTMfromLLA(zone, north, datum))
 	l = length(lat)

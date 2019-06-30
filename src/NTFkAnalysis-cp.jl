@@ -1,6 +1,9 @@
 import TensorDecompositions
+import DocumentFunction
 
 """
+Candecomp/Parafac (CP) deconstruction: single tensor rank analysis
+
 methods: ALS, SGSD, cp_als, cp_apr, cp_nmu, cp_opt, cp_sym, cp_wopt
 """
 function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1, tol=1e-8, verbose=false, max_iter=DMAXITER, method=:ALS, resultdir::String=".", prefix::String="$(string(method))", quiet=true, serial::Bool=false, saveall=false, kw...) where {T,N}
@@ -59,6 +62,11 @@ function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1,
 	return cpi[imin], residues[imin], correlations, minsilhouette
 end
 
+"""
+Candecomp/Parafac (CP) deconstruction: multi tensor rank analyses
+
+methods: ALS, SGSD, cp_als, cp_apr, cp_nmu, cp_opt, cp_sym, cp_wopt
+"""
 function analysis(X::AbstractArray{T,N}, tranks::Vector{Int}, nTF=1; seed::Number=-1, method=:ALS, resultdir::String=".", prefix::String="$(string(method))", serial::Bool=false, kw...) where {T,N}
 	if seed < 0
 		seed = abs(rand(Int16))

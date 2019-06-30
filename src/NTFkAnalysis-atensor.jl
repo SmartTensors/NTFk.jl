@@ -1,9 +1,9 @@
 import TensorDecompositions
+import DocumentFunction
 
 function atensor(X::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP})
 	atensor(TensorDecompositions.compose(X))
 end
-
 function atensor(X::Array)
 	nd = ndims(X)
 	@info("Number of dimensions: $nd")
@@ -29,3 +29,8 @@ function atensor(X::Array)
 	end
 	return mask
 end
+@doc """
+Compute A-tensor rank
+
+$(DocumentFunction.documentfunction(atensor))
+""" atensor

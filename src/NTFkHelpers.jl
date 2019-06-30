@@ -38,43 +38,43 @@ function flip!(X)
 	X = -X .+ maximumnan(X) .+ minimumnan(X)
 end
 
-function computestats(X, Xe, volumeindex=1:size(Xe,1), wellindex=1:size(Xe,3), timeindex=:, c=""; plot::Bool=false, quiet::Bool=true, wellnames=nothing, xaxis=1:size(Xe,2))
-	m = "%-85s"
-	if Xe == nothing
-		@info("$(NMFk.sprintf(m, c)): fails")
-		return
+function clusterfactors(W, quiet=true)
+	clusterassignments, M = NMFk.clustersolutions(W)
+	if !quiet
+		@info("Cluster assignments:")
+		display(clusterassignments)
+		@info("Cluster centroids:")
+		display(M)
 	end
-	ferr = Array{Float64}(undef, length(volumeindex))
-	wsum1 = Array{Float64}(undef, length(wellindex))
-	wsum2 = Array{Float64}(undef, length(wellindex))
-	werr = Array{Float64}(undef, length(wellindex))
-	merr = Array{Float64}(undef, length(volumeindex))
-	fcor = Array{Float64}(undef, length(volumeindex))
-	g = "%.2g"
-	f = "%.2f"
-	for (i, v) in enumerate(volumeindex)
-		# se = NMFk.sumnan(Xe[wellindex,timeindex,v])
-		# s =  NMFk.sumnan(X[wellindex,timeindex,v])
-		# @show se
-		# @show s
-		# ferr[i] = (se - s) / s
-		ferr[i] = NMFk.normnan(X[wellindex,timeindex,v] .- Xe[wellindex,timeindex,v])
-		for (j, w) in enumerate(wellindex)
-			wsum2[j] = NMFk.sumnan(Xe[w,timeindex,v])
-			wsum1[j] = NMFk.sumnan(X[w,timeindex,v])
-			werr[j] = abs.(wsum2[j] - wsum1[j]) / wsum1[j]
-		end
-		merr[i] = maximum(werr)
-		fcor[i] = cor(vec(wsum1), vec(wsum2))
+	_, clustersilhouettes, _ = NMFk.finalize(W, clusterassignments)
+	if !quiet
+		@info("Silhouettes for each of the $(length(clustersilhouettes)) clusters:" )
+		display(clustersilhouettes')
+		println("Mean silhouette = ", mean(clustersilhouettes))
+		println("Min  silhouette = ", minimum(clustersilhouettes))
 	end
-	namecase = lowercase(replace(replace(c, " "=>"_"), "/"=> "_"))
-	# @info("$(NMFk.sprintf(m, c)): $(NMFk.sprintf(f, NMFk.normnan(X[wellindex,timeindex,volumeindex] .- Xe[wellindex,timeindex,volumeindex]))) [Error: $(NMFk.sprintf(g, ferr[1])) $(NMFk.sprintf(g, ferr[2])) $(NMFk.sprintf(g, ferr[3]))] [Max error: $(NMFk.sprintf(g, merr[1])) $(NMFk.sprintf(g, merr[2])) $(NMFk.sprintf(g, merr[3]))] [Pearson: $(NMFk.sprintf(g, fcor[1])) $(NMFk.sprintf(g, fcor[2])) $(NMFk.sprintf(g, fcor[3]))]")
-	@info("$(NMFk.sprintf(m, c)): $(NMFk.sprintf(f, NMFk.normnan(X[wellindex,timeindex,volumeindex] .- Xe[wellindex,timeindex,volumeindex]))) : $(NMFk.sprintf(f, ferr[1])) : $(NMFk.sprintf(f, ferr[2])) : $(NMFk.sprintf(f, ferr[3])) : $(NMFk.sprintf(g, fcor[1])) : $(NMFk.sprintf(g, fcor[2])) : $(NMFk.sprintf(g, fcor[3]))")
-	if !plot
-		return nothing
+	return minimum(clustersilhouettes)
+end
+
+function mincorrelations(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}) where {T,N}
+	c = Vector{T}(undef, N)
+	if N == 3
+		tsize = size(X1)
+		@assert tsize == size(X2)
+		c[1] = minimum(map(j->minimum(map(k->corinf(X1[:,k,j], X2[:,k,j]), 1:tsize[2])), 1:tsize[3]))
+		c[2] = minimum(map(j->minimum(map(k->corinf(X1[k,:,j], X2[k,:,j]), 1:tsize[1])), 1:tsize[3]))
+		c[3] = minimum(map(j->minimum(map(k->corinf(X1[k,j,:], X2[k,j,:]), 1:tsize[1])), 1:tsize[2]))
+		return c
 	else
-		return NTFk.plot2d(X, Xe; quiet=quiet, figuredir="results-12-18", keyword=namecase, titletext=c, wellnames=wellnames, dimname="Well", xaxis=xaxis, ymin=0, xmin=Dates.Date(2015,12,15), xmax=Dates.Date(2017,6,10), linewidth=1.5Gadfly.pt, gm=[Gadfly.Guide.manual_color_key("", ["Oil", "Gas", "Water"], ["green", "red", "blue"])], colors=["green", "red", "blue"])
+		@warn("Minimum correlations can be computed for 3 dimensional tensors only; D=$N")
+		c .= NaN
+		return c
 	end
+end
+
+function corinf(v1::Vector{T}, v2::Vector{T}) where {T}
+	c = abs.(cor(v1, v2))
+	c = isnan(c) ? Inf : c
 end
 
 function flatten(X::AbstractArray{T,N}, mask::BitArray{M}) where {T,N,M}
@@ -158,6 +158,33 @@ function bincoordinates(v; rev=false, nbins=length(v), minvalue=minimum(v), maxv
 		vs = reverse(vs)
 	end
 	return vs
+end
+
+function getsizes(csize::Tuple, tsize::Tuple=csize .+ 1)
+	ndimensons = length(tsize)
+	@assert ndimensons == length(csize)
+	sizes = [csize]
+	for i = 1:ndimensons
+		nt = ntuple(k->(k == i ? min(tsize[i], csize[i] + 1) : csize[k]), ndimensons)
+		addsize = true
+		for j = 1:length(sizes)
+			if sizes[j] == nt
+				addsize = false
+				break
+			end
+		end
+		addsize && push!(sizes, nt)
+		nt = ntuple(k->(k == i ? max(1, csize[i] - 1) : csize[k]), ndimensons)
+		addsize = true
+		for j = 1:length(sizes)
+			if sizes[j] == nt
+				addsize = false
+				break
+			end
+		end
+		addsize && push!(sizes, nt)
+	end
+	return sizes
 end
 
 function getcsize(case::String; resultdir::String=".", longname=false, extension=outputformat)

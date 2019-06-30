@@ -79,6 +79,7 @@ import JLD2
 import FileIO
 import PyPlot
 import Gadfly
+import DocumentFunction
 
 modules = ["NTFk", "NMFk", "CanDecomp"]
 
@@ -95,6 +96,7 @@ include("NTFkPlot3D.jl")
 include("NTFkPlotComponents.jl")
 include("NTFkGeo.jl")
 include("NTFkSeismic.jl")
+include("NTFkWells.jl")
 include("NTFkAnalysis.jl")
 include("NTFkAnalysis-mixing.jl")
 include("NTFkAnalysis-helpers.jl")

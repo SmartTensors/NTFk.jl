@@ -1,5 +1,11 @@
 import TensorDecompositions
+import DocumentFunction
 
+"""
+Normalize Tucker deconstructed factors
+
+$(DocumentFunction.documentfunction(normalizefactors!))
+"""
 function normalizefactors!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::Bool=false) where {T,N}
 	check && (Xi = TensorDecompositions.compose(X))
 	l = size(X.core)
@@ -20,6 +26,11 @@ function normalizefactors!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check
 	return nothing
 end
 
+"""
+Normalize Tucker deconstructed core
+
+$(DocumentFunction.documentfunction(normalizecore!))
+"""
 function normalizecore!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::Bool=false) where {T,N}
 	check && (Xi = TensorDecompositions.compose(X))
 	l = size(X.core)
@@ -42,6 +53,11 @@ function normalizecore!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::B
 	return nothing
 end
 
+"""
+Normalize Tucker deconstructed slices
+
+$(DocumentFunction.documentfunction(normalizeslices!))
+"""
 function normalizeslices!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::Bool=false) where {T,N}
 	check && (Xi = TensorDecompositions.compose(X))
 	NTFk.normalizefactors!(X)
@@ -59,6 +75,11 @@ function normalizeslices!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check:
 	end
 end
 
+"""
+Scale Tucker deconstructed slices
+
+$(DocumentFunction.documentfunction(scalefactors!))
+"""
 function scalefactors!(X::TensorDecompositions.Tucker{T,N}, m::AbstractVector, order=1:N; check::Bool=false) where {T,N}
 	check && (Xi = TensorDecompositions.compose(X))
 	NTFk.normalizefactors!(X)
@@ -73,6 +94,11 @@ function scalefactors!(X::TensorDecompositions.Tucker{T,N}, m::AbstractVector, o
 	end
 end
 
+"""
+Normalize CP deconstructed factors
+
+$(DocumentFunction.documentfunction(normalizefactors!))
+"""
 function normalizefactors!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; check::Bool=false) where {T,N}
 	check && (Xi = TensorDecompositions.compose(X))
 	for i = order
@@ -88,6 +114,11 @@ function normalizefactors!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; ch
 	return nothing
 end
 
+"""
+Normalize CP deconstructed lambdas
+
+$(DocumentFunction.documentfunction(normalizelambdas!))
+"""
 function normalizelambdas!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; check::Bool=false) where {T,N}
 	check && (Xi = TensorDecompositions.compose(X))
 	m = vec(X.lambdas)' .^ (1/N)
@@ -106,5 +137,7 @@ end
 
 """
 Composes a full tensor from a decomposition
+
+$(DocumentFunction.documentfunction(compose))
 """
 compose(X::TensorDecompositions.Tucker{T,N}, modes=collect(1:N)) where {T,N} = TensorDecompositions.tensorcontractmatrices(TensorDecompositions.core(X), TensorDecompositions.factors(X)[modes], modes; transpose=true)

@@ -81,19 +81,17 @@ function functions(m::Union{Symbol, Module}, string::String=""; stdout::Bool=fal
 	n > 0 && string == "" && @info("Number of functions in module $m: $n")
 	return n
 end
-
 @doc """
-List available functions in the MADS modules:
+List available functions in the NTFk modules:
 
 $(DocumentFunction.documentfunction(functions;
 argtext=Dict("string"=>"string to display functions with matching names",
-			"m"=>"MADS module")))
+			"m"=>"NTFk module")))
 
 Examples:
 
 ```julia
 NTFk.functions()
-NTFk.functions(BIGUQ)
 NTFk.functions("get")
 NTFk.functions(NTFk, "get")
 ```

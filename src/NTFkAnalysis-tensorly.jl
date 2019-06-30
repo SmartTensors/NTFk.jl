@@ -12,6 +12,8 @@ function __init__()
 end
 
 """
+TensorLy Nonnegative Tucker/CP deconstruction
+
 functionname = "non_negative_tucker", "non_negative_cp"
 backend = "tensorflow", "pytorch", "mxnet", "numpy"
 converter = "numpy", "numpy", "asnumpy", (conversion not needed)

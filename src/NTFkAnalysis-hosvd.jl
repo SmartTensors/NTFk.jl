@@ -2,10 +2,8 @@ import TensorDecompositions
 import TensorToolbox
 import Arpack
 import LinearAlgebra
+import DocumentFunction
 
-"""
-High-order singular value decomposition (HO-SVD).
-"""
 function hosvd(tensor::StridedArray{T,N}, core_dims::NTuple{N, Int}, eigmethod=trues(N), eigreduce=eigmethod; order=1:N, pad_zeros::Bool=false, compute_error::Bool=true, compute_rank::Bool=true, whichm::Symbol=:LM, tol::Number=0.0, maxiter::Integer=300, rtol::Number=0.) where {T,N}
 	pad_zeros || TensorDecompositions._check_tensor(tensor, core_dims)
 
@@ -53,6 +51,11 @@ function hosvd(tensor::StridedArray{T,N}, core_dims::NTuple{N, Int}, eigmethod=t
 	end
 	return res
 end
-
 hosvd(tensor::StridedArray{T,N}, r::Int; compute_error::Bool=false, pad_zeros::Bool=false) where {T,N} =
 	NTFk.hosvd(tensor, (fill(r, N)...,); compute_error=compute_error, pad_zeros=pad_zeros)
+
+@doc """
+High-order singular value decomposition (HO-SVD)
+
+$(DocumentFunction.documentfunction(hosvd))
+""" hosvd
