@@ -85,29 +85,32 @@ modules = ["NTFk", "NMFk", "CanDecomp"]
 
 const ntfkdir = splitdir(splitdir(pathof(NTFk))[1])[1]
 
-include("NTFkHelp.jl")
+include("NTFkHosvd.jl")
+include("NTFkTucker.jl")
+include("NTFkCP.jl")
+include("NTFkNormalize.jl")
+include("NTFkAtensor.jl")
 include("NTFkHelpers.jl")
-include("NTFkPlotColors.jl")
-include("NTFkPlot2d.jl")
-include("NTFkPlotMatrix.jl")
-include("NTFkPlotProgressBar.jl")
-include("NTFkPlot.jl")
-include("NTFkPlot3D.jl")
-include("NTFkPlotComponents.jl")
-include("NTFkGeo.jl")
-include("NTFkSeismic.jl")
-include("NTFkWells.jl")
-include("NTFkAnalysis.jl")
-include("NTFkAnalysis-mixing.jl")
-include("NTFkAnalysis-helpers.jl")
-include("NTFkAnalysis-memory.jl")
-include("NTFkAnalysis-normalize.jl")
-include("NTFkAnalysis-atensor.jl")
-include("NTFkAnalysis-tucker.jl")
-include("NTFkAnalysis-cp.jl")
-include("NTFkAnalysis-hosvd.jl")
-include("NTFkAnalysis-tensorly.jl")
+include("NTFkHelp.jl")
+
 include("NTFkLoadTensorDecompositions.jl")
+include("NTFkTD-helpers.jl")
+include("NTFkTD-memory.jl")
+
+include("NTFkPlot.jl")
+include("NTFkPlot2d.jl")
+include("NTFkPlot3d.jl")
+include("NTFkPlotMatrix.jl")
+include("NTFkPlotComponents.jl")
+include("NTFkPlotProgressBar.jl")
+include("NTFkPlotColors.jl")
+
+include("NTFkTensorly.jl")
+
+include("NTFkGeo.jl")
+include("NTFkAnalysis-seismic.jl")
+include("NTFkAnalysis-wells.jl")
+include("NTFkAnalysis-mixing.jl")
 
 if haskey(ENV, "MATLAB_HOME")
 	@tryimport MATLAB
@@ -117,7 +120,7 @@ end
 
 if isdefined(NTFk, :MATLAB)
 	@info("MATLAB is available!")
-	include("NTFkAnalysis-tensortoolbox.jl")
+	include("NTFkTensorToolBox.jl")
 else
 	@info("MATLAB is not installed!")
 end
