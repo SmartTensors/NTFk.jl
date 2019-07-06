@@ -26,16 +26,8 @@ function setoutputformat(extension::String)
 	global outputformat = extension
 end
 
-function maximumnan(X, c...; kw...)
-	maximum(X[.!isnan.(X)], c...; kw...)
-end
-
-function minimumnan(X, c...; kw...)
-	minimum(X[.!isnan.(X)], c...; kw...)
-end
-
 function flip!(X)
-	X = -X .+ maximumnan(X) .+ minimumnan(X)
+	X = -X .+ NMFk.maximumnan(X) .+ NMFk.minimumnan(X)
 end
 
 function clusterfactors(W, quiet=true)
