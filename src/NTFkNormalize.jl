@@ -141,3 +141,5 @@ Composes a full tensor from a decomposition
 $(DocumentFunction.documentfunction(compose))
 """
 compose(X::TensorDecompositions.Tucker{T,N}, modes=collect(1:N)) where {T,N} = TensorDecompositions.tensorcontractmatrices(TensorDecompositions.core(X), TensorDecompositions.factors(X)[modes], modes; transpose=true)
+
+compose(decomp::TensorDecompositions.CANDECOMP) = TensorDecompositions.compose(decomp.factors, decomp.lambdas)

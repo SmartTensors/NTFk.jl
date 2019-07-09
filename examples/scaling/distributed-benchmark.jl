@@ -35,7 +35,12 @@ end
 
 @info("Set worker BLAS to one thread only")
 @sync for p in Distributed.workers()
-	@async Distributed.remotecall_wait(LinearAlgebra.BLAS.set_num_threads, p , 1)
+	@async Distributed.remotecall_wait(LinearAlgebra.BLAS.set_num_threads, p, 1)
+end
+
+@info("Turn off BLAS thread")
+@sync for p in Distributed.workers()
+	@async Distributed.remotecall_wait(LinearAlgebra.BLAS.set_num_threads, p, -1)
 end
 
 suite = BenchmarkTools.BenchmarkGroup()

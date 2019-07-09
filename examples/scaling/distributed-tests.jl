@@ -1,10 +1,11 @@
-import Distributed
+using Distributed
 Distributed.addprocs(4)
 
 import DistributedArrays
 
 @everywhere begin
 	import Random
+	import DistributedArrays
 	Random.seed!(Distributed.myid())
 	r = rand(10)
 end
@@ -13,8 +14,8 @@ rAs = [@spawnat p rand(N) for p in workers()]
 
 DistributedArrays.DArray(rAs)
 
-a = rand(1:5, 1_000_000);
-b = rand(1_000_000);
+a = rand(1:5, 1_000);
+b = rand(1_000);
 
 @time da = DistributedArrays.distribute(a);
 @time db = DistributedArrays.distribute(b);
