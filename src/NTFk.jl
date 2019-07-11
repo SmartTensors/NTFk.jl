@@ -12,6 +12,8 @@ using SparseArrays
 using Distributed
 using Statistics
 
+const ntfkdir = splitdir(splitdir(pathof(NTFk))[1])[1]
+
 "Test NTFk functions"
 function test()
 	include(joinpath(ntfkdir, "test", "runtests.jl"))
@@ -82,8 +84,6 @@ import Gadfly
 import DocumentFunction
 
 modules = ["NTFk", "NMFk", "CanDecomp"]
-
-const ntfkdir = splitdir(splitdir(pathof(NTFk))[1])[1]
 
 include("NTFkHosvd.jl")
 include("NTFkTucker.jl")
