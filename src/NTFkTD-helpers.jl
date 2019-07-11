@@ -66,22 +66,17 @@ function arrayoperation(A::AbstractArray{T,N}, tmap=ntuple(k->(Colon()), N), fun
 	return B
 end
 
-function movingwindow(A::AbstractArray{T, N}, windowsize::Number=1; functionname::String="maximum") where {T, N}
-	if windowsize == 0
-		return A
-	end
-	B = similar(A)
-	R = CartesianIndices(size(A))
-	Istart, Iend = first(R), last(R)
-	for I in R
-		s = Vector{T}(undef, 0)
-		a = max(Istart, I - windowsize * one(I))
-		b = min(Iend, I + windowsize * one(I))
-		ci = ntuple(i->a[i]:b[i], length(a))
-		for J in CartesianIndices(ci)
-			push!(s, A[J])
-		end
-		B[I] = Core.eval(NTFk, Meta.parse(functionname))(s)
-	end
-	return B
+function unfold(X::AbstractArray{T, N}, dim::Int=1) where {T, N}
+	@assert dim > 0 && dim <= N
+	i = [i for i = 1:ndims(X)]
+	k = i .!= dim
+	TensorDecompositions._unfold(X, [dim], i[k])
+end
+
+function fold(X::AbstractArray{T, N}, dim::Int, tsize::Union{NTuple{NN, Int},AbstractVector{Int}}) where {T, N, NN}
+	l = length(tsize)
+	@assert dim > 0 && dim <= l
+	@assert N == l - 1
+	t = ntuple(i->(i==dim) ? size(X, 1) : tsize[i], l)
+	reshape(X, t)
 end

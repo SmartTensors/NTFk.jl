@@ -899,3 +899,23 @@ function float2date(f::AbstractFloat, period::Type{<:Dates.Period}=Dates.Nanosec
 	partial = period(round(Dates.value(year) * reminder))
 	return year_start + partial
 end
+
+function movingwindow(A::AbstractArray{T, N}, windowsize::Number=1; functionname::String="maximum") where {T, N}
+	if windowsize == 0
+		return A
+	end
+	B = similar(A)
+	R = CartesianIndices(size(A))
+	Istart, Iend = first(R), last(R)
+	for I in R
+		s = Vector{T}(undef, 0)
+		a = max(Istart, I - windowsize * one(I))
+		b = min(Iend, I + windowsize * one(I))
+		ci = ntuple(i->a[i]:b[i], length(a))
+		for J in CartesianIndices(ci)
+			push!(s, A[J])
+		end
+		B[I] = Core.eval(NTFk, Meta.parse(functionname))(s)
+	end
+	return B
+end
