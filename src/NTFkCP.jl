@@ -108,10 +108,12 @@ function analysis(X::AbstractArray{T,N}, tranks::Vector{Int}, nTF=1; seed::Numbe
 	end
 	csize = length(cpf[ibest].lambdas)
 	@info("Estimated true core size (diagonal length): $(csize)")
-	if nruns > 1
-		FileIO.save("$(resultdir)/$(prefix)-$(csize).$(outputformat)", "cp_vector", cpf)
-	else
-		FileIO.save("$(resultdir)/$(prefix)-$(csize).$(outputformat)", "cp", cpf[1])
+	if prefix != ""
+		if nruns > 1
+			FileIO.save("$(resultdir)/$(prefix)-$(csize).$(outputformat)", "cp_vector", cpf)
+		else
+			FileIO.save("$(resultdir)/$(prefix)-$(csize).$(outputformat)", "cp", cpf[1])
+		end
 	end
 	return cpf, csize, ibest
 end

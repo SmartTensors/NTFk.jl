@@ -67,10 +67,12 @@ function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Int
 	if isassigned(tucker_spnn, ibest)
 		csize = TensorToolbox.mrank(tucker_spnn[ibest].core)
 		@info("Estimated true core size based on the reconstruction: $(csize)")
-		if nruns > 1
-			FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "tucker_vector", tucker_spnn)
-		else
-			FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "tucker", tucker_spnn[1])
+		if prefix != ""
+			if nruns > 1
+				FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "tucker_vector", tucker_spnn)
+			else
+				FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "tucker", tucker_spnn[1])
+			end
 		end
 		return tucker_spnn, csize, ibest
 	else
