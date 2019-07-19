@@ -1,20 +1,18 @@
 import TensorDecompositions
-import DocumentFunction
 
 function atensor(X::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP})
 	atensor(TensorDecompositions.compose(X))
 end
-function atensor(X::Array)
-	nd = ndims(X)
-	@info("Number of dimensions: $nd")
+function atensor(X::AbstractArray{T,N}) where {T,N}
+	@info("Number of dimensions: $N")
 	tsize = size(X)
-	mask = Vector{Vector{Bool}}(undef, nd)
-	for i = 1:nd
+	mask = Vector{Vector{Bool}}(undef, N)
+	for i = 1:N
 		@info("D$i ($(tsize[i]))")
 		mask[i] = trues(tsize[i])
 		for j = 1:tsize[i]
-			st = ntuple(k->(k == i ? j : Colon()), nd)
-			if nd == 3
+			st = ntuple(k->(k == i ? j : Colon()), N)
+			if N == 3
 				r = rank(X[st...])
 			else
 				r = TensorToolbox.mrank(X[st...])

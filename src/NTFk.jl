@@ -42,6 +42,7 @@ include("NTFkTucker.jl")
 include("NTFkCP.jl")
 include("NTFkNormalize.jl")
 include("NTFkAtensor.jl")
+include("NTFkDistributed.jl")
 include("NTFkHelpers.jl")
 include("NTFkHelp.jl")
 

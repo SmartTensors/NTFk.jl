@@ -68,7 +68,14 @@ end
 
 function unfold(X::AbstractArray{T, N}, dim::Int=1) where {T, N}
 	@assert dim > 0 && dim <= N
-	i = [i for i = 1:ndims(X)]
+	i = [i for i = 1:N]
+	k = i .!= dim
+	TensorDecompositions._unfold(X, [dim], i[k])
+end
+
+function unfold(X::DistributedArrays.DArray{T,N,Array{T,N}}, dim::Int=1) where {T, N}
+	@assert dim > 0 && dim <= N
+	i = [i for i = 1:N]
 	k = i .!= dim
 	TensorDecompositions._unfold(X, [dim], i[k])
 end
