@@ -20,7 +20,7 @@ tucker_spnn = Array{TensorDecompositions.Tucker{Float64,3}}(undef, nruns)
 T_est = nothing
 for i in 1:nruns
 	@info("Core size: $(sizes[i])")
-	@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i], tol=1e-16, core_nonneg=true, verbose=false, max_iter=50000, lambdas=fill(0.1, length(sizes[i]) + 1))
+	@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i]; tol=1e-16, core_nonneg=true, verbose=false, max_iter=50000, lambdas=fill(0.1, length(sizes[i]) + 1))
 	T_est = TensorDecompositions.compose(tucker_spnn[i])
 	T_esta[i] = T_est
 	residues[i] = TensorDecompositions.rel_residue(tucker_spnn[i])
@@ -58,7 +58,7 @@ tucker_spnn = Array{TensorDecompositions.Tucker{Float64,3}}(undef, nruns)
 T_est = nothing
 for i in 1:nruns
 	@info("Core size: $(sizes[i])")
-	@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i], tol=1e-16, core_nonneg=true, verbose=false, max_iter=50000, lambdas=fill(0.1, length(sizes[i]) + 1))
+	@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i]; tol=1e-16, core_nonneg=true, verbose=false, max_iter=50000, lambdas=fill(0.1, length(sizes[i]) + 1))
 	T_est = TensorDecompositions.compose(tucker_spnn[i])
 	T_esta[i] = T_est
 	residues[i] = TensorDecompositions.rel_residue(tucker_spnn[i])

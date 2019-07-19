@@ -2,6 +2,15 @@ import TensorDecompositions
 import DistributedArrays
 import SharedArrays
 
+compose(X::TensorDecompositions.Tucker{T,N}, modes=collect(1:N)) where {T,N} = TensorDecompositions.tensorcontractmatrices(TensorDecompositions.core(X), TensorDecompositions.factors(X)[modes], modes; transpose=true)
+
+compose(decomp::TensorDecompositions.CANDECOMP) = TensorDecompositions.compose(decomp.factors, decomp.lambdas)
+@doc """
+Composes a full tensor from a decomposition
+
+$(DocumentFunction.documentfunction(compose))
+""" compose
+
 @generated function composeshared!(dest::SharedArrays.SharedArray{T,N}, factors::NTuple{N, Matrix{T}}, lambdas::Vector{T}) where {T,N}
 	quote
 		@TensorDecompositions.nloops $N i dest begin
@@ -23,7 +32,7 @@ end
 
 composeshared(decomp::TensorDecompositions.CANDECOMP) = composeshared(decomp.factors, decomp.lambdas)
 
-composeshared!(dest::SharedArray{T,N}, decomp::TensorDecompositions.CANDECOMP{T,N}) where {T,N} = composeshared!(dest, decomp.factors, decomp.lambdas)
+composeshared!(dest::SharedArrays.SharedArray{T,N}, decomp::TensorDecompositions.CANDECOMP{T,N}) where {T,N} = composeshared!(dest, decomp.factors, decomp.lambdas)
 
 @generated function composedistributed!(dest::DistributedArrays.DArray{T,N,Array{T,N}}, factors::NTuple{N, Matrix{T}}, lambdas::Vector{T}) where {T,N}
 	quote
