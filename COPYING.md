@@ -1,4 +1,4 @@
-NTFk: Nonnegative Tensor Factorization using k-means clustering (Mads.jl v1.0) 2019
+NTFk: Nonnegative Tensor Factorization using k-means clustering (NTFk.jl v1.0) 2019
 ---------------
 
 Licensing: GPLv3: http://www.gnu.org/licenses/gpl-3.0.html
