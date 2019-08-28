@@ -847,11 +847,11 @@ function makemovie(; movieformat="mp4", movieopacity::Bool=false, moviedir=".", 
 	elseif movieformat == "gif"
 		c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -f gif -filter:v "setpts=$vspeed*PTS" -y $p.gif`
 	elseif movieformat == "mp4"
-		c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -vcodec libx264 -pix_fmt yuv420p -f mp4 -filter:v "setpts=$vspeed*PTS" -y $p.mp4`
+		c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -vf scale="trunc(iw/2)*2:trunc(ih/2)*2" -c:v libx264 -profile:v high -pix_fmt yuv420p-g 30 -r 30 -filter:v "setpts=$vspeed*PTS" -y $p.mp4`
 	else
 		@warn("Unknown movie format $movieformat; mp4 will be used!")
 		movieformat = "mp4"
-		c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -vcodec libx264 -pix_fmt yuv420p -f mp4 -filter:v "setpts=$vspeed*PTS" -y $p.mp4`
+		c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -vf scale="trunc(iw/2)*2:trunc(ih/2)*2" -c:v libx264 -profile:v high -pix_fmt yuv420p-g 30 -r 30 -filter:v "setpts=$vspeed*PTS" -y $p.mp4`
 	end
 	if quiet
 		run(pipeline(c, stdout=devnull, stderr=devnull))
