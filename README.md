@@ -5,10 +5,27 @@ NTFk: Nonnegative Tensor Factorization using k-means clustering
     <img src="logo/ntfk-logo.png" alt="ntfk" width=50%  max-width=250px;/>
 </div>
 
+### Installation
+
+After starting Julia, execute:
+
+```julia
+import Pkg; Pkg.clone("https://github.com/TensorDecompositions/NTFk.jl.git")
+```
+
+### Testing
+
+```julia
+Pkg.test("NTFk")
+```
+
 ### Tensor Decomposition
 
-A novel unsupervised Machine Learning based on Tensor Decomposition coupled with sparsity and nonnegativity constraints has been applied to extract the temporal and spatial footprints of the features in multi-dimensional datasets in the form of multi-way arrays or tensors.
-The decomposition (factorization) of a given tensor <img src="https://latex.codecogs.com/svg.latex?\Large&space;X" /> is typically performed by minimization of the Frobenius norm:
+**NTFk** performs a novel unsupervised Machine Learning (ML) method based on Tensor Decomposition coupled with sparsity and nonnegativity constraints.
+
+**NTFk** has been applied to extract the temporal and spatial footprints of the features in multi-dimensional datasets in the form of multi-way arrays or tensors.
+
+**NTFk** executes the decomposition (factorization) of a given tensor <img src="https://latex.codecogs.com/svg.latex?\Large&space;X" /> by minimization of the Frobenius norm:
 
 <img src="https://latex.codecogs.com/svg.latex?\Large&space;\frac{1}{2}%7C%7C%20X-G\otimes_1A_1\otimes_2A_2\ldots\otimes_nA_n%7C%7C_F^2" />
 
@@ -38,12 +55,12 @@ The number of matrix rows in each factor (matrix) <img src="https://latex.codeco
 
 The elements of tensor <img src="https://latex.codecogs.com/svg.latex?\Large&space;G" /> define how the features along each dimension (<img src="https://latex.codecogs.com/svg.latex?\Large&space;A_1,A_2,\ldots,A_n" />) are mixed to represent the original tensor <img src="https://latex.codecogs.com/svg.latex?\Large&space;X" />.
 
-The Tensor Decomposition is commonly performed using [Candecomp/Parafac (CP)](https://en.wikipedia.org/wiki/Tensor_rank_decomposition) or [Tucker](https://en.wikipedia.org/wiki/Tucker_decomposition) decomposition models.
+**NTFk** can perform Tensor Decomposition using [Candecomp/Parafac (CP)](https://en.wikipedia.org/wiki/Tensor_rank_decomposition) or [Tucker](https://en.wikipedia.org/wiki/Tucker_decomposition) decomposition models.
 
 Some of the decomposition models can theoretically lead to unique solutions under specific, albeit rarely satisfied, noiseless conditions.
 When these conditions are not satisfied, additional minimization constraints can assist the factorization.
-
-A popular approach is to add sparsity and nonnegative constraints. Sparsity constraints on the elements of G reduce the number of features and their mixing (by having as many zero entries as possible).
+A popular approach is to add sparsity and nonnegative constraints.
+Sparsity constraints on the elements of G reduce the number of features and their mixing (by having as many zero entries as possible).
 Nonnegativity enforces parts-based representation of the original data which also allows the Tensor Decomposition results for <img src="https://latex.codecogs.com/svg.latex?\Large&space;G" /> and <img src="https://latex.codecogs.com/svg.latex?\Large&space;A_1,A_2,\ldots,A_n" /> to be easily interrelated [Cichocki et al, 2009](https://books.google.com/books?hl=en&lr=&id=KaxssMiWgswC&oi=fnd&pg=PR5&ots=Lta2adM6LV&sig=jNPDxjKlON1U3l46tZAYH92mvAE#v=onepage&q&f=false).
 
 ### Publications:
@@ -69,3 +86,40 @@ Presentations are also available at [slideshare.net](https://www.slideshare.net/
 Videos are also available on [YouTube](href=https://www.youtube.com/watch?v=xPOkeLMJywE&list=PLpVcrIWNlP22LfyIu5MSZ7WHp7q0MNjsj)
 
 For more information, visit [monty.gitlab.io](http://monty.gitlab.io)
+
+Installation behind a firewall
+------------------------------
+
+Julia uses git for package management. Add in the `.gitconfig` file in your home directory:
+
+```
+[url "https://"]
+        insteadOf = git://
+```
+
+or execute:
+
+```
+git config --global url."https://".insteadOf git://
+```
+
+Set proxies:
+
+```
+export ftp_proxy=http://proxyout.<your_site>:8080
+export rsync_proxy=http://proxyout.<your_site>:8080
+export http_proxy=http://proxyout.<your_site>:8080
+export https_proxy=http://proxyout.<your_site>:8080
+export no_proxy=.<your_site>
+```
+
+For example, if you are doing this at LANL, you will need to execute the
+following lines in your bash command-line environment:
+
+```
+export ftp_proxy=http://proxyout.lanl.gov:8080
+export rsync_proxy=http://proxyout.lanl.gov:8080
+export http_proxy=http://proxyout.lanl.gov:8080
+export https_proxy=http://proxyout.lanl.gov:8080
+export no_proxy=.lanl.gov
+```
