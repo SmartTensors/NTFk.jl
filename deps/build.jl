@@ -1,23 +1,23 @@
 if haskey(ENV, "NTFk_NO_PYTHON")
 	@info("No Python will be used ...")
 else
-	import Compat
 	import PyCall
 
-	@info("Checking for Python YAML & MatPlotLib ...")
 	const PACKAGES = ["tensorly", "matplotlib", "pytorch", "tensorflow", "mxnet"]
+	@info("Checking for Python packages: $(PACKAGES)...")
 
 	try
-		Core.eval(Main, :(@PyCall.pyimport tensorly))
-		Core.eval(Main, :(@PyCall.pyimport matplotlib))
-		@info("Python TensorLy and MatPlotLib are already installed!")
+		for p in PACKAGES
+			Core.eval(Main, :(PyCall.pyimport($p)))
+		end
+		@info("Python packages are already installed!")
 	catch errmsg
 		println(errmsg)
-		@warn("Python TensorLy and MatPlotLib are not installed!")
+		@warn("Python packages are missing!")
 
 		try
 			@info("Checking for python pip using PyCall ...")
-			Core.eval(Main, :(@PyCall.pyimport pip))
+			Core.eval(Main, :(PyCall.pyimport("pip")))
 		catch errmsg
 			println(errmsg)
 			@warn("Python pip is not installed!")
@@ -29,7 +29,7 @@ else
 		end
 
 		try
-			@info("Installing Python YAML & MatPlotLib using pip ...")
+			@info("Installing Python packages using pip ...")
 			Core.eval(Main, :(@PyCall.pyimport pip))
 			global proxy_args = String[]
 			if haskey(ENV, "http_proxy")
@@ -41,15 +41,17 @@ else
 			run(`$(PyCall.python) $(proxy_args) -m pip install --user $(PACKAGES)`)
 		catch errmsg
 			println(errmsg)
-			@warn("Installing Python YAML & MatPlotLib using pip fails!")
+			@warn("Installing Python packages using pip fails!")
 		end
 
 		try
-			Core.eval(Main, :(@PyCall.pyimport tensorly))
-			@info("Python TensorLy is installed using pip!")
+			for p in PACKAGES
+				Core.eval(Main, :(PyCall.pyimport($p)))
+			end
+			@info("Python packages are installed using pip!")
 		catch errmsg
 			println(errmsg)
-			@warn("Python TensorLy installation using pip has failed!")
+			@warn("Python package installation using pip has failed!")
 			@info("Using Conda instead ...")
 			import Conda
 			Conda.add("tensorly"; channel="tensorly")
