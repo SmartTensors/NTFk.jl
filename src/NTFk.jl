@@ -46,7 +46,7 @@ include("NTFkDistributed.jl")
 include("NTFkHelpers.jl")
 include("NTFkHelp.jl")
 
-include("NTFkLoadTensorDecompositions2.jl")
+include("NTFkLoadTensorDecompositions.jl")
 include("NTFkTD-helpers.jl")
 include("NTFkTD-memory.jl")
 

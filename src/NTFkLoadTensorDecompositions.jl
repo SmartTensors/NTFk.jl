@@ -1,4 +1,4 @@
-import LoadTensorDecompositions2
+import LoadTensorDecompositions
 import TensorDecompositions2
 import FileIO
 import JLD
