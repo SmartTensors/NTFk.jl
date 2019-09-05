@@ -10,7 +10,7 @@ NTFk: Nonnegative Tensor Factorization using k-means clustering
 After starting Julia, execute:
 
 ```julia
-import Pkg; Pkg.add("https://github.com/TensorDecompositions/NTFk.jl.git")
+import Pkg; Pkg.dev("https://github.com/TensorDecompositions/NTFk.jl.git")
 ```
 
 ### Testing
