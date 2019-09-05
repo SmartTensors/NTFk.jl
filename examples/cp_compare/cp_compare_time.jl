@@ -24,11 +24,11 @@ Cf = rand(size(C));
 @info("CanDecomp CP Mads")
 @time CanDecomp.candecomp!(StaticArrays.SVector(Af, Bf, Cf), T, Val{:nnmads}; regularization=0, print_level=0, max_cd_iters=25)
 
-@info("TensorDecompositions CP")
+@info("TensorDecompositions2 CP")
 trank = 3
 @time t, csize, ibest = NTFk.analysis(T, [trank]; tol=1e-8, max_iter=1000)
 
-@info("TensorDecompositions Tucker with regularization")
+@info("TensorDecompositions2 Tucker with regularization")
 t, csize, ibest = NTFk.analysis(T, [(3, 3, 3)])
 
 @info("MATLAB TensorToolBox CanDecomp cp_als")

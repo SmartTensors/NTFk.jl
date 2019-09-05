@@ -1,16 +1,16 @@
-import TensorDecompositions
+import TensorDecompositions2
 import TensorToolbox
 import Arpack
 import LinearAlgebra
 import DocumentFunction
 
 function hosvd(tensor::StridedArray{T,N}, core_dims::NTuple{N, Int}, eigmethod=trues(N), eigreduce=eigmethod; order=1:N, pad_zeros::Bool=false, compute_error::Bool=true, compute_rank::Bool=true, whichm::Symbol=:LM, tol::Number=0.0, maxiter::Integer=300, rtol::Number=0.) where {T,N}
-	pad_zeros || TensorDecompositions._check_tensor(tensor, core_dims)
+	pad_zeros || TensorDecompositions2._check_tensor(tensor, core_dims)
 
 	csize = size(tensor)
 
 	factors = map(order) do i
-		X = TensorDecompositions._col_unfold(tensor, i)
+		X = TensorDecompositions2._col_unfold(tensor, i)
 		if eigmethod[i] || (core_dims[i] < csize[i])
 			nev = core_dims[i]
 			global e
@@ -37,14 +37,14 @@ function hosvd(tensor::StridedArray{T,N}, core_dims::NTuple{N, Int}, eigmethod=t
 			@warn("Zero slices ($(core_dims[i]-size(f, 2))) added in dimension $i ")
 			f = hcat(f, zeros(T, size(tensor, i), core_dims[i]-size(f, 2)))
 		end
-		mapslices(TensorDecompositions._check_sign, f; dims=1)
+		mapslices(TensorDecompositions2._check_sign, f; dims=1)
 	end
 
-	res = TensorDecompositions.Tucker((factors[order]...,), TensorDecompositions.tensorcontractmatrices(tensor, factors[order]))
+	res = TensorDecompositions2.Tucker((factors[order]...,), TensorDecompositions2.tensorcontractmatrices(tensor, factors[order]))
 	if compute_error
-		TensorDecompositions._set_rel_residue(res, tensor)
+		TensorDecompositions2._set_rel_residue(res, tensor)
 		@info("Error: $(res.props[:rel_residue])")
-		@info("Vector Norm: $(norm(tensor .- TensorDecompositions.compose(res)))")
+		@info("Vector Norm: $(norm(tensor .- TensorDecompositions2.compose(res)))")
 	end
 	if compute_rank
 		@info "HOSVD core rank: $(TensorToolbox.mrank(res.core))"

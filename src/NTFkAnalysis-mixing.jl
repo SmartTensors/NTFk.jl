@@ -1,4 +1,4 @@
-import TensorDecompositions
+import TensorDecompositions2
 import NMFk
 
 function loadcase(case::String; datadir::String=".")
@@ -93,7 +93,7 @@ function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, x
 		if !skipmaketimemovies
 			recursivemkdir(moviedir; filename=false)
 			@info("Making $(problemname) problem comparison movie for $(case) ...")
-			nt = TensorDecompositions.compose(t[1])
+			nt = TensorDecompositions2.compose(t[1])
 			NTFk.plotcmptensors(X[timeindex, xindex, yindex], nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$((mapsize(csize)))", quiet=quiet)
 			@info("Making $(problemname) problem leftover movie for $(case) ...")
 			NTFk.plotlefttensor(X[timeindex, xindex, yindex], nt, X[timeindex, xindex, yindex] .- nt; movie=makemovie, moviedir=moviedir, prefix="$(case)-$((mapsize(csize)))-left", quiet=quiet)

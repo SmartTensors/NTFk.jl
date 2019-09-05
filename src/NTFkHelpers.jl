@@ -198,14 +198,14 @@ function getcsize(case::String; resultdir::String=".", longname=false, extension
 	return csize, kwa
 end
 
-function getfactor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1, cutoff::Number=0)
+function getfactor(t::Union{TensorDecompositions2.Tucker,TensorDecompositions2.CANDECOMP}, dim::Integer=1, cutoff::Number=0)
 	i = vec(maximum(t.factors[dim]; dims=1) .> cutoff)
 	s = size(t.factors[dim])
 	println("Factor $dim: size $s -> ($(s[1]), $(sum(i)))")
 	t.factors[dim][:, i]
 end
 
-function gettensorcomponentsold(t::TensorDecompositions.Tucker, dim::Integer=1; core::Bool=false)
+function gettensorcomponentsold(t::TensorDecompositions2.Tucker, dim::Integer=1; core::Bool=false)
 	cs = size(t.core)[dim]
 	csize = TensorToolbox.mrank(t.core)
 	ndimensons = length(csize)
@@ -221,7 +221,7 @@ function gettensorcomponentsold(t::TensorDecompositions.Tucker, dim::Integer=1; 
 					tt.core[nt...] .= 0
 				end
 			end
-			Xe[i] = TensorDecompositions.compose(tt)
+			Xe[i] = TensorDecompositions2.compose(tt)
 			tt.core .= t.core
 		else
 			for j = 1:cs
@@ -229,7 +229,7 @@ function gettensorcomponentsold(t::TensorDecompositions.Tucker, dim::Integer=1; 
 					tt.factors[dim][:, j] .= 0
 				end
 			end
-			Xe[i] = TensorDecompositions.compose(tt)
+			Xe[i] = TensorDecompositions2.compose(tt)
 			tt.factors[dim] .= t.factors[dim]
 		end
 	end
@@ -298,7 +298,7 @@ function remap(v::AbstractVector, vi::AbstractVector, ve::AbstractVector; nonneg
 	return f1
 end
 
-function getinterpolatedtensor(t::TensorDecompositions.Tucker{T,N}, v; sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line())), Interpolations.OnGrid()]) where {T,N}
+function getinterpolatedtensor(t::TensorDecompositions2.Tucker{T,N}, v; sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line())), Interpolations.OnGrid()]) where {T,N}
 	lv = length(v)
 	f = Vector(lv)
 	factors = []
@@ -315,11 +315,11 @@ function getinterpolatedtensor(t::TensorDecompositions.Tucker{T,N}, v; sp=[Inter
 			factors[j] = f
 		end
 	end
-	tn = TensorDecompositions.Tucker((factors...,), t.core)
+	tn = TensorDecompositions2.Tucker((factors...,), t.core)
 	return tn
 end
 
-function getpredictions(t::TensorDecompositions.Tucker{T,N}, dim, v; sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line(Interpolations.OnGrid())))], ep=[Interpolations.Line(Interpolations.OnGrid())]) where {T,N}
+function getpredictions(t::TensorDecompositions2.Tucker{T,N}, dim, v; sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line(Interpolations.OnGrid())))], ep=[Interpolations.Line(Interpolations.OnGrid())]) where {T,N}
 	factors = []
 	for i = 1:N
 		push!(factors, t.factors[i])
@@ -333,11 +333,11 @@ function getpredictions(t::TensorDecompositions.Tucker{T,N}, dim, v; sp=[Interpo
 		end
 		factors[j] = f
 	end
-	tn = TensorDecompositions.Tucker((factors...,), t.core)
+	tn = TensorDecompositions2.Tucker((factors...,), t.core)
 	return tn
 end
 
-function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core, firstpeak::Bool=true, flipdim::Bool=true, quiet::Bool=true)
+function gettensorcomponentorder(t::TensorDecompositions2.Tucker, dim::Integer=1; method::Symbol=:core, firstpeak::Bool=true, flipdim::Bool=true, quiet::Bool=true)
 	cs = size(t.core)[dim]
 	!quiet && @info("Core size: $(size(t.core))")
 	csize = TensorToolbox.mrank(t.core)
@@ -382,7 +382,7 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 						tt.core[nt...] .= 0
 					end
 				end
-				Te = TensorDecompositions.compose(tt)
+				Te = TensorDecompositions2.compose(tt)
 				maxXe[i] = maximum(Te) - minimum(Te)
 				tt.core .= t.core
 			else
@@ -391,7 +391,7 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 						tt.factors[dim][:, j] .= 0
 					end
 				end
-				Te = TensorDecompositions.compose(tt)
+				Te = TensorDecompositions2.compose(tt)
 				maxXe[i] = maximum(Te) - minimum(Te)
 				tt.factors[dim] .= t.factors[dim]
 			end
@@ -403,7 +403,7 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 	return order
 end
 
-function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, prefix::String="", mask=nothing, transform=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savetensorslices::Bool=false)
+function gettensorcomponents(t::TensorDecompositions2.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, prefix::String="", mask=nothing, transform=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savetensorslices::Bool=false)
 	cs = size(t.core)
 	ndimensons = length(cs)
 	@assert dim >= 1 && dim <= ndimensons
@@ -418,7 +418,7 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 				push!(factors, t.factors[i])
 			end
 		end
-		tt = deepcopy(TensorDecompositions.Tucker((factors...,), t.core))
+		tt = deepcopy(TensorDecompositions2.Tucker((factors...,), t.core))
 	else
 		tt = deepcopy(t)
 	end
@@ -432,9 +432,9 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 			end
 		end
 		if length(filter) == 0
-			X[i] = TensorDecompositions.compose(tt)
+			X[i] = TensorDecompositions2.compose(tt)
 		else
-			X[i] = TensorDecompositions.compose(tt)[filter...]
+			X[i] = TensorDecompositions2.compose(tt)[filter...]
 		end
 		if transform != nothing
 			X[i] = transform.(X[i])
@@ -451,7 +451,7 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 	return X
 end
 
-function gettensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, prefix::String="", transform=nothing, mask=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude))
+function gettensorslices(t::TensorDecompositions2.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, prefix::String="", transform=nothing, mask=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude))
 	cs = size(t.core)
 	ndimensons = length(cs)
 	@assert dim >= 1 && dim <= ndimensons
@@ -467,7 +467,7 @@ function gettensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::U
 	return Xs
 end
 
-function savetensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, prefix::String="", transform=nothing, mask=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude))
+function savetensorslices(t::TensorDecompositions2.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, prefix::String="", transform=nothing, mask=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude))
 	cs = size(t.core)
 	ndimensons = length(cs)
 	@assert dim >= 1 && dim <= ndimensons
@@ -489,11 +489,11 @@ function savetensorslices(X::AbstractArray, pt, sz, order, prefix::String="")
 	end
 end
 
-function mrank(t::TensorDecompositions.Tucker)
+function mrank(t::TensorDecompositions2.Tucker)
    TensorToolbox.mrank(t.core)
 end
 
-function gettensorminmax(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core)
+function gettensorminmax(t::TensorDecompositions2.Tucker, dim::Integer=1; method::Symbol=:core)
 	cs = size(t.core)[dim]
 	csize = TensorToolbox.mrank(t.core)
 	ndimensons = length(csize)
@@ -511,7 +511,7 @@ function gettensorminmax(t::TensorDecompositions.Tucker, dim::Integer=1; method:
 		@info("Max factor magnitudes: $fmax")
 		@info("Min factor magnitudes: $fmin")
 	elseif method == :all
-		Te = TensorDecompositions.compose(t)
+		Te = TensorDecompositions2.compose(t)
 		tsize = size(Te)
 		ts = tsize[dim]
 		maxTe = Vector{Float64}(undef, ts)
@@ -535,7 +535,7 @@ function gettensorminmax(t::TensorDecompositions.Tucker, dim::Integer=1; method:
 						tt.core[nt...] .= 0
 					end
 				end
-				Te = TensorDecompositions.compose(tt)
+				Te = TensorDecompositions2.compose(tt)
 				minXe[i] = minimum(Te)
 				maxXe[i] = maximum(Te)
 				tt.core .= t.core
@@ -545,7 +545,7 @@ function gettensorminmax(t::TensorDecompositions.Tucker, dim::Integer=1; method:
 						tt.factors[dim][:, j] .= 0
 					end
 				end
-				Te = TensorDecompositions.compose(tt)
+				Te = TensorDecompositions2.compose(tt)
 				minXe[i] = minimum(Te)
 				maxXe[i] = maximum(Te)
 				tt.factors[dim] .= t.factors[dim]
@@ -556,7 +556,7 @@ function gettensorminmax(t::TensorDecompositions.Tucker, dim::Integer=1; method:
 	end
 end
 
-function gettensorcomponentgroups(t::TensorDecompositions.Tucker, dim::Integer=1; cutvalue::Number=0.9)
+function gettensorcomponentgroups(t::TensorDecompositions2.Tucker, dim::Integer=1; cutvalue::Number=0.9)
 	g = zeros(t.factors[dim][:, 1])
 	v = maximum(t.factors[dim]; dims=1) .> cutvalue
 	gi = 0
@@ -571,7 +571,7 @@ function gettensorcomponentgroups(t::TensorDecompositions.Tucker, dim::Integer=1
 	return g
 end
 
-function gettensormaximums(t::TensorDecompositions.Tucker{T,N}) where {T,N}
+function gettensormaximums(t::TensorDecompositions2.Tucker{T,N}) where {T,N}
 	for i=1:N
 		v = maximum(t.factors[i]; dims=1)
 		if length(v) > 10
@@ -741,13 +741,13 @@ function checkdimension(dim::Tuple, ndimensons::Integer)
 	return true
 end
 
-function zerotensorcomponents!(t::TensorDecompositions.Tucker, dim::Int)
+function zerotensorcomponents!(t::TensorDecompositions2.Tucker, dim::Int)
 	ndimensons = length(size(t.core))
 	nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
 	t.core[nt...] .= 0
 end
 
-function zerotensorcomponents!(t::TensorDecompositions.CANDECOMP, dim::Int)
+function zerotensorcomponents!(t::TensorDecompositions2.CANDECOMP, dim::Int)
 	ndimensons = length(size(t.core))
 	nt = ntuple(k->(k == dim ? j : Colon()), ndimensons)
 	t.lambdas[nt...] .= 0

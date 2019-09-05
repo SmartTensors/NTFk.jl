@@ -1,4 +1,4 @@
-import TensorDecompositions
+import TensorDecompositions2
 import NTFk
 import Random
 
@@ -11,7 +11,7 @@ for m = 1:5
 	tranks = [(1, 1, 1), (2, 2, 2), (3, 3, 3), (2, 3, 4), (3, 4, 5)]
 	for t in tranks
 		@info("TuckerSPNN Decomposition: Tensor core-size $t")
-		@time tucker = TensorDecompositions.spnntucker(T, t)
+		@time tucker = TensorDecompositions2.spnntucker(T, t)
 		@time T_est = NTFk.compose(tucker)
 	end
 end

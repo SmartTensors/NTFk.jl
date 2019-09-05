@@ -1,4 +1,4 @@
-import TensorDecompositions
+import TensorDecompositions2
 import Random
 import Statistics
 import DocumentFunction
@@ -21,7 +21,7 @@ Tucker deconstruction: Multiple analyses for different core sizes
 methods: spnntucker, tucker_als, tucker_sym, tensorly_
 """
 function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Integer=1; clusterdim::Integer=1, resultdir::String=".", prefix::String="spnn", serial::Bool=false, seed::Integer=0, kw...) where {T,N}
-	@info("TensorDecompositions Tucker analysis for a series of $(length(csizes)) core sizes ...")
+	@info("TensorDecompositions2 Tucker analysis for a series of $(length(csizes)) core sizes ...")
 	@info("Clustering Dimension: $clusterdim")
 	recursivemkdir(resultdir; filename=false)
 	recursivemkdir(prefix; filename=false)
@@ -32,7 +32,7 @@ function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Int
 	nruns = length(csizes)
 	residues = Vector{T}(undef, nruns)
 	correlations = Array{T}(undef, nruns, ndimensons)
-	tucker_spnn = Vector{TensorDecompositions.Tucker{T,N}}(undef, nruns)
+	tucker_spnn = Vector{TensorDecompositions2.Tucker{T,N}}(undef, nruns)
 	minsilhouette = Vector{T}(undef, nruns)
 	if nprocs() > 1 && !serial
 		r = pmap(i->(Random.seed!(seed+i); analysis(X, csizes[i], nTF; clusterdim=clusterdim, resultdir=resultdir, prefix=prefix, kw..., serial=true, quiet=true)), 1:nruns)
@@ -97,7 +97,7 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 		prefix = "tensorly"
 		method = :tensorly_non_negative_tucker
 	else
-		@info("TensorDecompositions Sparse Nonnegative Tucker analysis using $(string(method)) ...")
+		@info("TensorDecompositions2 Sparse Nonnegative Tucker analysis using $(string(method)) ...")
 	end
 	@info("Core size $(csize)...")
 	@info("Clustering Dimension: $clusterdim")
@@ -113,7 +113,7 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 	ndimensons = length(tsize)
 	@info("Tensor size: $(tsize)")
 	residues = Vector{Float64}(undef, nTF)
-	tsi = Vector{TensorDecompositions.Tucker{T,N}}(undef, nTF)
+	tsi = Vector{TensorDecompositions2.Tucker{T,N}}(undef, nTF)
 	WBig = Vector{Matrix}(undef, nTF)
 	# nans = isnan.(X)
 	# if sum(nans) > 0
@@ -134,7 +134,7 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 	for n = 1:nTF
 		@show isassigned(tsi, 1)
 		if isassigned(tsi, n)
-			residues[n] = TensorDecompositions.rel_residue(tsi[n], X)
+			residues[n] = TensorDecompositions2.rel_residue(tsi[n], X)
 			println("$(n): relative residual $(residues[n])")
 			normalizecore!(tsi[n])
 			f = permutedims(tsi[n].factors[clusterdim])
@@ -155,7 +155,7 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 	minsilhouette = nTF > 1 ? clusterfactors(WBig, quiet) : NaN
 	imin = argmin(residues)
 	if isassigned(tsi, imin)
-		X_esta = TensorDecompositions.compose(tsi[imin])
+		X_esta = TensorDecompositions2.compose(tsi[imin])
 		correlations = mincorrelations(X_esta, X)
 		# NTFk.atensor(tsi[imin].core)
 		csize_new = TensorToolbox.mrank(tsi[imin].core)
@@ -197,7 +197,7 @@ function tucker(X::AbstractArray{T, N}, csize::NTuple{N, Int}; seed::Number=0, m
 		        X[nans] .= NaN
 		    end
 		end
-		c = TensorDecompositions.spnntucker(X, csize; ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=maxiter, tol=tol, lambdas=lambdas)
+		c = TensorDecompositions2.spnntucker(X, csize; ini_decomp=ini_decomp, core_nonneg=core_nonneg, verbose=verbose, max_iter=maxiter, tol=tol, lambdas=lambdas)
 	end
 	return c
 end

@@ -36,12 +36,12 @@ core[2,2,2] = 1
 
 # display(core)
 
-tt_orig = TensorDecompositions.Tucker((xfactor, yfactor, zfactor), core)
-T_orig = TensorDecompositions.compose(tt_orig)
+tt_orig = TensorDecompositions2.Tucker((xfactor, yfactor, zfactor), core)
+T_orig = TensorDecompositions2.compose(tt_orig)
 
 # NTFk.plottensor(T_orig)
 
-ths = TensorDecompositions.hosvd(T_orig, csize, [false,false,false]; pad_zeros=true, compute_error=true, compute_rank=false)
+ths = TensorDecompositions2.hosvd(T_orig, csize, [false,false,false]; pad_zeros=true, compute_error=true, compute_rank=false)
 NTFk.normalizecore!(ths)
 NTFk.normalizefactors!(ths)
 Mads.plotseries(xfactor)

@@ -35,8 +35,8 @@ core[1,1,1] = 1
 
 # display(core)
 
-tt_orig = TensorDecompositions.Tucker((xfactor, yfactor, zfactor), core)
-T_orig = TensorDecompositions.compose(tt_orig)
+tt_orig = TensorDecompositions2.Tucker((xfactor, yfactor, zfactor), core)
+T_orig = TensorDecompositions2.compose(tt_orig)
 
 # NTFk.plottensor(T_orig)
 

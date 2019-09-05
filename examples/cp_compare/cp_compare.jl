@@ -23,10 +23,10 @@ if !quiet
 	NTFk.plotlefttensor(T, T_est; progressbar=nothing)
 end
 
-@info("TensorDecompositions CP")
+@info("TensorDecompositions2 CP")
 trank = 3
 et = @elapsed t, csize, ibest = NTFk.analysis(T, [trank]; tol=1e-8, max_iter=1000);
-T_est = TensorDecompositions.compose(t[ibest]);
+T_est = TensorDecompositions2.compose(t[ibest]);
 @info("Norm $(norm(T_est .- T))")
 @warn("Execution time $et")
 if !quiet
@@ -39,7 +39,7 @@ end
 
 @info("MATLAB TensorToolBox cp_als")
 et = @elapsed t = NTFk.ttanalysis(T, 3; maxiter=1000, tol=1e-8)
-T_est = TensorDecompositions.compose(t);
+T_est = TensorDecompositions2.compose(t);
 @info("Norm $(norm(T_est .- T))")
 @warn("Execution time $et")
 if !quiet
@@ -51,7 +51,7 @@ end
 
 @info("MATLAB TensorToolBox cp_npu")
 et = @elapsed t = NTFk.ttanalysis(T, 3; maxiter=1000, tol=1e-8, functionname="cp_nmu")
-T_est = TensorDecompositions.compose(t);
+T_est = TensorDecompositions2.compose(t);
 @info("Norm $(norm(T_est .- T))")
 @warn("Execution time $et")
 if !quiet
@@ -63,7 +63,7 @@ end
 
 @info("MATLAB Block-Coordinate Update NCP")
 et = @elapsed t = NTFk.bcuanalysis(T, 3; maxiter=1000, tol=1e-8, functionname="ncp")
-T_est = TensorDecompositions.compose(t);
+T_est = TensorDecompositions2.compose(t);
 @info("Norm $(norm(T_est .- T))")
 if !quiet
 	NTFk.plot2matrices(A, t.factors[1])
@@ -72,9 +72,9 @@ if !quiet
 	NTFk.plotlefttensor(T, t; progressbar=nothing)
 end
 
-@info("TensorDecompositions Tucker with regularization")
+@info("TensorDecompositions2 Tucker with regularization")
 t, csize, ibest = NTFk.analysis(T, [(3, 3, 3)]; eigmethod=[false,false,false], tol=1e-16, max_iter=1000)
-T_est = TensorDecompositions.compose(t[ibest])
+T_est = TensorDecompositions2.compose(t[ibest])
 @info("Norm $(norm(T_est .- T))")
 @warn("Execution time $et")
 if !quiet
@@ -85,9 +85,9 @@ if !quiet
 	NTFk.plotlefttensor(T, T_est; progressbar=nothing)
 end
 
-@info("TensorDecompositions Tucker without regularization")
+@info("TensorDecompositions2 Tucker without regularization")
 t, csize, ibest = NTFk.analysis(T, [(3, 3, 3)]; eigmethod=[false,false,false], lambda=0., tol=1e-16, max_iter=1000)
-T_est = TensorDecompositions.compose(t[ibest])
+T_est = TensorDecompositions2.compose(t[ibest])
 @info("Norm $(norm(T_est .- T))")
 @warn("Execution time $et")
 if !quiet

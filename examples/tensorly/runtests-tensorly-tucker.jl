@@ -1,11 +1,11 @@
 import NTFk
-import TensorDecompositions
+import TensorDecompositions2
 
 Random.seed!(1)
 csize = (2, 3, 4)
 tsize = (3, 5, 10)
 Tucker_orig = NTFk.rand_tucker(csize, tsize, factors_nonneg=true, core_nonneg=true)
-T_orig = TensorDecompositions.compose(Tucker_orig);
+T_orig = TensorDecompositions2.compose(Tucker_orig);
 
 ttf = NTFk.tlanalysis(T_orig, [csize...])
 
@@ -26,7 +26,7 @@ Random.seed!(1)
 csize = (2, 2, 2)
 tsize = (3, 3, 3)
 Tucker_orig = NTFk.rand_tucker(csize, tsize, factors_nonneg=true, core_nonneg=true)
-T_orig = TensorDecompositions.compose(Tucker_orig);
+T_orig = TensorDecompositions2.compose(Tucker_orig);
 
 @info("numpy")
 tl.set_backend("numpy")
@@ -52,7 +52,7 @@ Random.seed!(1)
 csize = (10, 10, 10)
 tsize = (1000, 1000, 1000)
 Tucker_orig = NTFk.rand_tucker(csize, tsize, factors_nonneg=true, core_nonneg=true)
-T_orig = TensorDecompositions.compose(Tucker_orig);
+T_orig = TensorDecompositions2.compose(Tucker_orig);
 
 @info("numpy")
 tl.set_backend("numpy")

@@ -25,7 +25,7 @@ global outputformat = "jld2"
 
 import NMFk
 import CanDecomp
-import TensorDecompositions
+import TensorDecompositions2
 import TensorOperations
 import TensorToolbox
 import JLD
@@ -46,7 +46,7 @@ include("NTFkDistributed.jl")
 include("NTFkHelpers.jl")
 include("NTFkHelp.jl")
 
-include("NTFkLoadTensorDecompositions.jl")
+include("NTFkLoadTensorDecompositions2.jl")
 include("NTFkTD-helpers.jl")
 include("NTFkTD-memory.jl")
 

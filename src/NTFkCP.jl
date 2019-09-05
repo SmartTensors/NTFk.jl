@@ -1,4 +1,4 @@
-import TensorDecompositions
+import TensorDecompositions2
 import DocumentFunction
 
 """
@@ -12,7 +12,7 @@ function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1,
 	elseif occursin("bcu_", string(method))
 		@info("MATLAB Block-coordinate nonconvex CanDecomp analysis using $(string(method)) ...")
 	else
-		@info("TensorDecompositions CanDecomp analysis using $(string(method)) ...")
+		@info("TensorDecompositions2 CanDecomp analysis using $(string(method)) ...")
 	end
 	recursivemkdir(resultdir; filename=false)
 	recursivemkdir(prefix; filename=false)
@@ -27,7 +27,7 @@ function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1,
 	ndimensons = length(tsize)
 	@info("CP core rank: $(trank)")
 	residues = Array{T}(undef, nTF)
-	cpi = Array{TensorDecompositions.CANDECOMP{T,N}}(undef, nTF)
+	cpi = Array{TensorDecompositions2.CANDECOMP{T,N}}(undef, nTF)
 	WBig = Vector{Matrix}(undef, nTF)
 	cpbest = nothing
 	if nprocs() > 1 && !serial
@@ -38,7 +38,7 @@ function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1,
 		end
 	end
 	for n = 1:nTF
-		residues[n] = TensorDecompositions.rel_residue(cpi[n], X)
+		residues[n] = TensorDecompositions2.rel_residue(cpi[n], X)
 		normalizelambdas!(cpi[n])
 		f = map(k->cpi[n].factors[k]', 1:ndimensons)
 		# p = NTFk.plotmatrix(cpi[n].factors[1]')
@@ -51,7 +51,7 @@ function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1,
 	minsilhouette = nTF > 1 ? clusterfactors(WBig, quiet) : NaN
 	imin = argmin(residues)
 	csize = length(cpi[imin].lambdas)
-	X_esta = TensorDecompositions.compose(cpi[imin])
+	X_esta = TensorDecompositions2.compose(cpi[imin])
 	correlations = mincorrelations(X_esta, X)
 	println("$(trank): residual $(residues[imin]) worst tensor correlations $(correlations) rank $(csize) silhouette $(minsilhouette)")
 	if saveall
@@ -82,7 +82,7 @@ function analysis(X::AbstractArray{T,N}, tranks::Vector{Int}, nTF=1; seed::Numbe
 	nruns = length(tranks)
 	residues = Array{T}(undef, nruns)
 	correlations = Array{T}(undef, nruns, ndimensons)
-	cpf = Array{TensorDecompositions.CANDECOMP{T,N}}(undef, nruns)
+	cpf = Array{TensorDecompositions2.CANDECOMP{T,N}}(undef, nruns)
 	minsilhouette = Array{Float64}(undef, nruns)
 	if nprocs() > 1 && !serial
 		r = pmap(i->(Random.seed!(seed+i); analysis(X, tranks[i], nTF; method=method, resultdir=resultdir, prefix=prefix, kw..., serial=true, quiet=true)), 1:nruns)
@@ -130,7 +130,7 @@ function candecomp(X::AbstractArray{T, N}, r::Integer; tsize=size(X), seed::Numb
 		c = bcuanalysis(X, r; seed=seed, functionname=split(functionname, "bcu_")[2], maxiter=maxiter, tol=tol, kw...)
 	else
 		factors_initial_guess = tuple([randn(T, d, r) for d in tsize]...)
-		c = TensorDecompositions.candecomp(X, r, factors_initial_guess; verbose=verbose, compute_error=compute_error, maxiter=maxiter, method=method)
+		c = TensorDecompositions2.candecomp(X, r, factors_initial_guess; verbose=verbose, compute_error=compute_error, maxiter=maxiter, method=method)
 	end
 	return c
 end
