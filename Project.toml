@@ -39,6 +39,7 @@ TensorOperations = "6aa20fa7-93e2-5fca-9bc0-fbd0db3c71a2"
 TensorToolbox = "9c690861-8ade-587a-897e-15364bc6f718"
 
 [compat]
+TensorDecompositions2 = "≥ 1.0.0"
 TensorOperations = "≥ 1.1.0"
 julia = "≥ 1.0.0"
 

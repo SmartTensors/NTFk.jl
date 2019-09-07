@@ -10,13 +10,23 @@ NTFk: Nonnegative Tensor Factorization using k-means clustering
 After starting Julia, execute:
 
 ```julia
-import Pkg; Pkg.add(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/NTFk.jl.git", rev="master"))
+import Pkg
+Pkg.add(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/NMFk.jl.git", rev="master"))
+Pkg.add(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/CanDecomp.jl.git", rev="master"))
+Pkg.add(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/LoadTensorDecompositions.jl.git", rev="master"))
+Pkg.add(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/TensorDecompositions2.jl.git", rev="master"))
+Pkg.add(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/NTFk.jl.git", rev="master"))
 ```
 
 or
 
 ```julia
-import Pkg; Pkg.dev("https://github.com/TensorDecompositions/NTFk.jl.git")
+import Pkg;
+Pkg.develop(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/NMFk.jl.git"))
+Pkg.develop(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/CanDecomp.jl.git"))
+Pkg.develop(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/LoadTensorDecompositions.jl.git"))
+Pkg.develop(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/TensorDecompositions2.jl.git"))
+Pkg.develop(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/NTFk.jl.git"))
 ```
 
 ### Testing
