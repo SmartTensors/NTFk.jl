@@ -483,7 +483,7 @@ function savetensorslices(X::AbstractArray, pt, sz, order, prefix::String="")
 	recursivemkdir(prefix)
 	for (i, e) in enumerate(order)
 		ii = lpad("$i", 4, "0")
-		# @show minimumnan(X[e]), maximumnan(X[e])
+		# @show NMFk.minimumnan(X[e]), NMFk.maximumnan(X[e])
 		DelimitedFiles.writedlm("$prefix-tensorslice$ii.dat", reshape(permutedims(X[e], pt), sz)[:,:])
 		# FileIO.save("$prefix-tensorslice$ii.$(outputformat)", "X", permutedims(X[order[e]], pt))
 	end

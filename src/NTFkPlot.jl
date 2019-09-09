@@ -35,7 +35,7 @@ function plottensor(t::Union{TensorDecompositions2.Tucker,TensorDecompositions2.
 	plottensor(X, dim; kw...)
 end
 
-function plottensor(X::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan(X), maxvalue=maximumnan(X), prefix::String="", keyword="frame", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing,  dateincrement::String="Dates.Day", dateend=(datestart != nothing) ? datestart + Core.eval(Main, Meta.parse(dateincrement))(sizes[dim]) : nothing, progressbar=progressbar_regular, colormap=colormap_gyr, cutoff::Bool=false, cutvalue::Number=0, vspeed=1.0, movieformat="mp4", movieopacity::Bool=false, kw...) where {T,N}
+function plottensor(X::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=NMFk.minimumnan(X), maxvalue=NMFk.maximumnan(X), prefix::String="", keyword="frame", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing,  dateincrement::String="Dates.Day", dateend=(datestart != nothing) ? datestart + Core.eval(Main, Meta.parse(dateincrement))(sizes[dim]) : nothing, progressbar=progressbar_regular, colormap=colormap_gyr, cutoff::Bool=false, cutvalue::Number=0, vspeed=1.0, movieformat="mp4", movieopacity::Bool=false, kw...) where {T,N}
 	if !checkdimension(dim, N)
 		return
 	end
@@ -46,7 +46,7 @@ function plottensor(X::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
 		M = X[nt...]
-		if cutoff && maximumnan(M) .<= cutvalue
+		if cutoff && NMFk.maximumnan(M) .<= cutvalue
 			continue
 		end
 		g = plotmatrix(M; minvalue=minvalue, maxvalue=maxvalue, title=title, colormap=colormap, kw...)
@@ -67,7 +67,7 @@ function plottensor(X::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k
 end
 
 function plot2matrices(X1::Matrix, X2::Matrix; kw...)
-	plot2tensors([X1], [X2], 1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), kw...)
+	plot2tensors([X1], [X2], 1; minvalue=NMFk.minimumnan([X1 X2]), maxvalue=NMFk.maximumnan([X1 X2]), kw...)
 end
 
 function plot2tensors(X1::Array{T,N}, T2::Union{TensorDecompositions2.Tucker,TensorDecompositions2.CANDECOMP}, dim::Integer=1; kw...) where {T,N}
@@ -75,16 +75,16 @@ function plot2tensors(X1::Array{T,N}, T2::Union{TensorDecompositions2.Tucker,Ten
 	plot2tensors(X1, X2, dim; kw...)
 end
 
-function plot2tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), minvalue2=minvalue, maxvalue2=maxvalue, movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi, title::String="", moviedir::String=".", prefix::String = "", keyword="frame", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + Core.eval(Main, Meta.parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, uniformscaling::Bool=true, colormap=colormap_gyr, vspeed=1.0, movieformat="mp4", movieopacity::Bool=false, kw...) where {T,N}
+function plot2tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=NMFk.minimumnan([X1 X2]), maxvalue=NMFk.maximumnan([X1 X2]), minvalue2=minvalue, maxvalue2=maxvalue, movie::Bool=false, hsize=12Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi, title::String="", moviedir::String=".", prefix::String = "", keyword="frame", ltitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateend=(datestart != nothing) ? datestart + Core.eval(Main, Meta.parse(dateincrement))(sizes[dim]) : nothing, dateincrement::String="Dates.Day", progressbar=progressbar_regular, uniformscaling::Bool=true, colormap=colormap_gyr, vspeed=1.0, movieformat="mp4", movieopacity::Bool=false, kw...) where {T,N}
 	if !checkdimension(dim, N)
 		return
 	end
 	recursivemkdir(prefix)
 	if !uniformscaling
-		minvalue = minimumnan(X1)
-		maxvalue = maximumnan(X1)
-		minvalue2 = minimumnan(X2)
-		maxvalue2 = maximumnan(X2)
+		minvalue = NMFk.minimumnan(X1)
+		maxvalue = NMFk.maximumnan(X1)
+		minvalue2 = NMFk.minimumnan(X2)
+		maxvalue2 = NMFk.maximumnan(X2)
 	end
 	recursivemkdir(moviedir; filename=false)
 	@assert sizes == size(X2)
@@ -118,7 +118,7 @@ function plot2tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, dim::Integ
 end
 
 function plot3matrices(X1::Matrix, X2::Matrix, X3::Matrix; kw...)
-	plot3tensors([X1], [X2], [X3], 1; minvalue=minimumnan([X1 X2 X3]), maxvalue=maximumnan([X1 X2 X3]), kw...)
+	plot3tensors([X1], [X2], [X3], 1; minvalue=NMFk.minimumnan([X1 X2 X3]), maxvalue=NMFk.maximumnan([X1 X2 X3]), kw...)
 end
 
 function plotcmptensors(X1::Array{T,N}, T2::Union{TensorDecompositions2.Tucker,TensorDecompositions2.CANDECOMP}, dim::Integer=1; center=true, transform=nothing, mask=nothing, kw...) where {T,N}
@@ -127,21 +127,21 @@ function plotcmptensors(X1::Array{T,N}, T2::Union{TensorDecompositions2.Tucker,T
 		X2 = transform.(X2)
 	end
 	nanmask!(X2, mask)
-	plot2tensors(X1, convert(Array{T,N}, X2), dim; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), kw...)
+	plot2tensors(X1, convert(Array{T,N}, X2), dim; minvalue=NMFk.minimumnan([X1 X2]), maxvalue=NMFk.maximumnan([X1 X2]), kw...)
 end
 
-function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan([X1 X2 X3]), maxvalue=maximumnan([X1 X2 X3]), minvalue2=minvalue, maxvalue2=maxvalue, minvalue3=minvalue, maxvalue3=maxvalue, prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi,moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::String="Dates.Day", dateend=nothing, progressbar=progressbar_regular, barratio::Number=1/2, uniformscaling::Bool=true, vspeed=1.0, movieformat="mp4", movieopacity::Bool=false, colormap=colormap_gyr, overlap::Bool=false, key_label_font_size=12Gadfly.pt, opacity=0.8, gla=[], signalnames=["T1", "T2", "T3"], kw...) where {T,N}
+function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=NMFk.minimumnan([X1 X2 X3]), maxvalue=NMFk.maximumnan([X1 X2 X3]), minvalue2=minvalue, maxvalue2=maxvalue, minvalue3=minvalue, maxvalue3=maxvalue, prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi,moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::String="Dates.Day", dateend=nothing, progressbar=progressbar_regular, barratio::Number=1/2, uniformscaling::Bool=true, vspeed=1.0, movieformat="mp4", movieopacity::Bool=false, colormap=colormap_gyr, overlap::Bool=false, key_label_font_size=12Gadfly.pt, opacity=0.8, gla=[], signalnames=["T1", "T2", "T3"], kw...) where {T,N}
 	recursivemkdir(prefix)
 	if !checkdimension(dim, N)
 		return
 	end
 	if !uniformscaling
-		minvalue = minimumnan(X1)
-		maxvalue = maximumnan(X1)
-		minvalue2 = minimumnan(X2)
-		maxvalue2 = maximumnan(X2)
-		minvalue3 = minimumnan(X3)
-		maxvalue3 = maximumnan(X3)
+		minvalue = NMFk.minimumnan(X1)
+		maxvalue = NMFk.maximumnan(X1)
+		minvalue2 = NMFk.minimumnan(X2)
+		maxvalue2 = NMFk.maximumnan(X2)
+		minvalue3 = NMFk.minimumnan(X3)
+		maxvalue3 = NMFk.maximumnan(X3)
 	end
 	recursivemkdir(moviedir; filename=false)
 	@assert sizes == size(X2)
@@ -221,7 +221,7 @@ function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::Abstra
 	end
 end
 
-function plotMtensors(X::Vector{AbstractArray}, dim::Integer=1; sizes=size(X[1]), N=length(sizes), M=length(X), mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=minimumnan(map(i->minimumnan(X[i]), 1:M)), maxvalue=maximumnan(map(i->maximumnan(X[i]), 1:M)), prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi,moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::String="Dates.Day", dateend=nothing, progressbar=progressbar_regular, barratio::Number=1/2, uniformscaling::Bool=true, vspeed=1.0, movieformat="mp4", movieopacity::Bool=false, colormap=colormap_gyr, overlap::Bool=false, key_label_font_size=16Gadfly.pt, opacity=0.8, gla=[], signalnames=["T$i" for i=1:M], signalcolors=colors[1:M], kw...)
+function plotMtensors(X::Vector{AbstractArray}, dim::Integer=1; sizes=size(X[1]), N=length(sizes), M=length(X), mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=NMFk.minimumnan(map(i->NMFk.minimumnan(X[i]), 1:M)), maxvalue=NMFk.maximumnan(map(i->NMFk.maximumnan(X[i]), 1:M)), prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi,moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::String="Dates.Day", dateend=nothing, progressbar=progressbar_regular, barratio::Number=1/2, uniformscaling::Bool=true, vspeed=1.0, movieformat="mp4", movieopacity::Bool=false, colormap=colormap_gyr, overlap::Bool=false, key_label_font_size=16Gadfly.pt, opacity=0.8, gla=[], signalnames=["T$i" for i=1:M], signalcolors=colors[1:M], kw...)
 	recursivemkdir(prefix)
 	if !checkdimension(dim, N)
 		return
@@ -302,20 +302,20 @@ function plotMtensors(X::Vector{AbstractArray}, dim::Integer=1; sizes=size(X[1])
 	end
 end
 
-function plotleftmatrix(X1::Matrix, X2::Matrix; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), minvalue3=nothing, maxvalue3=nothing, center=true, kw...)
+function plotleftmatrix(X1::Matrix, X2::Matrix; minvalue=NMFk.minimumnan([X1 X2]), maxvalue=NMFk.maximumnan([X1 X2]), minvalue3=nothing, maxvalue3=nothing, center=true, kw...)
 	D = X2 .- X1
-	minvalue3 = minvalue3 == nothing ? minimumnan(D) : minvalue3
-	maxvalue3 = maxvalue3 == nothing ? maximumnan(D) : maxvalue3
+	minvalue3 = minvalue3 == nothing ? NMFk.minimumnan(D) : minvalue3
+	maxvalue3 = maxvalue3 == nothing ? NMFk.maximumnan(D) : maxvalue3
 	if center
 		minvalue3, maxvalue3 = min(minvalue3, -maxvalue3), max(maxvalue3, -minvalue3)
 	end
-	plot3tensors([X1], [X2], [D], 1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), minvalue3=minvalue3, maxvalue3=maxvalue3, kw...)
+	plot3tensors([X1], [X2], [D], 1; minvalue=NMFk.minimumnan([X1 X2]), maxvalue=NMFk.maximumnan([X1 X2]), minvalue3=minvalue3, maxvalue3=maxvalue3, kw...)
 end
 
-function plotlefttensor(X1::Array, X2::Array, dim::Integer=1; minvalue=minimumnan([X1 X2]), maxvalue=maximumnan([X1 X2]), minvalue3=nothing, maxvalue3=nothing, center=true, kw...)
+function plotlefttensor(X1::Array, X2::Array, dim::Integer=1; minvalue=NMFk.minimumnan([X1 X2]), maxvalue=NMFk.maximumnan([X1 X2]), minvalue3=nothing, maxvalue3=nothing, center=true, kw...)
 	D = X2 .- X1
-	minvalue3 = minvalue3 == nothing ? minimumnan(D) : minvalue3
-	maxvalue3 = maxvalue3 == nothing ? maximumnan(D) : maxvalue3
+	minvalue3 = minvalue3 == nothing ? NMFk.minimumnan(D) : minvalue3
+	maxvalue3 = maxvalue3 == nothing ? NMFk.maximumnan(D) : maxvalue3
 	if center
 		minvalue3, maxvalue3 = min(minvalue3, -maxvalue3), max(maxvalue3, -minvalue3)
 	end
@@ -330,10 +330,10 @@ function plotlefttensor(X1::Array{T,N}, T2::Union{TensorDecompositions2.Tucker,T
 	D = X2 - X1
 	nanmask!(X2, mask)
 	nanmask!(D, mask)
-	minvalue = minvalue == nothing ? minimumnan([X1 X2]) : minvalue
-	maxvalue = maxvalue == nothing ? maximumnan([X1 X2]) : maxvalue
-	minvalue3 = minvalue3 == nothing ? minimumnan(D) : minvalue3
-	maxvalue3 = maxvalue3 == nothing ? maximumnan(D) : maxvalue3
+	minvalue = minvalue == nothing ? NMFk.minimumnan([X1 X2]) : minvalue
+	maxvalue = maxvalue == nothing ? NMFk.maximumnan([X1 X2]) : maxvalue
+	minvalue3 = minvalue3 == nothing ? NMFk.minimumnan(D) : minvalue3
+	maxvalue3 = maxvalue3 == nothing ? NMFk.maximumnan(D) : maxvalue3
 	if center
 		minvalue3, maxvalue3 = min(minvalue3, -maxvalue3), max(maxvalue3, -minvalue3)
 	end

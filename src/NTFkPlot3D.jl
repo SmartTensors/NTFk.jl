@@ -1,7 +1,7 @@
 import PyPlot
 import PyCall
 
-function plotcube(A::Array; minvalue=minimumnan(A), maxvalue=maximumnan(A), nlevels=10, showaxes::Bool=false, showlegend::Bool=false, alpha::Number=1, cmap="RdYlGn", azim=120, elev=30, linewidth=0.8, filename="")
+function plotcube(A::Array; minvalue=NMFk.minimumnan(A), maxvalue=NMFk.maximumnan(A), nlevels=10, showaxes::Bool=false, showlegend::Bool=false, alpha::Number=1, cmap="RdYlGn", azim=120, elev=30, linewidth=0.8, filename="")
 	nx, ny, nz = size(A)
 	@show nx, ny, nz
 
