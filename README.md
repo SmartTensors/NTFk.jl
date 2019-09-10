@@ -85,6 +85,54 @@ A popular approach is to add sparsity and nonnegative constraints.
 Sparsity constraints on the elements of G reduce the number of features and their mixing (by having as many zero entries as possible).
 Nonnegativity enforces parts-based representation of the original data which also allows the Tensor Decomposition results for <img src="https://latex.codecogs.com/svg.latex?\Large&space;G" /> and <img src="https://latex.codecogs.com/svg.latex?\Large&space;A_1,A_2,\ldots,A_n" /> to be easily interrelated [Cichocki et al, 2009](https://books.google.com/books?hl=en&lr=&id=KaxssMiWgswC&oi=fnd&pg=PR5&ots=Lta2adM6LV&sig=jNPDxjKlON1U3l46tZAYH92mvAE#v=onepage&q&f=false).
 
+### Examples
+
+A simple problem demonstrating **NTFk** can be executed as follows.
+First, generate a random Tucker tensor:
+
+```julia
+import NTFk
+import TensorDecompositions2
+
+csize = (2, 3, 4)
+tsize = (5, 10, 15)
+tucker_orig = NTFk.rand_tucker(csize, tsize; factors_nonneg=true, core_nonneg=true)
+```
+
+After that, we can compose a tensor based on this Tucker decomposition:
+
+```julia
+import TensorDecompositions2
+
+T_orig = TensorDecompositions2.compose(tucker_orig)
+T_orig .*= 1000
+```
+
+Applying **NTFk**, we can find the unknown core size of the tensor using the tensor by itself only. To do this, we explore a series of core sizes and we identify the optimal one:
+
+```julia
+sizes = [csize, (1,3,4), (3,3,4), (2,2,4), (2,4,4), (2,3,3), (2,3,5)]
+tucker_estimated, csize_estimated = NTFk.analysis(T_orig, sizes, 3; eigmethod=[false,false,false], progressbar=false, tol=1e-16, max_iter=100000, lambda=0.);
+```
+
+**NTFk** execution will produce something like this:
+
+```
+[ Info: Decompositions (clustering dimension: 1)
+1 - (2, 3, 4): residual 5.46581369842339e-5 worst tensor correlations [0.999999907810158, 0.9999997403618763, 0.9999995616299466] rank (2, 3, 4) silhouette 0.9999999999999997
+2 - (1, 3, 4): residual 0.035325052042119755 worst tensor correlations [0.9634250567157897, 0.9842244237924007, 0.9254792458530211] rank (1, 3, 3) silhouette 1.0
+3 - (3, 3, 4): residual 0.00016980024483822563 worst tensor correlations [0.9999982865486768, 0.9999923375643894, 0.9999915188040427] rank (3, 3, 4) silhouette 0.9404124172744835
+4 - (2, 2, 4): residual 0.008914390317042747 worst tensor correlations [0.99782068249921, 0.9954301522732436, 0.9849956624171726] rank (2, 2, 4) silhouette 1.0
+5 - (2, 4, 4): residual 0.00016061795564929862 worst tensor correlations [0.9999980289931861, 0.999996821183636, 0.9999940994076768] rank (2, 4, 4) silhouette 0.9996306553034816
+6 - (2, 3, 3): residual 0.004136013571334162 worst tensor correlations [0.999947037606024, 0.9989851398124378, 0.9974723120905729] rank (2, 3, 3) silhouette 0.9999999999999999
+7 - (2, 3, 5): residual 7.773676978117656e-5 worst tensor correlations [0.9999997131266367, 0.999999385995213, 0.9999988336042696] rank (2, 3, 5) silhouette 0.9999359399113312
+[ Info: Estimated true core size based on the reconstruction: (2, 3, 4)
+```
+
+The final **NTFk** result is the estimated core size `(2,3,4)` which as expected matches the original unknown core size.
+
+**NTFk** also produces Tucker deconstruction of this tensor with core size `(2,3,4)` which is saved as `tucker_estimated[ibest]`
+
 ### Publications:
 
 - Vesselinov, V.V., Mudunuru, M., Karra, S., O'Malley, D., Alexandrov, B.S., Unsupervised Machine Learning Based on Non-Negative Tensor Factorization for Analyzing Reactive-Mixing, Journal of Computational Physics, 2018 (in review). [PDF](http://monty.gitlab.io/papers/Vesselinov%20et%20al%202018%20Unsupervised%20Machine%20Learning%20Based%20on%20Non-Negative%20Tensor%20Factorization%20for%20Analyzing%20Reactive-Mixing.pdf)

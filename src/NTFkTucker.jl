@@ -132,7 +132,6 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 		end
 	end
 	for n = 1:nTF
-		@show isassigned(tsi, 1)
 		if isassigned(tsi, n)
 			residues[n] = TensorDecompositions2.rel_residue(tsi[n], X)
 			println("$(n): relative residual $(residues[n])")
