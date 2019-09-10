@@ -108,7 +108,8 @@ T_orig = TensorDecompositions2.compose(tucker_orig)
 T_orig .*= 1000
 ```
 
-Applying **NTFk**, we can find the unknown core size of the tensor using the tensor by itself only. To do this, we explore a series of core sizes and we identify the optimal one:
+Applying **NTFk**, we can find the unknown core size of the tensor using the tensor by itself as an input only.
+To do this, we explore a series of core sizes and we identify the optimal one:
 
 ```julia
 sizes = [csize, (1,3,4), (3,3,4), (2,2,4), (2,4,4), (2,3,3), (2,3,5)]
@@ -131,7 +132,7 @@ tucker_estimated, csize_estimated = NTFk.analysis(T_orig, sizes, 3; eigmethod=[f
 
 The final **NTFk** result is the estimated core size `(2,3,4)` which as expected matches the original unknown core size.
 
-**NTFk** also produces Tucker deconstruction of this tensor with core size `(2,3,4)` which is saved as `tucker_estimated[ibest]`
+**NTFk** also produces a Tucker deconstruction of this tensor with core size `(2,3,4)` which is stored as `tucker_estimated[ibest]`
 
 ### Publications:
 
