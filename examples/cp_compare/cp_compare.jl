@@ -1,5 +1,7 @@
 import NTFk
+import CanDecomp
 import LinearAlgebra
+import StaticArrays
 
 quiet = false
 
@@ -9,9 +11,9 @@ B = rand(5, 3)
 C = rand(10, 3)
 T = CanDecomp.totensor(A, B, C)
 
-Af = rand(size(A));
-Bf = rand(size(B));
-Cf = rand(size(C));
+Af = rand(size(A)...);
+Bf = rand(size(B)...);
+Cf = rand(size(C)...);
 @info("CanDecomp CP")
 et = @elapsed CanDecomp.candecomp!(StaticArrays.SVector(Af, Bf, Cf), T, Val{:nnoptim}; regularization=1e-3, print_level=0, max_cd_iters=1000)
 T_est = CanDecomp.totensor(Af, Bf, Cf);
