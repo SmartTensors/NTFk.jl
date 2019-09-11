@@ -1,4 +1,5 @@
 import NTFk
+import LinearAlgebra
 
 quiet = false
 
@@ -14,7 +15,7 @@ Cf = rand(size(C));
 @info("CanDecomp CP")
 et = @elapsed CanDecomp.candecomp!(StaticArrays.SVector(Af, Bf, Cf), T, Val{:nnoptim}; regularization=1e-3, print_level=0, max_cd_iters=1000)
 T_est = CanDecomp.totensor(Af, Bf, Cf);
-@info("Norm $(norm(T_est .- T))")
+@info("Norm $(LinearAlgebra.norm(T_est .- T))")
 @warn("Execution time $et")
 if !quiet
 	NTFk.plot2matrices(A, Af)
@@ -27,7 +28,7 @@ end
 trank = 3
 et = @elapsed t, csize, ibest = NTFk.analysis(T, [trank]; tol=1e-8, max_iter=1000);
 T_est = TensorDecompositions2.compose(t[ibest]);
-@info("Norm $(norm(T_est .- T))")
+@info("Norm $(LinearAlgebra.norm(T_est .- T))")
 @warn("Execution time $et")
 if !quiet
 	NTFk.normalizefactors!(t[ibest])
@@ -40,7 +41,7 @@ end
 @info("MATLAB TensorToolBox cp_als")
 et = @elapsed t = NTFk.ttanalysis(T, 3; maxiter=1000, tol=1e-8)
 T_est = TensorDecompositions2.compose(t);
-@info("Norm $(norm(T_est .- T))")
+@info("Norm $(LinearAlgebra.norm(T_est .- T))")
 @warn("Execution time $et")
 if !quiet
 	NTFk.plot2matrices(A, t.factors[1])
@@ -52,7 +53,7 @@ end
 @info("MATLAB TensorToolBox cp_npu")
 et = @elapsed t = NTFk.ttanalysis(T, 3; maxiter=1000, tol=1e-8, functionname="cp_nmu")
 T_est = TensorDecompositions2.compose(t);
-@info("Norm $(norm(T_est .- T))")
+@info("Norm $(LinearAlgebra.norm(T_est .- T))")
 @warn("Execution time $et")
 if !quiet
 	NTFk.plot2matrices(A, t.factors[1])
@@ -64,7 +65,7 @@ end
 @info("MATLAB Block-Coordinate Update NCP")
 et = @elapsed t = NTFk.bcuanalysis(T, 3; maxiter=1000, tol=1e-8, functionname="ncp")
 T_est = TensorDecompositions2.compose(t);
-@info("Norm $(norm(T_est .- T))")
+@info("Norm $(LinearAlgebra.norm(T_est .- T))")
 if !quiet
 	NTFk.plot2matrices(A, t.factors[1])
 	NTFk.plot2matrices(B, t.factors[2])
@@ -75,7 +76,7 @@ end
 @info("TensorDecompositions2 Tucker with regularization")
 t, csize, ibest = NTFk.analysis(T, [(3, 3, 3)]; eigmethod=[false,false,false], tol=1e-16, max_iter=1000)
 T_est = TensorDecompositions2.compose(t[ibest])
-@info("Norm $(norm(T_est .- T))")
+@info("Norm $(LinearAlgebra.norm(T_est .- T))")
 @warn("Execution time $et")
 if !quiet
 	NTFk.normalizefactors!(t[ibest])
@@ -88,7 +89,7 @@ end
 @info("TensorDecompositions2 Tucker without regularization")
 t, csize, ibest = NTFk.analysis(T, [(3, 3, 3)]; eigmethod=[false,false,false], lambda=0., tol=1e-16, max_iter=1000)
 T_est = TensorDecompositions2.compose(t[ibest])
-@info("Norm $(norm(T_est .- T))")
+@info("Norm $(LinearAlgebra.norm(T_est .- T))")
 @warn("Execution time $et")
 if !quiet
 	NTFk.normalizefactors!(t[ibest])

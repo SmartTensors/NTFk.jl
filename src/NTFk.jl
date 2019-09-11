@@ -4,13 +4,10 @@ __precompile__()
 module NTFk
 
 import Pkg
-import Dates
 using SharedArrays
 using Printf
-using LinearAlgebra
 using SparseArrays
 using Distributed
-using Statistics
 
 const ntfkdir = splitdir(splitdir(pathof(NTFk))[1])[1]
 
@@ -34,6 +31,9 @@ import FileIO
 import PyPlot
 import Gadfly
 import DocumentFunction
+import Statistics
+import LinearAlgebra
+import Dates
 
 modules = ["NTFk", "NMFk", "CanDecomp"]
 

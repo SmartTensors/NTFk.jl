@@ -35,7 +35,7 @@ function add_noise(tnsr::AbstractArray{T,N}, sn_ratio = 0.6, nonnegative::Bool =
 	if nonnegative
 		map!(x -> max(0.0, x), tnsr_noise, tnsr_noise)
 	end
-	tnsr + 10^(-sn_ratio/0.2) * norm(tnsr) / norm(tnsr) * tnsr_noise
+	tnsr + 10^(-sn_ratio/0.2) * LinearAlgebra.norm(tnsr) / LinearAlgebra.norm(tnsr) * tnsr_noise
 end
 
 function arrayoperation(A::AbstractArray{T,N}, tmap=ntuple(k->(Colon()), N), functionname="Statistics.mean") where {T, N}

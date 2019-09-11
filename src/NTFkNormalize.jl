@@ -21,7 +21,7 @@ function normalizefactors!(X::TensorDecompositions2.Tucker{T,N}, order=1:N; chec
 	end
 	if check
 		Xe = TensorDecompositions2.compose(X)
-		@info("Normalization error: $(norm(Xi .- Xe))")
+		@info("Normalization error: $(LinearAlgebra.norm(Xi .- Xe))")
 	end
 	return nothing
 end
@@ -48,7 +48,7 @@ function normalizecore!(X::TensorDecompositions2.Tucker{T,N}, order=1:N; check::
 	end
 	if check
 		Xe = TensorDecompositions2.compose(X)
-		@info("Normalization error: $(norm(Xi .- Xe))")
+		@info("Normalization error: $(LinearAlgebra.norm(Xi .- Xe))")
 	end
 	return nothing
 end
@@ -71,7 +71,7 @@ function normalizeslices!(X::TensorDecompositions2.Tucker{T,N}, order=1:N; check
 	end
 	if check
 		Xe = TensorDecompositions2.compose(X)
-		@info("Normalization error: $(norm(Xi .- Xe))")
+		@info("Normalization error: $(LinearAlgebra.norm(Xi .- Xe))")
 	end
 end
 
@@ -90,7 +90,7 @@ function scalefactors!(X::TensorDecompositions2.Tucker{T,N}, m::AbstractVector, 
 	end
 	if check
 		Xe = TensorDecompositions2.compose(X)
-		@info("Normalization error: $(norm(Xi .- Xe))")
+		@info("Normalization error: $(LinearAlgebra.norm(Xi .- Xe))")
 	end
 end
 
@@ -109,7 +109,7 @@ function normalizefactors!(X::TensorDecompositions2.CANDECOMP{T,N}, order=1:N; c
 	end
 	if check
 		Xe = TensorDecompositions2.compose(X)
-		@info("Normalization error: $(norm(Xi .- Xe))")
+		@info("Normalization error: $(LinearAlgebra.norm(Xi .- Xe))")
 	end
 	return nothing
 end
@@ -130,7 +130,7 @@ function normalizelambdas!(X::TensorDecompositions2.CANDECOMP{T,N}, order=1:N; c
 	X.lambdas ./= m
 	if check
 		Xe = TensorDecompositions2.compose(X)
-		@info("Normalization error: $(norm(Xi .- Xe))")
+		@info("Normalization error: $(LinearAlgebra.norm(Xi .- Xe))")
 	end
 	return nothing
 end

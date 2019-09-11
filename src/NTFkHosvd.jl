@@ -44,7 +44,7 @@ function hosvd(tensor::StridedArray{T,N}, core_dims::NTuple{N, Int}, eigmethod=t
 	if compute_error
 		TensorDecompositions2._set_rel_residue(res, tensor)
 		@info("Error: $(res.props[:rel_residue])")
-		@info("Vector Norm: $(norm(tensor .- TensorDecompositions2.compose(res)))")
+		@info("Vector Norm: $(LinearAlgebra.norm(tensor .- TensorDecompositions2.compose(res)))")
 	end
 	if compute_rank
 		@info "HOSVD core rank: $(TensorToolbox.mrank(res.core))"

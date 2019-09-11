@@ -42,7 +42,7 @@ function clusterfactors(W, quiet=true)
 	if !quiet
 		@info("Silhouettes for each of the $(length(clustersilhouettes)) clusters:" )
 		display(clustersilhouettes')
-		println("Mean silhouette = ", mean(clustersilhouettes))
+		println("Mean silhouette = ", Statistics.mean(clustersilhouettes))
 		println("Min  silhouette = ", minimum(clustersilhouettes))
 	end
 	return minimum(clustersilhouettes)

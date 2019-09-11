@@ -1,4 +1,5 @@
 import NTFk
+import LinearAlgebra
 
 csize = (3, 3, 3)
 tsize = (20, 30, 40)
@@ -60,7 +61,7 @@ Mads.plotseries(ths.factors[3])
 ttu, ecsize, ibest = NTFk.analysis(T_orig, [csize], 1; eigmethod=[false,false,false], max_iter=100000, lambda=0., prefix="results/spnn-333")
 # ttu, ecsize, ibest = NTFk.analysis(T_orig, [(3,30,40)], 1; eigmethod=[false,false,false], lambda=1., prefix="results/spnn-33040")
 T_est = TensorDecompositions2.compose(ttu[ibest]);
-@info("Norm $(norm(T_orig .- T_est))")
+@info("Norm $(LinearAlgebra.norm(T_orig .- T_est))")
 NTFk.normalizecore!(ttu[ibest])
 NTFk.normalizefactors!(ttu[ibest])
 Mads.plotseries(xfactor)

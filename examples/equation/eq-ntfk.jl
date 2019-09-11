@@ -69,7 +69,7 @@ tt_ini = TensorDecompositions2.Tucker((xfactori, yfactori, zfactori), core)
 
 ttu, ecsize, ibest = NTFk.analysis(T_orig, [csize]; eigmethod=[false,false,false], lambda=0., max_iter=10000, ini_decomp=tt_ini, prefix="results/spnn-345")
 T_est = TensorDecompositions2.compose(ttu[ibest]);
-@info("Norm $(norm(T_orig .- T_est))")
+@info("Norm $(LinearAlgebra.norm(T_orig .- T_est))")
 NTFk.normalizecore!(ttu[ibest])
 NTFk.normalizefactors!(ttu[ibest])
 # NTFk.plot2matrices(xfactor, ttu[ibest].factors[1])
