@@ -42,13 +42,13 @@ core[1,1,3] = 1
 
 # display(core)
 
-tt_orig = TensorDecompositions2.Tucker((xfactor, yfactor, zfactor), core)
-tt_ini = TensorDecompositions2.Tucker((xfactori, yfactori, zfactori), core)
-T_orig = TensorDecompositions2.compose(tt_orig)
+tt_orig = TensorDecompositions.Tucker((xfactor, yfactor, zfactor), core)
+tt_ini = TensorDecompositions.Tucker((xfactori, yfactori, zfactori), core)
+T_orig = TensorDecompositions.compose(tt_orig)
 
 # NTFk.plottensor(T_orig)
 
-ths = TensorDecompositions2.hosvd(T_orig, csize, [false,false,false]; pad_zeros=true, compute_error=true, compute_rank=false)
+ths = TensorDecompositions.hosvd(T_orig, csize, [false,false,false]; pad_zeros=true, compute_error=true, compute_rank=false)
 NTFk.normalizecore!(ths)
 NTFk.normalizefactors!(ths)
 Mads.plotseries(xfactor)
@@ -60,7 +60,7 @@ Mads.plotseries(ths.factors[3])
 
 ttu, ecsize, ibest = NTFk.analysis(T_orig, [csize], 1; eigmethod=[false,false,false], max_iter=100000, lambda=0., prefix="results/spnn-333")
 # ttu, ecsize, ibest = NTFk.analysis(T_orig, [(3,30,40)], 1; eigmethod=[false,false,false], lambda=1., prefix="results/spnn-33040")
-T_est = TensorDecompositions2.compose(ttu[ibest]);
+T_est = TensorDecompositions.compose(ttu[ibest]);
 @info("Norm $(LinearAlgebra.norm(T_orig .- T_est))")
 NTFk.normalizecore!(ttu[ibest])
 NTFk.normalizefactors!(ttu[ibest])

@@ -1,5 +1,5 @@
 import NTFk
-import TensorDecompositions2
+import TensorDecompositions
 import TensorToolbox
 import JLD
 
@@ -16,14 +16,14 @@ nruns = length(sizes)
 residues = Array{Float64}(undef, nruns)
 correlations = Array{Float64}(undef, nruns, ndimensons)
 T_esta = Array{Array{Float64,3}}(undef, nruns)
-tucker_spnn = Array{TensorDecompositions2.Tucker{Float64,3}}(undef, nruns)
+tucker_spnn = Array{TensorDecompositions.Tucker{Float64,3}}(undef, nruns)
 T_est = nothing
 for i in 1:nruns
 	@info("Core size: $(sizes[i])")
-	@time tucker_spnn[i] = TensorDecompositions2.spnntucker(T, sizes[i]; tol=1e-16, core_nonneg=true, verbose=false, max_iter=50000, lambdas=fill(0.1, length(sizes[i]) + 1))
-	T_est = TensorDecompositions2.compose(tucker_spnn[i])
+	@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i]; tol=1e-16, core_nonneg=true, verbose=false, max_iter=50000, lambdas=fill(0.1, length(sizes[i]) + 1))
+	T_est = TensorDecompositions.compose(tucker_spnn[i])
 	T_esta[i] = T_est
-	residues[i] = TensorDecompositions2.rel_residue(tucker_spnn[i])
+	residues[i] = TensorDecompositions.rel_residue(tucker_spnn[i])
 	correlations[i,1] = minimum(map((j)->minimum(map((k)->cor(T_est[:,k,j], T_orig[:,k,j]), 1:tsize[2])), 1:tsize[3]))
 	correlations[i,2] = minimum(map((j)->minimum(map((k)->cor(T_est[k,:,j], T_orig[k,:,j]), 1:tsize[1])), 1:tsize[3]))
 	correlations[i,3] = minimum(map((j)->minimum(map((k)->cor(T_est[k,j,:], T_orig[k,j,:]), 1:tsize[1])), 1:tsize[2]))
@@ -54,14 +54,14 @@ nruns = length(sizes)
 residues = Array{Float64}(undef, nruns)
 correlations = Array{Float64}(undef, nruns, ndimensons)
 T_esta = Array{Array{Float64,3}}(undef, nruns)
-tucker_spnn = Array{TensorDecompositions2.Tucker{Float64,3}}(undef, nruns)
+tucker_spnn = Array{TensorDecompositions.Tucker{Float64,3}}(undef, nruns)
 T_est = nothing
 for i in 1:nruns
 	@info("Core size: $(sizes[i])")
-	@time tucker_spnn[i] = TensorDecompositions2.spnntucker(T, sizes[i]; tol=1e-16, core_nonneg=true, verbose=false, max_iter=50000, lambdas=fill(0.1, length(sizes[i]) + 1))
-	T_est = TensorDecompositions2.compose(tucker_spnn[i])
+	@time tucker_spnn[i] = TensorDecompositions.spnntucker(T, sizes[i]; tol=1e-16, core_nonneg=true, verbose=false, max_iter=50000, lambdas=fill(0.1, length(sizes[i]) + 1))
+	T_est = TensorDecompositions.compose(tucker_spnn[i])
 	T_esta[i] = T_est
-	residues[i] = TensorDecompositions2.rel_residue(tucker_spnn[i])
+	residues[i] = TensorDecompositions.rel_residue(tucker_spnn[i])
 	correlations[i,1] = minimum(map((j)->minimum(map((k)->cor(T_est[:,k,j], T_orig[:,k,j]), 1:tsize[2])), 1:tsize[3]))
 	correlations[i,2] = minimum(map((j)->minimum(map((k)->cor(T_est[k,:,j], T_orig[k,:,j]), 1:tsize[1])), 1:tsize[3]))
 	correlations[i,3] = minimum(map((j)->minimum(map((k)->cor(T_est[k,j,:], T_orig[k,j,:]), 1:tsize[1])), 1:tsize[2]))

@@ -1,5 +1,5 @@
 import NTFk
-import TensorDecompositions2
+import TensorDecompositions
 import JLD
 
 T_orig = JLD.load("tensor.jld", "T")
@@ -15,14 +15,14 @@ nruns = length(tranks)
 residues = Array{Float64}(undef, nruns)
 correlations = Array{Float64}(undef, nruns, ndimensons)
 T_esta = Array{Array{Float64,3}}(undef, nruns)
-cpf = Array{TensorDecompositions2.CANDECOMP{Float64,3}}(undef, nruns)
+cpf = Array{TensorDecompositions.CANDECOMP{Float64,3}}(undef, nruns)
 for i in 1:nruns
 	@info("CP rank: $(tranks[i])")
 	factors_initial_guess = tuple([randn(dim, tranks[i]) for dim in tsize]...)
-	@time cpf[i] = TensorDecompositions2.candecomp(T, tranks[i], factors_initial_guess, compute_error=true, method=:ALS)
-	T_est = TensorDecompositions2.compose(cpf[i])
+	@time cpf[i] = TensorDecompositions.candecomp(T, tranks[i], factors_initial_guess, compute_error=true, method=:ALS)
+	T_est = TensorDecompositions.compose(cpf[i])
 	T_esta[i] = T_est
-	residues[i] = TensorDecompositions2.rel_residue(cpf[i])
+	residues[i] = TensorDecompositions.rel_residue(cpf[i])
 	correlations[i,1] = minimum(map((j)->minimum(map((k)->cor(T_est[:,k,j], T_orig[:,k,j]), 1:tsize[2])), 1:tsize[3]))
 	correlations[i,2] = minimum(map((j)->minimum(map((k)->cor(T_est[k,:,j], T_orig[k,:,j]), 1:tsize[1])), 1:tsize[3]))
 	correlations[i,3] = minimum(map((j)->minimum(map((k)->cor(T_est[k,j,:], T_orig[k,j,:]), 1:tsize[1])), 1:tsize[2]))

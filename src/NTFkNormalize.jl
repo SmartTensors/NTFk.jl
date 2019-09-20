@@ -1,4 +1,4 @@
-import TensorDecompositions2
+import TensorDecompositions
 import DocumentFunction
 
 """
@@ -6,8 +6,8 @@ Normalize Tucker deconstructed factors
 
 $(DocumentFunction.documentfunction(normalizefactors!))
 """
-function normalizefactors!(X::TensorDecompositions2.Tucker{T,N}, order=1:N; check::Bool=false) where {T,N}
-	check && (Xi = TensorDecompositions2.compose(X))
+function normalizefactors!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::Bool=false) where {T,N}
+	check && (Xi = TensorDecompositions.compose(X))
 	l = size(X.core)
 	for i = order
 		m = maximum(X.factors[i]; dims=1)
@@ -20,7 +20,7 @@ function normalizefactors!(X::TensorDecompositions2.Tucker{T,N}, order=1:N; chec
 		X.factors[i] ./= m
 	end
 	if check
-		Xe = TensorDecompositions2.compose(X)
+		Xe = TensorDecompositions.compose(X)
 		@info("Normalization error: $(LinearAlgebra.norm(Xi .- Xe))")
 	end
 	return nothing
@@ -31,8 +31,8 @@ Normalize Tucker deconstructed core
 
 $(DocumentFunction.documentfunction(normalizecore!))
 """
-function normalizecore!(X::TensorDecompositions2.Tucker{T,N}, order=1:N; check::Bool=false) where {T,N}
-	check && (Xi = TensorDecompositions2.compose(X))
+function normalizecore!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::Bool=false) where {T,N}
+	check && (Xi = TensorDecompositions.compose(X))
 	l = size(X.core)
 	v = collect(1:N)
 	for i = order
@@ -47,7 +47,7 @@ function normalizecore!(X::TensorDecompositions2.Tucker{T,N}, order=1:N; check::
 		m = vec(maximum(X.core; dims=v[v.!=i]))
 	end
 	if check
-		Xe = TensorDecompositions2.compose(X)
+		Xe = TensorDecompositions.compose(X)
 		@info("Normalization error: $(LinearAlgebra.norm(Xi .- Xe))")
 	end
 	return nothing
@@ -58,8 +58,8 @@ Normalize Tucker deconstructed slices
 
 $(DocumentFunction.documentfunction(normalizeslices!))
 """
-function normalizeslices!(X::TensorDecompositions2.Tucker{T,N}, order=1:N; check::Bool=false) where {T,N}
-	check && (Xi = TensorDecompositions2.compose(X))
+function normalizeslices!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::Bool=false) where {T,N}
+	check && (Xi = TensorDecompositions.compose(X))
 	NTFk.normalizefactors!(X)
 	NTFk.normalizecore!(X, order)
 	M = NTFk.compose(X, order[2:end])
@@ -70,7 +70,7 @@ function normalizeslices!(X::TensorDecompositions2.Tucker{T,N}, order=1:N; check
 		X.factors[order[1]][:,i] .*= m[i]
 	end
 	if check
-		Xe = TensorDecompositions2.compose(X)
+		Xe = TensorDecompositions.compose(X)
 		@info("Normalization error: $(LinearAlgebra.norm(Xi .- Xe))")
 	end
 end
@@ -80,8 +80,8 @@ Scale Tucker deconstructed slices
 
 $(DocumentFunction.documentfunction(scalefactors!))
 """
-function scalefactors!(X::TensorDecompositions2.Tucker{T,N}, m::AbstractVector, order=1:N; check::Bool=false) where {T,N}
-	check && (Xi = TensorDecompositions2.compose(X))
+function scalefactors!(X::TensorDecompositions.Tucker{T,N}, m::AbstractVector, order=1:N; check::Bool=false) where {T,N}
+	check && (Xi = TensorDecompositions.compose(X))
 	NTFk.normalizefactors!(X)
 	NTFk.normalizecore!(X, order)
 	@assert length(m) == size(X.core, order[1])
@@ -89,7 +89,7 @@ function scalefactors!(X::TensorDecompositions2.Tucker{T,N}, m::AbstractVector, 
 		X.factors[order[1]][:,i] .*= m[i]
 	end
 	if check
-		Xe = TensorDecompositions2.compose(X)
+		Xe = TensorDecompositions.compose(X)
 		@info("Normalization error: $(LinearAlgebra.norm(Xi .- Xe))")
 	end
 end
@@ -99,8 +99,8 @@ Normalize CP deconstructed factors
 
 $(DocumentFunction.documentfunction(normalizefactors!))
 """
-function normalizefactors!(X::TensorDecompositions2.CANDECOMP{T,N}, order=1:N; check::Bool=false) where {T,N}
-	check && (Xi = TensorDecompositions2.compose(X))
+function normalizefactors!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; check::Bool=false) where {T,N}
+	check && (Xi = TensorDecompositions.compose(X))
 	for i = order
 		m = maximum(X.factors[i]; dims=1)
 		X.lambdas .*= vec(m)
@@ -108,7 +108,7 @@ function normalizefactors!(X::TensorDecompositions2.CANDECOMP{T,N}, order=1:N; c
 		X.factors[i] ./= m
 	end
 	if check
-		Xe = TensorDecompositions2.compose(X)
+		Xe = TensorDecompositions.compose(X)
 		@info("Normalization error: $(LinearAlgebra.norm(Xi .- Xe))")
 	end
 	return nothing
@@ -119,8 +119,8 @@ Normalize CP deconstructed lambdas
 
 $(DocumentFunction.documentfunction(normalizelambdas!))
 """
-function normalizelambdas!(X::TensorDecompositions2.CANDECOMP{T,N}, order=1:N; check::Bool=false) where {T,N}
-	check && (Xi = TensorDecompositions2.compose(X))
+function normalizelambdas!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; check::Bool=false) where {T,N}
+	check && (Xi = TensorDecompositions.compose(X))
 	m = vec(X.lambdas)' .^ (1/N)
 	for i = order
 		X.factors[i] .*= m
@@ -129,7 +129,7 @@ function normalizelambdas!(X::TensorDecompositions2.CANDECOMP{T,N}, order=1:N; c
 	m[m.==0] .= 1.0
 	X.lambdas ./= m
 	if check
-		Xe = TensorDecompositions2.compose(X)
+		Xe = TensorDecompositions.compose(X)
 		@info("Normalization error: $(LinearAlgebra.norm(Xi .- Xe))")
 	end
 	return nothing

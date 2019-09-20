@@ -20,7 +20,7 @@ import Pkg
 Pkg.add("NMFk")
 Pkg.add("CanDecomp")
 Pkg.add("LoadTensorDecompositions")
-Pkg.add(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/TensorDecompositions2.jl.git", rev="master"))
+Pkg.add(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/TensorDecompositions.jl.git", rev="master"))
 Pkg.add(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/NTFk.jl.git", rev="master"))
 ```
 
@@ -31,7 +31,7 @@ import Pkg;
 Pkg.develop("NMFk")
 Pkg.develop("CanDecomp")
 Pkg.develop("LoadTensorDecompositions")
-Pkg.develop(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/TensorDecompositions2.jl.git"))
+Pkg.develop(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/TensorDecompositions.jl.git"))
 Pkg.develop(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/NTFk.jl.git"))
 ```
 
@@ -92,7 +92,7 @@ First, generate a random Tucker tensor:
 
 ```julia
 import NTFk
-import TensorDecompositions2
+import TensorDecompositions
 
 csize = (2, 3, 4)
 tsize = (5, 10, 15)
@@ -102,9 +102,9 @@ tucker_orig = NTFk.rand_tucker(csize, tsize; factors_nonneg=true, core_nonneg=tr
 After that, we can compose a tensor based on this Tucker decomposition:
 
 ```julia
-import TensorDecompositions2
+import TensorDecompositions
 
-T_orig = TensorDecompositions2.compose(tucker_orig)
+T_orig = TensorDecompositions.compose(tucker_orig)
 T_orig .*= 1000
 ```
 

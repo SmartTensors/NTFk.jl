@@ -4,7 +4,7 @@ Random.seed!(2)
 trank = 3
 tsize = (10, 20, 5)
 cp_orig = NTFk.rand_candecomp(trank, tsize; lambdas_nonneg=true, factors_nonneg=true)
-T_orig = TensorDecompositions2.compose(cp_orig)
+T_orig = TensorDecompositions.compose(cp_orig)
 
 # T = add_noise(T_orig, 0.6, true)
 T = T_orig

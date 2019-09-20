@@ -49,8 +49,8 @@ function tlanalysis(X::Array{T,N}, crank::NTuple{N, Int}; seed::Number=1, backen
 		end
 	end
 	# @show maximum(X .- Xe)
-	TT = TensorDecompositions2.Tucker((f...,), core)
-	# Xe = TensorDecompositions2.compose(TT)
+	TT = TensorDecompositions.Tucker((f...,), core)
+	# Xe = TensorDecompositions.compose(TT)
 	# @show maximum(X .- Xe)
 	return TT
 end

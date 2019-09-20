@@ -34,12 +34,12 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 SharedArrays = "1a1011a3-84de-559e-8e89-a11a2f7dc383"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
-TensorDecompositions2 = "381732bb-ee29-51ab-b667-ca9e03a50260"
+TensorDecompositions = "04ed911b-6d5f-4088-a74e-60d2d5028204"
 TensorOperations = "6aa20fa7-93e2-5fca-9bc0-fbd0db3c71a2"
 TensorToolbox = "9c690861-8ade-587a-897e-15364bc6f718"
 
 [compat]
-TensorDecompositions2 = "≥ 1.0.0"
+TensorDecompositions = "≥ 1.0.0"
 TensorOperations = "≥ 1.1.0"
 julia = "≥ 1.0.0"
 

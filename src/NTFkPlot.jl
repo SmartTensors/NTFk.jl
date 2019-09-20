@@ -3,14 +3,14 @@ import Measures
 import Colors
 import Compose
 import TensorToolbox
-import TensorDecompositions2
+import TensorDecompositions
 import Distributions
 
-function plotfactor(t::Union{TensorDecompositions2.Tucker,TensorDecompositions2.CANDECOMP}, dim::Integer=1, cutoff::Number=0; kw...)
+function plotfactor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1, cutoff::Number=0; kw...)
 	plotmatrix(getfactor(t, dim, cutoff); kw...)
 end
 
-function plotfactors(t::Union{TensorDecompositions2.Tucker,TensorDecompositions2.CANDECOMP}, cutoff::Number=0; prefix="", kw...)
+function plotfactors(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, cutoff::Number=0; prefix="", kw...)
 	recursivemkdir(prefix)
 	for i = 1:length(t.factors)
 		display(plotfactor(t, i, cutoff; filename="$(prefix)_factor$(i).png", kw...))
@@ -18,12 +18,12 @@ function plotfactors(t::Union{TensorDecompositions2.Tucker,TensorDecompositions2
 	end
 end
 
-function plotcore(t::TensorDecompositions2.Tucker, dim::Integer=1, cutoff::Number=0; kw...)
+function plotcore(t::TensorDecompositions.Tucker, dim::Integer=1, cutoff::Number=0; kw...)
 	plottensor(t.core, dim; progressbar=nothing, cutoff=true, cutvalue=cutoff, kw...)
 end
 
-function plottensor(t::Union{TensorDecompositions2.Tucker,TensorDecompositions2.CANDECOMP}, dim::Integer=1; mask=nothing, transform=nothing, kw...)
-	X = TensorDecompositions2.compose(t)
+function plottensor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; mask=nothing, transform=nothing, kw...)
+	X = TensorDecompositions.compose(t)
 	if transform != nothing
 		X = transform.(X)
 	end
@@ -70,8 +70,8 @@ function plot2matrices(X1::Matrix, X2::Matrix; kw...)
 	plot2tensors([X1], [X2], 1; minvalue=NMFk.minimumnan([X1 X2]), maxvalue=NMFk.maximumnan([X1 X2]), kw...)
 end
 
-function plot2tensors(X1::Array{T,N}, T2::Union{TensorDecompositions2.Tucker,TensorDecompositions2.CANDECOMP}, dim::Integer=1; kw...) where {T,N}
-	X2 = convert(Array{T,N}, TensorDecompositions2.compose(T2))
+function plot2tensors(X1::Array{T,N}, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; kw...) where {T,N}
+	X2 = convert(Array{T,N}, TensorDecompositions.compose(T2))
 	plot2tensors(X1, X2, dim; kw...)
 end
 
@@ -121,8 +121,8 @@ function plot3matrices(X1::Matrix, X2::Matrix, X3::Matrix; kw...)
 	plot3tensors([X1], [X2], [X3], 1; minvalue=NMFk.minimumnan([X1 X2 X3]), maxvalue=NMFk.maximumnan([X1 X2 X3]), kw...)
 end
 
-function plotcmptensors(X1::Array{T,N}, T2::Union{TensorDecompositions2.Tucker,TensorDecompositions2.CANDECOMP}, dim::Integer=1; center=true, transform=nothing, mask=nothing, kw...) where {T,N}
-	X2 = TensorDecompositions2.compose(T2)
+function plotcmptensors(X1::Array{T,N}, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; center=true, transform=nothing, mask=nothing, kw...) where {T,N}
+	X2 = TensorDecompositions.compose(T2)
 	if transform != nothing
 		X2 = transform.(X2)
 	end
@@ -322,8 +322,8 @@ function plotlefttensor(X1::Array, X2::Array, dim::Integer=1; minvalue=NMFk.mini
 	plot3tensors(X1, X2, D, dim; minvalue=minvalue, maxvalue=maxvalue, minvalue3=minvalue3, maxvalue3=maxvalue3, kw...)
 end
 
-function plotlefttensor(X1::Array{T,N}, T2::Union{TensorDecompositions2.Tucker,TensorDecompositions2.CANDECOMP}, dim::Integer=1; minvalue=nothing, maxvalue=nothing, minvalue3=nothing, maxvalue3=nothing, center=true, transform=nothing, mask=nothing, kw...) where {T,N}
-	X2 = TensorDecompositions2.compose(T2)
+function plotlefttensor(X1::Array{T,N}, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; minvalue=nothing, maxvalue=nothing, minvalue3=nothing, maxvalue3=nothing, center=true, transform=nothing, mask=nothing, kw...) where {T,N}
+	X2 = TensorDecompositions.compose(T2)
 	if transform != nothing
 		X2 = transform.(X2)
 	end

@@ -22,7 +22,7 @@ global outputformat = "jld2"
 
 import NMFk
 import CanDecomp
-import TensorDecompositions2
+import TensorDecompositions
 import TensorOperations
 import TensorToolbox
 import JLD

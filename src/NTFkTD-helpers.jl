@@ -1,4 +1,4 @@
-import TensorDecompositions2
+import TensorDecompositions
 import Statistics
 
 randomarray(dims, nonneg::Bool=true) = nonneg ? abs.(rand(dims...)) : rand(dims...)
@@ -13,22 +13,22 @@ function diagonal_tucker(core_dims::NTuple{N, Int}, dims::NTuple{N, Int}; core_n
 		diagonal_core[ii...] = 1
 	end
 	f = ntuple(i->randomarray((dims[i], core_dims[i]), factors_nonneg), N)
-	return TensorDecompositions2.Tucker(f, diagonal_core)
+	return TensorDecompositions.Tucker(f, diagonal_core)
 end
 
 function rand_tucker(core_dims::NTuple{N, Int}, dims::NTuple{N, Int}; core_nonneg::Bool=true, factors_nonneg::Bool=true) where {N}
 	f = ntuple(i->randomarray((dims[i], core_dims[i]), factors_nonneg), N)
 	c = randomarray(core_dims, core_nonneg)
-	return TensorDecompositions2.Tucker(f, c)
+	return TensorDecompositions.Tucker(f, c)
 end
 
 function rand_candecomp(r::Int64, dims::NTuple{N, Int}; lambdas_nonneg::Bool=true, factors_nonneg::Bool=true) where {N}
 	f = ntuple(i->randomarray((dims[i], r), factors_nonneg), N)
-	return TensorDecompositions2.CANDECOMP(f, randomarray(r, lambdas_nonneg))
+	return TensorDecompositions.CANDECOMP(f, randomarray(r, lambdas_nonneg))
 end
 
 rand_kruskal3(r::Int64, dims::NTuple{N, Int}, nonnegative::Bool=true) where {N} =
-	TensorDecompositions2.compose(rand_candecomp(r, dims, lambdas_nonneg=nonnegative, factors_nonneg=nonnegative))
+	TensorDecompositions.compose(rand_candecomp(r, dims, lambdas_nonneg=nonnegative, factors_nonneg=nonnegative))
 
 function add_noise(tnsr::AbstractArray{T,N}, sn_ratio = 0.6, nonnegative::Bool = true) where {T, N}
 	tnsr_noise = randn(size(tnsr)...)
@@ -70,14 +70,14 @@ function unfold(X::AbstractArray{T, N}, dim::Int=1) where {T, N}
 	@assert dim > 0 && dim <= N
 	i = [i for i = 1:N]
 	k = i .!= dim
-	TensorDecompositions2._unfold(X, [dim], i[k])
+	TensorDecompositions._unfold(X, [dim], i[k])
 end
 
 function unfold(X::DistributedArrays.DArray{T,N,Array{T,N}}, dim::Int=1) where {T, N}
 	@assert dim > 0 && dim <= N
 	i = [i for i = 1:N]
 	k = i .!= dim
-	TensorDecompositions2._unfold(X, [dim], i[k])
+	TensorDecompositions._unfold(X, [dim], i[k])
 end
 
 function fold(X::AbstractArray{T, N}, dim::Int, tsize::Union{NTuple{NN, Int},AbstractVector{Int}}) where {T, N, NN}

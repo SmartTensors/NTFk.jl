@@ -1,5 +1,5 @@
 import MATLAB
-import TensorDecompositions2
+import TensorDecompositions
 import DocumentFunction
 
 """
@@ -26,11 +26,11 @@ function ttanalysis(T::Array, crank::Number; seed::Number=1, functionname::Strin
 		for i = 1:length(R["u"])
 			R["u"][i] = convert(Array{Float64,2}, R["u"][i]')'
 		end
-		TT = TensorDecompositions2.CANDECOMP((R["u"][1:end]...,), vec(collect(R["lambda"])))
+		TT = TensorDecompositions.CANDECOMP((R["u"][1:end]...,), vec(collect(R["lambda"])))
 	else
-		TT = TensorDecompositions2.CANDECOMP((R["u"][1:end]...,), R["lambda"])
+		TT = TensorDecompositions.CANDECOMP((R["u"][1:end]...,), R["lambda"])
 	end
-	# CC = TensorDecompositions2.compose(TT)
+	# CC = TensorDecompositions.compose(TT)
 	# @show maximum(C .- CC)
 	return TT
 end
@@ -52,8 +52,8 @@ function ttanalysis(T::Array, crank::Vector; seed::Number=1, functionname::Strin
 	"""
 	MATLAB.eval_string(m)
 	@MATLAB.mget R
-	TT = TensorDecompositions2.Tucker((R["u"][1:end]...,), R["core"]["data"])
-	# CC = TensorDecompositions2.compose(TT)
+	TT = TensorDecompositions.Tucker((R["u"][1:end]...,), R["core"]["data"])
+	# CC = TensorDecompositions.compose(TT)
 	# @show maximum(C .- CC)
 	return TT
 end
@@ -83,11 +83,11 @@ function bcuanalysis(T::Array, crank::Number; seed::Number=1, functionname::Abst
 		for i = 1:length(R["u"])
 			R["u"][i] = convert(Array{Float64,2}, R["u"][i]')'
 		end
-		TT = TensorDecompositions2.CANDECOMP((R["u"][1:end]...,), vec(collect(R["lambda"])))
+		TT = TensorDecompositions.CANDECOMP((R["u"][1:end]...,), vec(collect(R["lambda"])))
 	else
-		TT = TensorDecompositions2.CANDECOMP((R["u"][1:end]...,), R["lambda"])
+		TT = TensorDecompositions.CANDECOMP((R["u"][1:end]...,), R["lambda"])
 	end
-	# CC = TensorDecompositions2.compose(TT)
+	# CC = TensorDecompositions.compose(TT)
 	# @show maximum(C .- CC)
 	return TT
 end

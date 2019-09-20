@@ -1,7 +1,7 @@
-import TensorDecompositions2
+import TensorDecompositions
 
-function atensor(X::Union{TensorDecompositions2.Tucker,TensorDecompositions2.CANDECOMP})
-	atensor(TensorDecompositions2.compose(X))
+function atensor(X::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP})
+	atensor(TensorDecompositions.compose(X))
 end
 function atensor(X::AbstractArray{T,N}) where {T,N}
 	@info("Number of dimensions: $N")
