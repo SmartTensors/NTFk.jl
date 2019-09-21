@@ -145,11 +145,32 @@ The final **NTFk** result is the estimated core size `(2,3,4)` which as expected
 - Phase separation of co-polymers
 - Oil / Gas extraction from unconventional reservoirs
 
+### Visuals:
+
+<div style="text-align: left">
+    <a href="https://www.youtube.com/embed/s8socihoqTo"><img src="https://img.youtube.com/vi/18EHkbDt5/0.jpg" alt="ntfk" width=25%  max-width=125px;/></a>
+</div>
+
+- Europe Climate Model: Water table fluctuations in 2003
+[![]()](https://www.youtube.com/embed/18EHkbDt5)
+
 - Europe Climate Model: Deconstruction of water table fluctuations in 2003
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/s8socihoqTo/0.jpg)](https://www.youtube.com/watch?v=s8socihoqTo)
+[![](https://img.youtube.com/vi/s8socihoqTo/0.jpg)](https://www.youtube.com/embed/s8socihoqTo)
+
+- Europe Climate Model: Air temperature fluctuations in 2003
+[![](https://img.youtube.com/vi/Qsm89RhWzMs/0.jpg)](https://www.youtube.com/embed/Qsm89RhWzMs)
 
 - Europe Climate Model: Deconstruction of Air temperature fluctuations in 2003
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/qUQvChqE8_4/0.jpg)](https://www.youtube.com/watch?v=qUQvChqE8_4)
+[![](https://img.youtube.com/vi/qUQvChqE8_4/0.jpg)](https://www.youtube.com/embed/qUQvChqE8_4)
+
+- Oklahoma seismic events
+[![](https://img.youtube.com/vi/prP_OZFA3tE/0.jpg)](https://www.youtube.com/embed/prP_OZFA3tE)
+
+- Deconstruction of Oklahoma seismic events
+[![](https://img.youtube.com/vi/xIoWi0WjeoQ/0.jpg)](https://www.youtube.com/embed/xIoWi0WjeoQ)
+
+- Deconstruction of Oklahoma seismic events
+[![](https://img.youtube.com/vi/xIoWi0WjeoQ/0.jpg)](https://www.youtube.com/embed/xIoWi0WjeoQ)
 
 ### Publications:
 
