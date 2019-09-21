@@ -145,7 +145,9 @@ The final **NTFk** result is the estimated core size `(2,3,4)` which as expected
 - Phase separation of co-polymers
 - Oil / Gas extraction from unconventional reservoirs
 
-### Visuals:
+### Videos:
+
+(click on the images below to start the videos)
 
 - Europe Climate Model: Water table fluctuations in 2003
 <div style="text-align: left">
@@ -158,19 +160,29 @@ The final **NTFk** result is the estimated core size `(2,3,4)` which as expected
 </div>
 
 - Europe Climate Model: Air temperature fluctuations in 2003
-[![](https://img.youtube.com/vi/Qsm89RhWzMs/0.jpg)](https://www.youtube.com/embed/Qsm89RhWzMs)
+<div style="text-align: left">
+    <a href="https://www.youtube.com/embed/Qsm89RhWzMs"><img src="https://img.youtube.com/vi/Qsm89RhWzMs/0.jpg" width=25%  max-width=125px;/></a>
+</div>
 
 - Europe Climate Model: Deconstruction of Air temperature fluctuations in 2003
-[![](https://img.youtube.com/vi/qUQvChqE8_4/0.jpg)](https://www.youtube.com/embed/qUQvChqE8_4)
+<div style="text-align: left">
+    <a href="https://www.youtube.com/embed/qUQvChqE8_4"><img src="https://img.youtube.com/vi/qUQvChqE8_4/0.jpg" width=25%  max-width=125px;/></a>
+</div>
 
 - Oklahoma seismic events
-[![](https://img.youtube.com/vi/prP_OZFA3tE/0.jpg)](https://www.youtube.com/embed/prP_OZFA3tE)
+<div style="text-align: left">
+    <a href="https://www.youtube.com/embed/prP_OZFA3tE"><img src="https://img.youtube.com/vi/prP_OZFA3tE/0.jpg" width=25%  max-width=125px;/></a>
+</div>
 
 - Deconstruction of Oklahoma seismic events
-[![](https://img.youtube.com/vi/xIoWi0WjeoQ/0.jpg)](https://www.youtube.com/embed/xIoWi0WjeoQ)
+<div style="text-align: left">
+    <a href="https://www.youtube.com/embed/xIoWi0WjeoQ"><img src="https://img.youtube.com/vi/xIoWi0WjeoQ/0.jpg" width=25%  max-width=125px;/></a>
+</div>
 
 - Deconstruction of Oklahoma seismic events
-[![](https://img.youtube.com/vi/xIoWi0WjeoQ/0.jpg)](https://www.youtube.com/embed/xIoWi0WjeoQ)
+<div style="text-align: left">
+    <a href="https://www.youtube.com/embed/xIoWi0WjeoQ"><img src="https://img.youtube.com/vi/xIoWi0WjeoQ/0.jpg" width=25%  max-width=125px;/></a>
+</div>
 
 ### Publications:
 
