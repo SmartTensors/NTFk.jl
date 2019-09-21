@@ -17,7 +17,7 @@ GPU and TPU accelerations are also available through existing Julia packages.
 
 **NTFk** can be employed to perform tensor decomposition using CP (Candecomp/Parafac) and Tucker methods.
 
-**NTFk** provides options to access to tensor decomposition methods available in MATLAB modules (MATLAB installation required): Tamara Kolda's [TensorToolbox](https://www.tensortoolbox.org), Ivan Oseledets' [TT-Toolbox](https://www.mathworks.com/matlabcentral/fileexchange/46312-oseledets-tt-toolbox), Wotao Yin's [BCU](https://www.math.ucla.edu/~wotaoyin/papers/bcu/matlab.html), and[TensorLab](https://www.tensorlab.net).
+**NTFk** provides options to access to tensor decomposition methods available in MATLAB modules (MATLAB installation required): Tamara Kolda's [TensorToolbox](https://www.tensortoolbox.org), Ivan Oseledets' [TT-Toolbox](https://www.mathworks.com/matlabcentral/fileexchange/46312-oseledets-tt-toolbox), Wotao Yin's [BCU](https://www.math.ucla.edu/~wotaoyin/papers/bcu/matlab.html), and [TensorLab](https://www.tensorlab.net).
 
 **NTFk** can perform high-performance computing tensor decomposition analyses using TensorFlow, PyTorch and MXNET.
 
@@ -188,7 +188,8 @@ The final **NTFk** result is the estimated core size `(2,3,4)` which as expected
     <a href="https://www.youtube.com/embed/xIoWi0WjeoQ"><img src="https://img.youtube.com/vi/xIoWi0WjeoQ/0.jpg" width=25%  max-width=125px;/></a>
 </div>
 
-Videos are also available on [YouTube](https://www.youtube.com/watch?v=xPOkeLMJywE&list=PLpVcrIWNlP22LfyIu5MSZ7WHp7q0MNjsj)
+
+Videos are available on [YouTube](https://www.youtube.com/watch?v=xPOkeLMJywE&list=PLpVcrIWNlP22LfyIu5MSZ7WHp7q0MNjsj)
 
 For more information, visit [monty.gitlab.io](http://monty.gitlab.io)
 
