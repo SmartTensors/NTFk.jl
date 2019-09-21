@@ -151,8 +151,12 @@ The final **NTFk** result is the estimated core size `(2,3,4)` which as expected
     <img src="https://img.youtube.com/vi/18EHkbDt5/0.jpg" width=25%  max-width=125px;/>
 </div>
 
+ <iframe width="420" height="315"
+src="https://www.youtube.com/embed/18EHkbDt5">
+</iframe>
+
 - Europe Climate Model: Water table fluctuations in 2003
-[![](https://www.youtube.com/embed/s8socihoqTo)](https://www.youtube.com/embed/18EHkbDt5)
+[![](https://img.youtube.com/vi/18EHkbDt5/0.jpg)](https://www.youtube.com/embed/18EHkbDt5)
 
 - Europe Climate Model: Deconstruction of water table fluctuations in 2003
 [![](https://img.youtube.com/vi/s8socihoqTo/0.jpg)](https://www.youtube.com/embed/s8socihoqTo)
