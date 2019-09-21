@@ -8,31 +8,31 @@ NTFk: Nonnegative Tensor Factorization using k-means clustering
 **NTFk** performs a novel unsupervised Machine Learning (ML) method based on Tensor Decomposition coupled with sparsity and nonnegativity constraints.
 **NTFk** methodology allows for automatic identification of the optimal number of features (signals) present in multi-dimensional data arrays (tensors).
 The number of features (tensor "rank") along different dimensions can be estimated jointly and independently.
+
 In addition to feature extraction, **NTFk** allows for high-dimensional data classifications and blind predictions.
-For more details, check the papers and presentations listed below.
+
+**NTFk** provides high-performance computing capabilities to solve problems with Shared and Distributed Arrays in parallel.
+The parallelization allows for utilization of multi-core / multi-processor environments.
+GPU and TPU accelerations are also available through existing Julia packages.
+
+**NTFk** can be employed to solver tensor decomposition using CP (Candecomp/Parafac) and Tucker methods.
+**NTFk** provides access to tensor decomposition methods available in the [MATLAB TensorToolbox](https://www.tensortoolbox.org/)
+**NTFk** can perform analyses using TensorFlow, PyTorch and MXNET.
+
+**NTFk** methodology and applications are discussed in the the papers and presentations listed below.
 
 ### Installation
 
 After starting Julia, execute:
 
 ```julia
-import Pkg
-Pkg.add("NMFk")
-Pkg.add("CanDecomp")
-Pkg.add("LoadTensorDecompositions")
-Pkg.add(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/TensorDecompositions.jl.git", rev="master"))
-Pkg.add(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/NTFk.jl.git", rev="master"))
+import Pkg; Pkg.add("NTFk")
 ```
 
 or
 
 ```julia
-import Pkg;
-Pkg.develop("NMFk")
-Pkg.develop("CanDecomp")
-Pkg.develop("LoadTensorDecompositions")
-Pkg.develop(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/TensorDecompositions.jl.git"))
-Pkg.develop(Pkg.PackageSpec(url="https://github.com/TensorDecompositions/NTFk.jl.git"))
+import Pkg; Pkg.develop("NTFk")
 ```
 
 ### Testing
@@ -134,6 +134,23 @@ The final **NTFk** result is the estimated core size `(2,3,4)` which as expected
 
 **NTFk** also produces a Tucker deconstruction of this tensor with core size `(2,3,4)` which is stored as `tucker_estimated[ibest]`
 
+### Applications:
+
+- Climate modeling
+- Material characterization using X rays
+- Reactive mixing
+- Molecular dynamics
+- Contaminant transport
+- Induced seismicity
+- Phase separation of co-polymers
+- Oil / Gas extraction from unconventional reservoirs
+
+- Europe Climate Model: Deconstruction of water table fluctuations in 2003
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/s8socihoqTo/0.jpg)](https://www.youtube.com/watch?v=s8socihoqTo)
+
+- Europe Climate Model: Deconstruction of Air temperature fluctuations in 2003
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/qUQvChqE8_4/0.jpg)](https://www.youtube.com/watch?v=qUQvChqE8_4)
+
 ### Publications:
 
 - Vesselinov, V.V., Mudunuru, M., Karra, S., O'Malley, D., Alexandrov, B.S., Unsupervised Machine Learning Based on Non-Negative Tensor Factorization for Analyzing Reactive-Mixing, Journal of Computational Physics, 2018 (in review). [PDF](http://monty.gitlab.io/papers/Vesselinov%20et%20al%202018%20Unsupervised%20Machine%20Learning%20Based%20on%20Non-Negative%20Tensor%20Factorization%20for%20Analyzing%20Reactive-Mixing.pdf)
@@ -154,7 +171,7 @@ Presentations are also available at [slideshare.net](https://www.slideshare.net/
 
 [![Watch the video](images/nma.png)](https://www.youtube.com/embed/xPOkeLMJywE)
 
-Videos are also available on [YouTube](href=https://www.youtube.com/watch?v=xPOkeLMJywE&list=PLpVcrIWNlP22LfyIu5MSZ7WHp7q0MNjsj)
+Videos are also available on [YouTube](https://www.youtube.com/watch?v=xPOkeLMJywE&list=PLpVcrIWNlP22LfyIu5MSZ7WHp7q0MNjsj)
 
 For more information, visit [monty.gitlab.io](http://monty.gitlab.io)
 
