@@ -15,11 +15,15 @@ In addition to feature extraction, **NTFk** allows for high-dimensional data cla
 The parallelization allows for utilization of multi-core / multi-processor environments.
 GPU and TPU accelerations are also available through existing Julia packages.
 
-**NTFk** can be employed to solver tensor decomposition using CP (Candecomp/Parafac) and Tucker methods.
+**NTFk** can be employed to perform tensor decomposition using CP (Candecomp/Parafac) and Tucker methods.
+
 **NTFk** provides access to tensor decomposition methods available in the [MATLAB TensorToolbox](https://www.tensortoolbox.org/)
+
 **NTFk** can perform high-performance computing tensor decomposition analyses using TensorFlow, PyTorch and MXNET.
 
 **NTFk** methodology and applications are discussed in the the papers and presentations listed below.
+
+Tensor network decompositions can be be performed using our [**NTNk**](https://github.com/TensorDecompositions/NTNk.jl) package.
 
 ### Installation
 
