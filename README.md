@@ -17,7 +17,7 @@ GPU and TPU accelerations are also available through existing Julia packages.
 
 **NTFk** can be employed to perform tensor decomposition using CP (Candecomp/Parafac) and Tucker methods.
 
-**NTFk** provides access to tensor decomposition methods available in the [MATLAB TensorToolbox](https://www.tensortoolbox.org/)
+**NTFk** provides options to access to tensor decomposition methods available in MATLAB modules (MATLAB installation required): Tamara Kolda's [TensorToolbox](https://www.tensortoolbox.org), Ivan Oseledets' [TT-Toolbox](https://www.mathworks.com/matlabcentral/fileexchange/46312-oseledets-tt-toolbox), Wotao Yin's [BCU](https://www.math.ucla.edu/~wotaoyin/papers/bcu/matlab.html), and[TensorLab](https://www.tensorlab.net).
 
 **NTFk** can perform high-performance computing tensor decomposition analyses using TensorFlow, PyTorch and MXNET.
 
