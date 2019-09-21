@@ -17,7 +17,7 @@ GPU and TPU accelerations are also available through existing Julia packages.
 
 **NTFk** can be employed to solver tensor decomposition using CP (Candecomp/Parafac) and Tucker methods.
 **NTFk** provides access to tensor decomposition methods available in the [MATLAB TensorToolbox](https://www.tensortoolbox.org/)
-**NTFk** can perform analyses using TensorFlow, PyTorch and MXNET.
+**NTFk** can perform high-performance computing tensor decomposition analyses using TensorFlow, PyTorch and MXNET.
 
 **NTFk** methodology and applications are discussed in the the papers and presentations listed below.
 
@@ -161,7 +161,7 @@ The final **NTFk** result is the estimated core size `(2,3,4)` which as expected
 
 - Europe Climate Model: Air temperature fluctuations in 2003
 <div style="text-align: left">
-    <a href="https://www.youtube.com/embed/Qsm89RhWzMs"><img src="https://img.youtube.com/vi/Qsm89RhWzMs/0.jpg" width=25%  max-width=125px;/></a>
+    <a href="https://www.youtube.com/embed/ZAWBn3OsCCw"><img src="https://img.youtube.com/vi/ZAWBn3OsCCw/0.jpg" width=25%  max-width=125px;/></a>
 </div>
 
 - Europe Climate Model: Deconstruction of Air temperature fluctuations in 2003
@@ -184,6 +184,10 @@ The final **NTFk** result is the estimated core size `(2,3,4)` which as expected
     <a href="https://www.youtube.com/embed/xIoWi0WjeoQ"><img src="https://img.youtube.com/vi/xIoWi0WjeoQ/0.jpg" width=25%  max-width=125px;/></a>
 </div>
 
+Videos are also available on [YouTube](https://www.youtube.com/watch?v=xPOkeLMJywE&list=PLpVcrIWNlP22LfyIu5MSZ7WHp7q0MNjsj)
+
+For more information, visit [monty.gitlab.io](http://monty.gitlab.io)
+
 ### Publications:
 
 - Vesselinov, V.V., Mudunuru, M., Karra, S., O'Malley, D., Alexandrov, B.S., Unsupervised Machine Learning Based on Non-Negative Tensor Factorization for Analyzing Reactive-Mixing, Journal of Computational Physics, 2018 (in review). [PDF](http://monty.gitlab.io/papers/Vesselinov%20et%20al%202018%20Unsupervised%20Machine%20Learning%20Based%20on%20Non-Negative%20Tensor%20Factorization%20for%20Analyzing%20Reactive-Mixing.pdf)
@@ -198,15 +202,11 @@ Research papers are also available at [Google Scholar](http://scholar.google.com
 
 Presentations are also available at [slideshare.net](https://www.slideshare.net/VelimirmontyVesselin), [ResearchGate](https://www.researchgate.net/profile/Velimir_Vesselinov) and [Academia.edu](https://lanl.academia.edu/monty)
 
-### Videos:
+### Lectures:
 
 - [Vesselinov, V.V., Novel Machine Learning Methods for Extraction of Features Characterizing Complex Datasets and Models, Recent Advances in Machine Learning and Computational Methods for Geoscience, Institute for Mathematics and its Applications, University of Minnesota, 2018.](https://youtu.be/xPOkeLMJywE)
 
 [![Watch the video](images/nma.png)](https://www.youtube.com/embed/xPOkeLMJywE)
-
-Videos are also available on [YouTube](https://www.youtube.com/watch?v=xPOkeLMJywE&list=PLpVcrIWNlP22LfyIu5MSZ7WHp7q0MNjsj)
-
-For more information, visit [monty.gitlab.io](http://monty.gitlab.io)
 
 Installation behind a firewall
 ------------------------------
