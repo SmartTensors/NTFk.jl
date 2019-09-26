@@ -1,3 +1,8 @@
+import Pkg
+
+Pkg.add("Ipopt")
+Pkg.build("Ipopt")
+
 if haskey(ENV, "NTFk_NO_PYTHON")
 	@info("No Python will be used ...")
 else
