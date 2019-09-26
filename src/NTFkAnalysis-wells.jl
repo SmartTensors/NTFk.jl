@@ -1,4 +1,5 @@
 import NMFk
+import Statistics
 
 function computestats(X, Xe, volumeindex=1:size(Xe,1), wellindex=1:size(Xe,3), timeindex=:, c=""; plot::Bool=false, quiet::Bool=true, wellnames=nothing, xaxis=1:size(Xe,2))
 	m = "%-85s"
@@ -27,7 +28,7 @@ function computestats(X, Xe, volumeindex=1:size(Xe,1), wellindex=1:size(Xe,3), t
 			werr[j] = abs.(wsum2[j] - wsum1[j]) / wsum1[j]
 		end
 		merr[i] = maximum(werr)
-		fcor[i] = cor(vec(wsum1), vec(wsum2))
+		fcor[i] = Statistics.cor(vec(wsum1), vec(wsum2))
 	end
 	namecase = lowercase(replace(replace(c, " "=>"_"), "/"=> "_"))
 	# @info("$(NMFk.sprintf(m, c)): $(NMFk.sprintf(f, NMFk.normnan(X[wellindex,timeindex,volumeindex] .- Xe[wellindex,timeindex,volumeindex]))) [Error: $(NMFk.sprintf(g, ferr[1])) $(NMFk.sprintf(g, ferr[2])) $(NMFk.sprintf(g, ferr[3]))] [Max error: $(NMFk.sprintf(g, merr[1])) $(NMFk.sprintf(g, merr[2])) $(NMFk.sprintf(g, merr[3]))] [Pearson: $(NMFk.sprintf(g, fcor[1])) $(NMFk.sprintf(g, fcor[2])) $(NMFk.sprintf(g, fcor[3]))]")

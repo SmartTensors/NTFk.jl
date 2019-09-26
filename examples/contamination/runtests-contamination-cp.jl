@@ -1,6 +1,7 @@
 import NTFk
 import TensorDecompositions
 import JLD
+import Statistics
 
 T_orig = JLD.load("tensor.jld", "T")
 tsize = size(T_orig)
@@ -23,9 +24,9 @@ for i in 1:nruns
 	T_est = TensorDecompositions.compose(cpf[i])
 	T_esta[i] = T_est
 	residues[i] = TensorDecompositions.rel_residue(cpf[i])
-	correlations[i,1] = minimum(map((j)->minimum(map((k)->cor(T_est[:,k,j], T_orig[:,k,j]), 1:tsize[2])), 1:tsize[3]))
-	correlations[i,2] = minimum(map((j)->minimum(map((k)->cor(T_est[k,:,j], T_orig[k,:,j]), 1:tsize[1])), 1:tsize[3]))
-	correlations[i,3] = minimum(map((j)->minimum(map((k)->cor(T_est[k,j,:], T_orig[k,j,:]), 1:tsize[1])), 1:tsize[2]))
+	correlations[i,1] = minimum(map((j)->minimum(map((k)->Statistics.cor(T_est[:,k,j], T_orig[:,k,j]), 1:tsize[2])), 1:tsize[3]))
+	correlations[i,2] = minimum(map((j)->minimum(map((k)->Statistics.cor(T_est[k,:,j], T_orig[k,:,j]), 1:tsize[1])), 1:tsize[3]))
+	correlations[i,3] = minimum(map((j)->minimum(map((k)->Statistics.cor(T_est[k,j,:], T_orig[k,j,:]), 1:tsize[1])), 1:tsize[2]))
 	println("$i - $(tranks[i]): residual $(residues[i]) tensor correlations $(correlations[i,:]) ")
 end
 

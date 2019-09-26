@@ -1,4 +1,5 @@
 import NTFk
+import Statistics
 
 Random.seed!(2015)
 a = rand(20)
@@ -21,9 +22,9 @@ cpf, csize, ibest = NTFk.analysis(T, tranks, 10; method=:cp_als, quiet=false)
 
 NTFk.plotcmptensors(T_orig, T_esta[ibest], 3; progressbar=false)
 @show ibest
-@show cor(W[:,1], cpf[ibest].factors[1][:,1])
-@show cor(W[:,2], cpf[ibest].factors[1][:,2])
-@show cor(H[1,:], cpf[ibest].factors[2][:,1])
-@show cor(H[2,:], cpf[ibest].factors[2][:,2])
-@show cor(Q, cpf[ibest].factors[3][:,1])
+@show Statistics.cor(W[:,1], cpf[ibest].factors[1][:,1])
+@show Statistics.cor(W[:,2], cpf[ibest].factors[1][:,2])
+@show Statistics.cor(H[1,:], cpf[ibest].factors[2][:,1])
+@show Statistics.cor(H[2,:], cpf[ibest].factors[2][:,2])
+@show Statistics.cor(Q, cpf[ibest].factors[3][:,1])
 :done

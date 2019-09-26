@@ -2,6 +2,7 @@ import Interpolations
 import Dates
 import DelimitedFiles
 import DocumentFunction
+import Statistics
 
 "Convert `@sprintf` macro into `sprintf` function"
 sprintf(args...) = eval(:@sprintf($(args...)))
@@ -61,7 +62,7 @@ function mincorrelations(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}) where {
 end
 
 function corinf(v1::Vector{T}, v2::Vector{T}) where {T}
-	c = abs.(cor(v1, v2))
+	c = abs.(Statistics.cor(v1, v2))
 	c = isnan(c) ? Inf : c
 end
 

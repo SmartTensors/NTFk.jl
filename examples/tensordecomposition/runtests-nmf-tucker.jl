@@ -1,4 +1,5 @@
 import NTFk
+import Statistics
 
 Random.seed!(2015)
 a = rand(20)
@@ -26,11 +27,11 @@ if ibest != 3
 end
 
 NTFk.plotcmptensors(T_orig, tsf[ibest], 3; progressbar=false)
-@show cor(W[:,1], tsf[ibest].factors[1][:,1])
-@show cor(W[:,2], tsf[ibest].factors[1][:,2])
-@show cor(H[1,:], tsf[ibest].factors[2][:,1])
-@show cor(H[2,:], tsf[ibest].factors[2][:,2])
-@show cor(Q, tsf[ibest].factors[3][:,1])
+@show Statistics.cor(W[:,1], tsf[ibest].factors[1][:,1])
+@show Statistics.cor(W[:,2], tsf[ibest].factors[1][:,2])
+@show Statistics.cor(H[1,:], tsf[ibest].factors[2][:,1])
+@show Statistics.cor(H[2,:], tsf[ibest].factors[2][:,2])
+@show Statistics.cor(Q, tsf[ibest].factors[3][:,1])
 p = Gadfly.plot(
 	Gadfly.Guide.title("Signal 1"),
 	Gadfly.layer(x=1:length(W[:,1]), y=W[:,1], Gadfly.Geom.line, Gadfly.Theme(default_color=parse(Colors.Colorant, "blue"))),
