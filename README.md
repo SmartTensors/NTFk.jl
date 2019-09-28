@@ -41,6 +41,13 @@ or
 import Pkg; Pkg.develop("NTFk")
 ```
 
+Docker
+-------
+
+```bash
+docker run --interactive --tty montyvesselinov/ntfk
+```
+
 ### Testing
 
 ```julia
