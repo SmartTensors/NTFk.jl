@@ -1,5 +1,13 @@
 import DocumentFunction
 
+function welcome()
+	println("NTFk: Nonnegative Tensor Factorization using k-means clustering")
+	println("====")
+	println()
+	println("NTFk performs unsupervised machine learning based on tensor decomposition coupled with sparsity and nonnegativity constraints.")
+	println("NTFk methodology allows for automatic identification of the optimal number of features (signals) present in multi-dimensional data arrays (tensors). The number of features (tensor \"rank\") along different dimensions can be estimated jointly and independently.")
+end
+
 function functions(re::Regex; stdout::Bool=false, quiet::Bool=false)
 	n = 0
 	for i in modules
