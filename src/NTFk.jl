@@ -1,7 +1,7 @@
 __precompile__()
 
 """
-NTFk: Non-negative Tensor Factorization + k-means Clustering and sparsity constraints
+NTFk.jl: Non-negative Tensor Factorization + k-means clustering
 ---
 
 NTFk performs unsupervised machine learning based on tensor decomposition coupled with sparsity and nonnegativity constraints.
