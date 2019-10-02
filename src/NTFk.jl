@@ -1,6 +1,16 @@
 __precompile__()
 
-"Non-negative Tensor Factorization + k-means Clustering and sparsity constraints"
+"""
+NTFk: Non-negative Tensor Factorization + k-means Clustering and sparsity constraints
+---
+
+NTFk performs unsupervised machine learning based on tensor decomposition coupled with sparsity and nonnegativity constraints.
+
+NTFk methodology allows for automatic identification of the optimal number of features (signals) present in multi-dimensional data arrays (tensors).
+
+The number of features (tensor \"rank\") along different dimensions can be estimated jointly and independently.
+
+"""
 module NTFk
 
 import Pkg
@@ -77,5 +87,7 @@ if isdefined(NTFk, :MATLAB)
 else
 	@info("MATLAB is not installed!")
 end
+
+NTFk.welcome()
 
 end

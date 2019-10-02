@@ -1,11 +1,27 @@
 import DocumentFunction
 
 function welcome()
-	println("NTFk: Nonnegative Tensor Factorization using k-means clustering")
+	c = Base.text_colors
+	tx = c[:normal] # text
+	bl = c[:bold] # bold
+	d1 = c[:bold] * c[:blue]    # first dot
+	d2 = c[:bold] * c[:red]     # second dot
+	d3 = c[:bold] * c[:green]   # third dot
+	d4 = c[:bold] * c[:magenta] # fourth dot
+	println("$(bl)NTFk: Nonnegative Tensor Factorization using k-means clustering $(tx)")
 	println("====")
-	println()
+	println("")
+	println("$(d1)  _     _  $(d2) _________ $(d3)  _______   $(d4)_$(tx)")
+	println("$(d1) |  \\  | | $(d2)|___   ___| $(d3)|  _____| $(d4)| |  _$(tx)")
+	println("$(d1) | . \\ | | $(d2)    | |     $(d3)| |___    $(d4)| | / /$(tx)")
+	println("$(d1) | |\\ \\| | $(d2)    | |     $(d3)|  ___|   $(d4)| |/ /$(tx)")
+	println("$(d1) | | \\ ' | $(d2)    | |     $(d3)| |       $(d4)|   ($(tx)")
+	println("$(d1) | |  \\  | $(d2)    | |     $(d3)| |       $(d4)| |\\ \\$(tx)")
+	println("$(d1) |_|   \\_| $(d2)    |_|     $(d3)|_|       $(d4)|_| \\_\\$(tx)")
+	println("")
 	println("NTFk performs unsupervised machine learning based on tensor decomposition coupled with sparsity and nonnegativity constraints.")
-	println("NTFk methodology allows for automatic identification of the optimal number of features (signals) present in multi-dimensional data arrays (tensors). The number of features (tensor \"rank\") along different dimensions can be estimated jointly and independently.")
+	println("NTFk methodology allows for automatic identification of the optimal number of features (signals) present in multi-dimensional data arrays (tensors).")
+	println("The number of features (tensor \"rank\") along different dimensions can be estimated jointly and independently.")
 end
 
 function functions(re::Regex; stdout::Bool=false, quiet::Bool=false)
