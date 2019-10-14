@@ -2,6 +2,7 @@ import NTFk
 import Test
 import Random
 import TensorDecompositions
+import LinearAlgebra
 
 # @Test.testset "NTFk ploting" begin
 # 	r = reshape(repeat(collect(1/100:1/100:1), inner=100), (100,100))
