@@ -45,10 +45,10 @@ end
 	tucker_orig = NTFk.rand_tucker(csize, tsize, factors_nonneg=true, core_nonneg=true)
 	T_orig = TensorDecompositions.compose(tucker_orig)
 	T_orig[1,1,:] .= NaN
-	nans = isnan.(T_orig)
+	nans = .!isnan.(T_orig)
 	tucker_est, csize_est, ibest = NTFk.analysis(T_orig, [csize], 1; seed=1, eigmethod=[false,false,false], progressbar=false, tol=1e-4, maxiter=100, lambda=0.)
 	T_est = TensorDecompositions.compose(tucker_est[ibest])
-	display(LinearAlgebra.norm(T_orig[.!nans] .- T_est[.!nans]))
+	display(LinearAlgebra.norm(T_orig[nans] .- T_est[nans]))
 	@Test.test csize == csize_est
 	@Test.test isapprox(LinearAlgebra.norm(T_orig[.!nans] .- T_est[.!nans]), 1.0332311547429105, atol=1e-2)
 end

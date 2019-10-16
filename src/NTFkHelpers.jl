@@ -62,8 +62,12 @@ function mincorrelations(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}) where {
 end
 
 function corinf(v1::Vector{T}, v2::Vector{T}) where {T}
-	c = abs.(Statistics.cor(v1, v2))
-	c = isnan(c) ? Inf : c
+	nans = .!isnan.(v2)
+	if length(v2[nans]) == 0
+		return Inf
+	end
+	c = abs.(Statistics.cor(v1[nans], v2[nans]))
+	return isnan(c) ? Inf : c
 end
 
 function flatten(X::AbstractArray{T,N}, mask::BitArray{M}) where {T,N,M}

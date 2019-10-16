@@ -155,12 +155,12 @@ end
 "Try to import a module"
 macro tryimport(s::Symbol)
 	mname = string(s)
+	!haskey(Pkg.installed(), mname) && Pkg.add(mname)
 	importq = string(:(import $s))
-	infostring = string("Module ", s, " is not available")
 	warnstring = string("Module ", s, " cannot be imported")
 	q = quote
 		try
-			eval(Meta.parse($importq))
+			Core.eval(NTFk, Meta.parse($importq))
 		catch errmsg
 			printerrormsg(errmsg)
 			@warn($warnstring)
