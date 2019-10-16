@@ -1,4 +1,3 @@
-import NMFk
 import Statistics
 
 function computestats(X, Xe, volumeindex=1:size(Xe,1), wellindex=1:size(Xe,3), timeindex=:, c=""; plot::Bool=false, quiet::Bool=true, wellnames=nothing, xaxis=1:size(Xe,2))

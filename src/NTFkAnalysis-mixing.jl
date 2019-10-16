@@ -1,5 +1,4 @@
 import TensorDecompositions
-import NMFk
 
 function loadcase(case::String; datadir::String=".")
 	f = "$(datadir)/$(case)F.jld"

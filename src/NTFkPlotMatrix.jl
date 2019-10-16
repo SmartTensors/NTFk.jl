@@ -2,7 +2,6 @@ import Gadfly
 import Measures
 import Colors
 import Compose
-import NMFk
 
 function plotmatrix(X::AbstractVector; kw...)
 	plotmatrix(convert(Array{Float64,2}, permutedims(X)); kw...)
