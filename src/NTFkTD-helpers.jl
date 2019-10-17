@@ -30,7 +30,7 @@ end
 rand_kruskal3(r::Int64, dims::NTuple{N, Int}, nonnegative::Bool=true) where {N} =
 	TensorDecompositions.compose(rand_candecomp(r, dims, lambdas_nonneg=nonnegative, factors_nonneg=nonnegative))
 
-function add_noise(tnsr::AbstractArray{T,N}, sn_ratio = 0.6, nonnegative::Bool = true) where {T, N}
+function add_noise(tnsr::AbstractArray{T,N}, sn_ratio=0.6, nonnegative::Bool=true) where {T, N}
 	tnsr_noise = randn(size(tnsr)...)
 	if nonnegative
 		map!(x -> max(0.0, x), tnsr_noise, tnsr_noise)
