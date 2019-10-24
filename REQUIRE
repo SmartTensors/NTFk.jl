@@ -11,8 +11,6 @@ Distributions
 DistributedArrays
 Arpack
 Gadfly
-Fontconfig
-Cairo
 Colors
 Measures
 PyPlot
