@@ -122,20 +122,8 @@ NTFk.functions(NTFk, "get")
 """ functions
 
 "Checks if package is available"
-function ispkgavailable(modulename::String; quiet::Bool=false)
-	flag=false
-	try
-		Pkg.available(modulename)
-		if typeof(Pkg.installed(modulename)) == Nothing
-			flag=false
-			!quiet && @info("Module $modulename is not available")
-		else
-			flag=true
-		end
-	catch
-		!quiet && @info("Module $modulename is not available")
-	end
-	return flag
+function ispkgavailable(modulename::String)
+	haskey(Pkg.installed(), modulename)
 end
 
 "Print error message"
@@ -153,18 +141,28 @@ function printerrormsg(errmsg::Any)
 end
 
 "Try to import a module"
-macro tryimport(s::Symbol)
+macro tryimport(s::Symbol, domains::Symbol=:NTFk)
 	mname = string(s)
-	!haskey(Pkg.installed(), mname) && Pkg.add(mname)
-	importq = string(:(import $s))
-	warnstring = string("Module ", s, " cannot be imported")
-	q = quote
+	domain = eval(domains)
+	if !ispkgavailable(mname)
 		try
-			Core.eval(NTFk, Meta.parse($importq))
-		catch errmsg
-			printerrormsg(errmsg)
-			@warn($warnstring)
+			Pkg.add(mname)
+		catch
+			@info string("Module ", s, " is not available")
+			return nothing
 		end
 	end
-	return :($(esc(q)))
+	if !isdefined(domain, s)
+		importq = string(:(import $s))
+		warnstring = string("Module ", s, " cannot be imported")
+		q = quote
+			try
+				Core.eval($domain, Meta.parse($importq))
+			catch errmsg
+				printerrormsg(errmsg)
+				@warn($warnstring)
+			end
+		end
+		return :($(esc(q)))
+	end
 end
