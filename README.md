@@ -9,7 +9,22 @@ NTFk: Nonnegative Tensor Factorization using k-means clustering
 **NTFk** methodology allows for automatic identification of the optimal number of features (signals) present in multi-dimensional data arrays (tensors).
 The number of features (tensor "rank") along different dimensions can be estimated jointly and independently.
 
-In addition to feature extraction, **NTFk** allows for high-dimensional data classifications and blind predictions.
+**NMFk** can be applied to perform various types of analyses of multi-dimensional data:
+
+- Feature extraction (**FE**)
+- Blind source separation (**BSS**)
+- Detection of disruptions / anomalies
+- Image recognition
+- Separation of (physics) processes
+- Discovery of unknown dependencies and phenomena
+- Development reduced-order/surrogate models
+- Identification of dependencies between model inputs and outputs
+- Guiding development of physics models representing the ML analyzed data
+- Data classification
+- Blind predictions
+- Optimization of data acquisition (optimal experimental design)
+- Labeling of datasets for supervised ML analyses
+
 
 **NTFk** provides high-performance computing capabilities to solve problems with Shared and Distributed Arrays in parallel.
 The parallelization allows for utilization of multi-core / multi-processor environments.
@@ -35,7 +50,8 @@ After starting Julia, execute:
 import Pkg; Pkg.add("NTFk")
 ```
 
-or
+to access the latest released version.
+To utilize the latest updates (commits) use:
 
 ```julia
 import Pkg; Pkg.develop("NTFk")
@@ -45,8 +61,10 @@ Docker
 -------
 
 ```bash
-docker run --interactive --tty montyvesselinov/ntfk
+docker run --interactive --tty montyvesselinov/tensors
 ```
+
+The docker image provides access to all **TensorDecomposition** packages.
 
 ### Testing
 
@@ -147,7 +165,17 @@ The final **NTFk** result is the estimated core size `(2,3,4)` which as expected
 
 **NTFk** also produces a Tucker deconstruction of this tensor with core size `(2,3,4)` which is stored as `tucker_estimated[ibest]`
 
+### Notebooks:
+
+A series of Jupyter notebooks demonstrating **NMFk** have been developed:
+
+- [Simple Tucker tensor decomposition](https://github.com/TensorDecompositions/NTFk.jl/blob/master/notebooks/simple_tensor_decomposition.ipynb)
+- [Simple Candecomp/Parafac (CP) tensor decomposition](https://github.com/TensorDecompositions/NTFk.jl/blob/master/notebooks/simple_tensor_decomposition_cp.ipynb)
+
 ### Applications:
+
+**NTFk** has been applied in a wide range of real-world applications.
+The analyzed datasets include model outputs, laboratory experimental data, and field tests:
 
 - Climate modeling
 - Material characterization using X rays
@@ -197,10 +225,7 @@ The final **NTFk** result is the estimated core size `(2,3,4)` which as expected
     <a href="https://www.youtube.com/embed/xIoWi0WjeoQ"><img src="https://img.youtube.com/vi/xIoWi0WjeoQ/0.jpg" width=25%  max-width=125px;/></a>
 </div>
 
-
 Videos are available on [YouTube](https://www.youtube.com/watch?v=xPOkeLMJywE&list=PLpVcrIWNlP22LfyIu5MSZ7WHp7q0MNjsj)
-
-For more information, visit [monty.gitlab.io](http://monty.gitlab.io)
 
 ### Publications:
 
@@ -221,6 +246,10 @@ Presentations are also available at [slideshare.net](https://www.slideshare.net/
 - [Vesselinov, V.V., Novel Machine Learning Methods for Extraction of Features Characterizing Complex Datasets and Models, Recent Advances in Machine Learning and Computational Methods for Geoscience, Institute for Mathematics and its Applications, University of Minnesota, 2018.](https://youtu.be/xPOkeLMJywE)
 
 [![Watch the video](images/nma.png)](https://www.youtube.com/embed/xPOkeLMJywE)
+
+### Extra information
+
+For more information, visit [monty.gitlab.io](http://monty.gitlab.io), [tensordecompositions.github.io],(https://tensordecompositions.github.io), and [tensors.lanl.gov](http://tensors.lanl.gov)
 
 Installation behind a firewall
 ------------------------------
