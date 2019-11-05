@@ -54,7 +54,7 @@ to access the latest released version.
 To utilize the latest updates (commits) use:
 
 ```julia
-import Pkg; Pkg.develop("NTFk")
+import Pkg; Pkg.add(Pkg.PackageSpec(name="NTFk", rev="master"))
 ```
 
 Docker
