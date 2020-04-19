@@ -14,10 +14,10 @@ The number of features (tensor \"rank\") along different dimensions can be estim
 module NTFk
 
 import Pkg
-using SharedArrays
-using Printf
 using SparseArrays
-using Distributed
+using SharedArrays
+import Printf
+import Distributed
 
 const ntfkdir = splitdir(splitdir(pathof(NTFk))[1])[1]
 

@@ -1,4 +1,5 @@
 import TensorDecompositions
+import Distributed
 import Random
 import Statistics
 import DocumentFunction
@@ -34,14 +35,14 @@ function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Int
 	correlations = Array{T}(undef, nruns, ndimensons)
 	tucker_spnn = Vector{TensorDecompositions.Tucker{T,N}}(undef, nruns)
 	minsilhouette = Vector{T}(undef, nruns)
-	if nprocs() > 1 && !serial
-		r = pmap(i->(Random.seed!(seed+i); analysis(X, csizes[i], nTF; clusterdim=clusterdim, resultdir=resultdir, prefix=prefix, kw..., serial=true, quiet=true)), 1:nruns)
+	if Distributed.nprocs() > 1 && !serial
+		r = Distributed.pmap(i->(Random.seed!(seed+i); analysis(X, csizes[i], nTF; clusterdim=clusterdim, resultdir=resultdir, prefix=prefix, kw..., serial=true, quiet=true)), 1:nruns)
 		tucker_spnn = map(i->(r[i][1]), 1:nruns)
 		residues = map(i->(r[i][2]), 1:nruns)
 		correlations = map(i->(r[i][3]), 1:nruns)
 		minsilhouette = map(i->(r[i][4]), 1:nruns)
 	else
-		s = nprocs() > 1 ? false : true
+		s = Distributed.nprocs() > 1 ? false : true
 		for i in 1:nruns
 			a = analysis(X, csizes[i], nTF; clusterdim=clusterdim, resultdir=resultdir, prefix=prefix, serial=s, kw...)
 			if a != nothing
@@ -121,8 +122,8 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 	# 	X[nans] .= 0
 	# end
 	tsbest = nothing
-	if nprocs() > 1 && !serial
-		tsi = pmap(i->(Random.seed!(seed+i); NTFk.tucker(X, csize; seed=seed, method=method, kw..., progressbar=false)), 1:nTF)
+	if Distributed.nprocs() > 1 && !serial
+		tsi = Distributed.pmap(i->(Random.seed!(seed+i); NTFk.tucker(X, csize; seed=seed, method=method, kw..., progressbar=false)), 1:nTF)
 	else
 		for n = 1:nTF
 			@time a = NTFk.tucker(X, csize; seed=seed, method=method, kw...)

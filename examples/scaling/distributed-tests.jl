@@ -1,9 +1,9 @@
-using Distributed
+import Distributed
 Distributed.addprocs(4)
 
 import DistributedArrays
 
-@everywhere begin
+@Distributed.everywhere begin
 	import Random
 	import DistributedArrays
 	Random.seed!(Distributed.myid())
@@ -24,9 +24,9 @@ b = rand(1_000);
 @time sum(da .* db)
 
 import Pkg; Pkg.add("BenchmarkTools")
-@everywhere using DistributedArrays
-@everywhere using ParallelDataTransfer
-@eval @everywhere s = sum(DistributedArrays.localpart($da) .* DistributedArrays.localpart($db))
+@Distributed.everywhere using DistributedArrays
+@Distributed.everywhere using ParallelDataTransfer
+@eval @Distributed.everywhere s = sum(DistributedArrays.localpart($da) .* DistributedArrays.localpart($db))
 global s = 0
 for w in workers()
 	global s += getfrom(w, :s)

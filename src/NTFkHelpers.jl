@@ -3,9 +3,10 @@ import Dates
 import DelimitedFiles
 import DocumentFunction
 import Statistics
+import Printf
 
 "Convert `@sprintf` macro into `sprintf` function"
-sprintf(args...) = eval(:@sprintf($(args...)))
+sprintf(args...) = eval(:@Printf.sprintf($(args...)))
 
 """
 Parse files in a directory

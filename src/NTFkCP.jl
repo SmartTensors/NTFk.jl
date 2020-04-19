@@ -1,4 +1,5 @@
 import TensorDecompositions
+import Distributed
 import DocumentFunction
 
 """
@@ -30,8 +31,8 @@ function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1,
 	cpi = Array{TensorDecompositions.CANDECOMP{T,N}}(undef, nTF)
 	WBig = Vector{Matrix}(undef, nTF)
 	cpbest = nothing
-	if nprocs() > 1 && !serial
-		cpi = pmap(i->(Random.seed!(seed+i); NTFk.candecomp(X, trank; tsize=tsize, verbose=verbose, maxiter=max_iter, method=method, tol=tol, kw...)), 1:nTF)
+	if Distributed.nprocs() > 1 && !serial
+		cpi = Distributed.pmap(i->(Random.seed!(seed+i); NTFk.candecomp(X, trank; tsize=tsize, verbose=verbose, maxiter=max_iter, method=method, tol=tol, kw...)), 1:nTF)
 	else
 		for n = 1:nTF
 			@time cpi[n] = NTFk.candecomp(X, trank; tsize=tsize, verbose=verbose, maxiter=max_iter, method=method, tol=tol, kw...)
@@ -84,14 +85,14 @@ function analysis(X::AbstractArray{T,N}, tranks::Vector{Int}, nTF=1; seed::Numbe
 	correlations = Array{T}(undef, nruns, ndimensons)
 	cpf = Array{TensorDecompositions.CANDECOMP{T,N}}(undef, nruns)
 	minsilhouette = Array{Float64}(undef, nruns)
-	if nprocs() > 1 && !serial
-		r = pmap(i->(Random.seed!(seed+i); analysis(X, tranks[i], nTF; method=method, resultdir=resultdir, prefix=prefix, kw..., serial=true, quiet=true)), 1:nruns)
+	if Distributed.nprocs() > 1 && !serial
+		r = Distributed.pmap(i->(Random.seed!(seed+i); analysis(X, tranks[i], nTF; method=method, resultdir=resultdir, prefix=prefix, kw..., serial=true, quiet=true)), 1:nruns)
 		cpf = map(i->(r[i][1]), 1:nruns)
 		residues = map(i->(r[i][2]), 1:nruns)
 		correlations = map(i->(r[i][3]), 1:nruns)
 		minsilhouette = map(i->(r[i][4]), 1:nruns)
 	else
-		s = nprocs() > 1 ? false : true
+		s = Distributed.nprocs() > 1 ? false : true
 		for i in 1:nruns
 			cpf[i], residues[i], correlations[i, :], minsilhouette[i] = analysis(X, tranks[i], nTF; method=method, resultdir=resultdir, prefix=prefix, serial=s, kw...)
 		end
