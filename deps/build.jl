@@ -25,7 +25,7 @@ else
 			global get_pip = joinpath(dirname(@__FILE__), "get-pip.py")
 			download("https://bootstrap.pypa.io/get-pip.py", get_pip)
 			run(`$(PyCall.python) $get_pip --user`)
-			rm("$get_pip")
+			# rm("$get_pip")
 		end
 
 		try
