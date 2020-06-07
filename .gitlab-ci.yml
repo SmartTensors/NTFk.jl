@@ -37,9 +37,9 @@ variables:
 			#- src/*.cov
 
 # Run test on stable image
-test:0.6.4:
+test:1.4.2:
 	stage: test
-	image: julia:0.6.4
+	image: julia:1.4.2
 	<<: *test_definition
 
 # Run test on development image
@@ -53,9 +53,9 @@ test:0.6.4:
 coverage:
 	stage: postprocess
 	allow_failure: true
-	image: julia:0.6.4
+	image: julia:1.4.2
 	dependencies:
-		- test:0.6.4
+		- test:1.4.2
 	script:
 		- julia -e 'Pkg.add("Coverage");'
 		- julia -e "using Coverage;
