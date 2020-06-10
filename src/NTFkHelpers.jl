@@ -100,6 +100,7 @@ end
 
 function indicize(v; rev=false, nbins=length(v), minvalue=minimum(v), maxvalue=maximum(v), stepvalue=nothing)
 	if stepvalue != nothing
+		# @show minvalue, maxvalue
 		if typeof(minvalue) <: Dates.DateTime
 			maxvalue = ceil(maxvalue, stepvalue)
 			minvalue = floor(minvalue, stepvalue)
@@ -118,14 +119,30 @@ function indicize(v; rev=false, nbins=length(v), minvalue=minimum(v), maxvalue=m
 			minvalue = floor(minvalue / stepvalue) * stepvalue
 			nbins = convert(Int, ceil((maxvalue - minvalue) / float(stepvalue)))
 		end
+		# @show minvalue, maxvalue
 	end
 	iv = convert(Vector{Int64}, ceil.((v .- minvalue) ./ (maxvalue - minvalue) .* nbins))
-	iv[iv .== 0] .= 1
-	for k = unique(sort(iv))
-		m = iv .== k
-		@info("Bin $k: count=$(sum(m)) min=$(minimum(v[m])) max=$(maximum(v[m]))")
+	i0 = iv .== 0
+	if sum(i0) == 1
+		iv[i0] .= 1
+	elseif sum(i0) > 1
+		iv .+= 1
 	end
-	iv[iv .== 0] .= 1
+	us = unique(sort(iv))
+	nb = collect(1:nbins)
+	@show nb
+	for k in unique(sort([us; nb]))
+		m = iv .== k
+		s = sum(m)
+		if s == 0
+			@info("Bin $(lpad("$k", 3, " ")): count $(lpad("$(s)", 6, " "))")
+		else
+			@info("Bin $(lpad("$k", 3, " ")): count $(lpad("$(s)", 6, " ")) range $(minimum(v[m])) $(maximum(v[m]))")
+		end
+	end
+	if length(us) != nbins
+		@warn "There are empty bins ($(length(us)) vs $(nbins))"
+	end
 	if rev == true
 		iv = (nbins + 1) .- iv
 	end
