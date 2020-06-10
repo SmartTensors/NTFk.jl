@@ -8,6 +8,12 @@ function progressbar_regular(i::Number, timescale::Bool=false, timestep::Number=
 	if datestart != nothing
 		if dateend != nothing
 			s = datestart + ((dateend .- datestart) * (i-1) * timestep)
+			if typeof(datestart) <: Integer
+				try
+					s = convert(Int64, s)
+				catch
+				end
+			end
 		else
 			s = datestart + Core.eval(Main, Meta.parse(dateincrement))(i-1)
 		end
@@ -24,7 +30,19 @@ function make_progressbar_2d(s; vlinecolor="gray", vlinesize=2Gadfly.pt)
 			xi = timescale ? i * timestep : i
 			if datestart != nothing
 				if dateend != nothing
+					if typeof(datestart) <: Integer
+						try
+							timestep = convert(Int64, timestep)
+						catch
+						end
+					end
 					xi = datestart + ((dateend .- datestart) * (i-1) * timestep)
+					if typeof(datestart) <: Integer
+						try
+							xi = convert(Int64, xi)
+						catch
+						end
+					end
 				else
 					xi = datestart + Core.eval(Main, Meta.parse(dateincrement))(i-1)
 				end
