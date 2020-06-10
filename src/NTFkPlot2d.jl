@@ -179,8 +179,8 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	nx, ny = size(t.factors[dim])
 	if datestart != nothing
 		xvalues = NTFk.daterange(datestart, nx; dateend=dateend, dateincrement=dateincrement)
-		xmin=minimum(xvalues)
-		xmax=maximum(xvalues)
+		xmin = minimum(xvalues)
+		xmax = maximum(xvalues)
 	else
 		if xmax == nothing
 			xmax = 1

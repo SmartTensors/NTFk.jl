@@ -107,15 +107,24 @@ function indicize(v; rev=false, nbins=length(v), minvalue=minimum(v), maxvalue=m
 		elseif typeof(minvalue) <: Dates.Date
 			maxvalue = ceil(maxvalue, stepvalue)
 			minvalue = floor(minvalue, stepvalue)
-			nbins = convert(Int, (maxvalue - minvalue) / Core.eval(Main, Meta.parse(stepvalue))(1))
+			nbins = -1
+			date = minvalue
+			while date <= maxvalue
+				date += stepvalue
+				nbins += 1
+			end
 		else
-			granularity = -convert(Int, ceil(log10(stepvalue)))
-			maxvalue = ceil(maxvalue, granularity)
-			minvalue = floor(minvalue, granularity)
-			nbins = convert(Int, ceil.((maxvalue - minvalue) / float(stepvalue)))
+			maxvalue = ceil(maxvalue / stepvalue) * stepvalue
+			minvalue = floor(minvalue / stepvalue) * stepvalue
+			nbins = convert(Int, ceil((maxvalue - minvalue) / float(stepvalue)))
 		end
 	end
 	iv = convert(Vector{Int64}, ceil.((v .- minvalue) ./ (maxvalue - minvalue) .* nbins))
+	iv[iv .== 0] .= 1
+	for k = unique(sort(iv))
+		m = iv .== k
+		@info("Bin $k: count=$(sum(m)) min=$(minimum(v[m])) max=$(maximum(v[m]))")
+	end
 	iv[iv .== 0] .= 1
 	if rev == true
 		iv = (nbins + 1) .- iv
