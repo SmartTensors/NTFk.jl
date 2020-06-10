@@ -98,8 +98,8 @@ function flatten(X::AbstractArray{T,N}, dim::Number=1) where {T,N}
 	return A
 end
 
-function indicize(v; rev=false, nbins=length(v), minvalue=minimum(v), maxvalue=maximum(v), stepvalue=nothing)
-	if stepvalue != nothing
+function indicize(v; rev=false, nbins=length(v), minvalue=minimum(v), maxvalue=maximum(v), stepvalue=nothing, granulate::Bool=true)
+	if granulate && stepvalue != nothing
 		# @show minvalue, maxvalue
 		if typeof(minvalue) <: Dates.DateTime
 			maxvalue = ceil(maxvalue, stepvalue)
@@ -146,7 +146,7 @@ function indicize(v; rev=false, nbins=length(v), minvalue=minimum(v), maxvalue=m
 	if rev == true
 		iv = (nbins + 1) .- iv
 	end
-	return iv
+	return iv, minvalue, maxvalue
 end
 
 function bincoordinates(v; rev=false, nbins=length(v), minvalue=minimum(v), maxvalue=maximum(v), stepvalue=nothing)
