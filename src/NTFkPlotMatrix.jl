@@ -19,7 +19,7 @@ function plotmatrix(X::AbstractMatrix; minvalue=NMFk.minimumnan(X), maxvalue=NMF
 	n, m = size(Xp)
 	rect = checkrectbin(Xp)
 	if xmatrix != nothing && ymatrix != nothing
-		rectbin = true
+		rectbin = false
 	end
 	if xticks != nothing
 		gm = [gm..., Gadfly.Scale.x_discrete(labels=i->xticks[i]), Gadfly.Guide.xticks(label=true)]
