@@ -99,15 +99,21 @@ function flatten(X::AbstractArray{T,N}, dim::Number=1) where {T,N}
 end
 
 function indicize(v; rev=false, nbins=length(v), minvalue=minimum(v), maxvalue=maximum(v), stepvalue=nothing, granulate::Bool=true)
-	if granulate && stepvalue != nothing
-		# @show minvalue, maxvalue
+	if stepvalue != nothing
+		if granulate
+			@info("Initial: $minvalue $maxvalue")
+		end
 		if typeof(minvalue) <: Dates.DateTime
-			maxvalue = ceil(maxvalue, stepvalue)
-			minvalue = floor(minvalue, stepvalue)
+			if granulate
+				maxvalue = ceil(maxvalue, stepvalue)
+				minvalue = floor(minvalue, stepvalue)
+			end
 			nbins = convert(Int, (maxvalue - minvalue) / convert(Dates.Millisecond, stepvalue))
 		elseif typeof(minvalue) <: Dates.Date
-			maxvalue = ceil(maxvalue, stepvalue)
-			minvalue = floor(minvalue, stepvalue)
+			if granulate
+				maxvalue = ceil(maxvalue, stepvalue)
+				minvalue = floor(minvalue, stepvalue)
+			end
 			nbins = -1
 			date = minvalue
 			while date <= maxvalue
@@ -115,11 +121,15 @@ function indicize(v; rev=false, nbins=length(v), minvalue=minimum(v), maxvalue=m
 				nbins += 1
 			end
 		else
-			maxvalue = ceil(maxvalue / stepvalue) * stepvalue
-			minvalue = floor(minvalue / stepvalue) * stepvalue
+			if granulate
+				maxvalue = ceil(maxvalue / stepvalue) * stepvalue
+				minvalue = floor(minvalue / stepvalue) * stepvalue
+			end
 			nbins = convert(Int, ceil((maxvalue - minvalue) / float(stepvalue)))
 		end
-		# @show minvalue, maxvalue
+		if granulate
+			@info("Granulated: $minvalue $maxvalue")
+		end
 	end
 	iv = convert(Vector{Int64}, ceil.((v .- minvalue) ./ (maxvalue - minvalue) .* nbins))
 	i0 = iv .== 0
@@ -130,7 +140,6 @@ function indicize(v; rev=false, nbins=length(v), minvalue=minimum(v), maxvalue=m
 	end
 	us = unique(sort(iv))
 	nb = collect(1:nbins)
-	@show nb
 	for k in unique(sort([us; nb]))
 		m = iv .== k
 		s = sum(m)
