@@ -18,6 +18,9 @@ function plotmatrix(X::AbstractMatrix; minvalue=NMFk.minimumnan(X), maxvalue=NMF
 	ys, xs, vs = Gadfly._findnz(x->!isnan(x), Xp)
 	n, m = size(Xp)
 	rect = checkrectbin(Xp)
+	if xmatrix != nothing && ymatrix != nothing
+		rectbin = true
+	end
 	if xticks != nothing
 		gm = [gm..., Gadfly.Scale.x_discrete(labels=i->xticks[i]), Gadfly.Guide.xticks(label=true)]
 	end
@@ -83,7 +86,7 @@ function plotmatrix(X::AbstractMatrix; minvalue=NMFk.minimumnan(X), maxvalue=NMF
 			yrectmax = ys .+ dy / 2
 		end
 	end
-	# @show ymatrixmin ymatrixmax xmatrixmax xmatrixmin
+	# @show ymatrixmin ymatrixmax xmatrixmax xmatrixmin yflip
 	gt = [Gadfly.Guide.title(title), Gadfly.Guide.xlabel(xlabel), Gadfly.Guide.ylabel(ylabel), Gadfly.Theme(major_label_font_size=major_label_font_size, key_label_font_size=key_label_font_size, key_title_font_size=key_title_font_size, bar_spacing=0Gadfly.mm), Gadfly.Coord.cartesian(yflip=yflip, fixed=true, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax), Gadfly.Scale.x_continuous, Gadfly.Scale.y_continuous]
 	if defaultcolor == nothing
 		if length(vs) > 0
