@@ -892,7 +892,6 @@ function makemovie(; movieformat="mp4", movieopacity::Bool=false, moviedir=".", 
 		# c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -vf scale="trunc(iw/2)*2:trunc(ih/2)*2,setpts=$vspeed*PTS" -c:v libx264 -profile:v high -pix_fmt yuv420p -g 30 -r 30 -y $p.mp4`
 		c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -filter:v scale="trunc(iw/2)*2:trunc(ih/2)*2,setpts=$vspeed*PTS" -c:v libx264 -profile:v high -pix_fmt yuv420p -g 30 -r 30 -y $p.mp4`
 	end
-	run(c)
 	if quiet
 		run(pipeline(c, stdout=devnull, stderr=devnull))
 	else
