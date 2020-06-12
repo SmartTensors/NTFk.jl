@@ -67,7 +67,7 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 		if xmax == nothing
 			xmax = timescale ? 1 : nx
 		end
-		xvalues = timescale ? vec(collect(xmax/nx:xmax/nx:xmax)) : vec(collect(1:nx))
+		xvalues = timescale ? vec(collect(xmin:(xmax-xmin)/(nx-1):xmax)) : vec(collect(1:nx))
 	end
 	if xfilter == nothing
 		xfilter = 1:nx
@@ -128,7 +128,7 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 		if xmax == nothing
 			xmax = 1
 		end
-		xvalues = timescale ? vec(collect(xmax/nx:xmax/nx:xmax)) : vec(collect(1:nx))
+		xvalues = timescale ? vec(collect(xmin:(xmax-xmin)/(nx-1):xmax)) : vec(collect(1:nx))
 	end
 	componentnames = map(i->"T$i", 1:crank)
 	dp = Vector{Int64}(undef, 0)
@@ -185,7 +185,7 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 		if xmax == nothing
 			xmax = 1
 		end
-		xvalues = timescale ? vec(collect(xmax/nx:xmax/nx:xmax)) : vec(collect(1:nx))
+		xvalues = timescale ? vec(collect(xmin:(xmax-xmin)/(nx-1):xmax)) : vec(collect(1:nx))
 	end
 	componentnames = map(i->"T$i", 1:crank)
 	dp = Vector{Int64}(undef, 0)
