@@ -853,7 +853,7 @@ function getradialmap(X::Matrix, x0, y0, nr, na)
 	return R
 end
 
-function makemovie(; movieformat="mp4", movieopacity::Bool=false, moviedir=".", prefix::String="", keyword="frame", imgformat = "png", cleanup::Bool=true, quiet::Bool=false, vspeed::Number=1.0, numberofdigits::Integer=6)
+function makemovie(; movieformat="mp4", movieopacity::Bool=false, moviedir=".", prefix::String="", keyword="frame", imgformat = "png", cleanup::Bool=true, quiet::Bool=true, vspeed::Number=1.0, numberofdigits::Integer=6)
 	p = joinpath(moviedir, prefix)
 	if moviedir == "."
 		moviedir, prefix = splitdir(prefix)
@@ -884,13 +884,15 @@ function makemovie(; movieformat="mp4", movieopacity::Bool=false, moviedir=".", 
 	elseif movieformat == "gif"
 		c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -f gif -filter:v "setpts=$vspeed*PTS" -y $p.gif`
 	elseif movieformat == "mp4"
-		c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -filter:v scale="trunc(iw/2)*2:trunc(ih/2)*2,setpts=$vspeed*PTS" -c:v libx264 -profile:v high -pix_fmt yuv420p -g 30 -r 30 -y $p.mp4`
+		s = "ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -filter:v scale=\"trunc(iw/2)*2:trunc(ih/2)*2,setpts=$vspeed*PTS\" -c:v libx264 -profile:v high -pix_fmt yuv420p -g 30 -r 30 -y $p.mp4"
+		c = `bash -l -c "$s"`
 	else
 		@warn("Unknown movie format $movieformat; mp4 will be used!")
 		movieformat = "mp4"
 		# c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -vf scale="trunc(iw/2)*2:trunc(ih/2)*2" -c:v libx264 -profile:v high -pix_fmt yuv420p -g 30 -r 30 -filter:v "setpts=$vspeed*PTS" -y $p.mp4`
 		# c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -vf scale="trunc(iw/2)*2:trunc(ih/2)*2,setpts=$vspeed*PTS" -c:v libx264 -profile:v high -pix_fmt yuv420p -g 30 -r 30 -y $p.mp4`
-		c = `ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -filter:v scale="trunc(iw/2)*2:trunc(ih/2)*2,setpts=$vspeed*PTS" -c:v libx264 -profile:v high -pix_fmt yuv420p -g 30 -r 30 -y $p.mp4`
+		s = "ffmpeg -i $p-$(keyword)%0$(numberofdigits)d.$imgformat -filter:v scale=\"trunc(iw/2)*2:trunc(ih/2)*2,setpts=$vspeed*PTS\" -c:v libx264 -profile:v high -pix_fmt yuv420p -g 30 -r 30 -y $p.mp4"
+		c = `bash -l -c "$s"`
 	end
 	if quiet
 		run(pipeline(c, stdout=devnull, stderr=devnull))
@@ -901,30 +903,57 @@ function makemovie(; movieformat="mp4", movieopacity::Bool=false, moviedir=".", 
 	return "$p.$movieformat"
 end
 
-function movievstack(movies...; vspeed::Number=1.0, newname="seismicity"=>"all")
+function moviehstack(movies...; vspeed::Number=1.0, newname="results"=>"all")
+	@show movies
 	nm = length(movies)
 	moviesall = nothing
 	for m = 1:nm
-		if occursin(newname[1], movies[m][1])
-			moviesall = map(i->replace(i, newname), movies[m])
+		if occursin(newname[1], movies[m])
+			moviesall = replace(movies[m], newname)
 			break
 		end
 	end
+	recursivemkdir(moviesall; filename=true)
 	if moviesall != nothing
-		for i = 1:length(movies[1])
-			c = "ffmpeg"
-			v = ""
-			z = ""
-			for m = 1:nm
-				c *= " -i $(movies[m][i])"
-				v *= "[$(m-1):v]setpts=$(vspeed)*PTS[v$m];"
-				z *= "[v$m]"
-			end
-			@show v
-			c *= " -filter_complex \"$(v) $(z)vstack=inputs=$(nm)[v]\" -map \"[v]\" $(moviesall[i])"
-			@show c
-			run(`bash -c $c`)
+		c = "ffmpeg"
+		v = ""
+		z = ""
+		for m = 1:nm
+			c *= " -i $(movies[m])"
+			v *= "[$(m-1):v]setpts=$(vspeed)*PTS[v$m];"
+			z *= "[v$m]"
 		end
+		c *= " -filter_complex \"$(v) $(z)hstack=inputs=$(nm)[v]\" -map \"[v]\" $(moviesall) -y"
+		run(`bash -l -c "$c"`)
+		return moviesall
+	else
+		@warn("Movie filenames cannot be renamed $(newname)!")
+	end
+	fdfdfgrrgrg
+	reenable_sigint(f::Function)
+end
+
+function movievstack(movies...; vspeed::Number=1.0, newname="results"=>"all")
+	nm = length(movies)
+	moviesall = nothing
+	for m = 1:nm
+		if occursin(newname[1], movies[m])
+			moviesall = replace(movies[m], newname)
+			break
+		end
+	end
+	recursivemkdir(moviesall; filename=true)
+	if moviesall != nothing
+		c = "ffmpeg"
+		v = ""
+		z = ""
+		for m = 1:nm
+			c *= " -i $(movies[m])"
+			v *= "[$(m-1):v]setpts=$(vspeed)*PTS[v$m];"
+			z *= "[v$m]"
+		end
+		c *= " -filter_complex \"$(v) $(z)vstack=inputs=$(nm)[v]\" -map \"[v]\" $(moviesall) -y"
+		run(`bash -l -c "$c"`)
 		return moviesall
 	else
 		@warn("Movie filenames cannot be renamed $(newname)!")
