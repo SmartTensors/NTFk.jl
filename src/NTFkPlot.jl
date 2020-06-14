@@ -247,7 +247,7 @@ function plotMtensors(X::Vector{AbstractArray}, dim::Integer=1; sizes=size(X[1])
 			g = Compose.hstack(Gadfly.plot(vcat(map(x->[x...], gv)...)..., Gadfly.Guide.manual_color_key("", signalnames, signalcolors)))
 		else
 			for m = 1:M
-				if length(colormap) == M
+				if length(colormap) > 1
 					gv[m] = plotmatrix(X[m][nt...]; minvalue=minvalue, maxvalue=maxvalue, key_label_font_size=key_label_font_size, title=ltitle, colormap=colormap[m], kw...)
 				else
 					gv[m] = plotmatrix(X[m][nt...]; minvalue=minvalue, maxvalue=maxvalue, key_label_font_size=key_label_font_size, title=ltitle, colormap=colormap, kw...)

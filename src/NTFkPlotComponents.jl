@@ -240,11 +240,11 @@ function plotallMtensorsandcomponents(t::TensorDecompositions.Tucker, M::Integer
 		return
 	end
 	v = getbalancedvectors(length(order), M)
-	X = gettensorcomponents(t, dim, pdim; transpose=transpose, prefix=prefix, filter=tensorfilter, mask=mask, transform=transform, order=order, maxcomponent=maxcomponent, savetensorslices=savetensorslices)
+	X = gettensorcomponents(t, dim, pdim; transpose=transpose, filter=tensorfilter, mask=mask, transform=transform, order=order, maxcomponent=maxcomponent, savetensorslices=savetensorslices)
 	for filter in v
 		s2 = plot2dtensorcomponents(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, code=true, order=order, filter=filter, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, transform=transform2d, gm=gm)
 		progressbar_2d = make_progressbar_2d(s2)
-		prefixnew = prefix == "" ? "" : prefix * "-$(join(filter, "_"))"
+		prefixnew = (prefix == "") || prefix == nothing ? "" : prefix * "-$(join(filter, "_"))"
 		plotMtensorcomponents(t, length(filter), dim, pdim; csize=csize, transpose=transpose, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], prefix=prefixnew, X=X, maxcomponent=maxcomponent, savetensorslices=savetensorslices, mask=mask, signalnames=["T$i" for i = filter], kw...)
 	end
 end
@@ -316,6 +316,9 @@ function plotalltensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1,
 end
 
 function getbalancedvectors(nc, M)
+	if M > nc
+		@warn("M is greater than the number of tensor dimensions ($(M) > $(nc))")
+	end
 	np = convert(Int, floor(nc / M))
 	np1 = convert(Int, ceil(nc / M))
 	x = reshape(collect(1:M*np), (M, np))
