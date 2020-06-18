@@ -301,7 +301,7 @@ function getgridvalues(v::AbstractVector, r; logtransform=true)
 	return f
 end
 
-function remap(v::AbstractVector, vi::UnitRange, ve::UnitRange; nonneg::Bool=true, sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line(Interpolations.OnGrid())))], ep=[Interpolations.Line(Interpolations.OnGrid())])
+function remap(v::AbstractVector, vi::AbstractUnitRange, ve::AbstractUnitRange; nonneg::Bool=true, sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line(Interpolations.OnGrid())))], ep=[Interpolations.Line(Interpolations.OnGrid())])
 	lv = length(v)
 	li = length(vi)
 	@assert lv == li
