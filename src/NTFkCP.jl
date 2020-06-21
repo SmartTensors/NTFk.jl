@@ -16,7 +16,7 @@ function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1,
 		@info("TensorDecompositions CanDecomp analysis using $(string(method)) ...")
 	end
 	recursivemkdir(resultdir; filename=false)
-	recursivemkdir(prefix; filename=false)
+	recursivemkdir(prefix; filename=true)
 	if seed < 0
 		seed = abs(rand(Int16))
 		@info("Random seed: $seed")
@@ -57,7 +57,7 @@ function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1,
 	println("$(trank): residual $(residues[imin]) worst tensor correlations $(correlations) rank $(csize) silhouette $(minsilhouette)")
 	if saveall
 		recursivemkdir(resultdir; filename=false)
-		recursivemkdir(prefix; filename=false)
+		recursivemkdir(prefix; filename=true)
 		FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "cp", cpi[imin])
 	end
 	return cpi[imin], residues[imin], correlations, minsilhouette
@@ -77,14 +77,14 @@ function analysis(X::AbstractArray{T,N}, tranks::Vector{Int}, nTF=1; seed::Numbe
 	end
 	Random.seed!(seed)
 	recursivemkdir(resultdir; filename=false)
-	recursivemkdir(prefix; filename=false)
+	recursivemkdir(prefix; filename=true)
 	tsize = size(X)
 	ndimensons = length(tsize)
 	nruns = length(tranks)
 	residues = Array{T}(undef, nruns)
 	correlations = Array{T}(undef, nruns, ndimensons)
 	cpf = Array{TensorDecompositions.CANDECOMP{T,N}}(undef, nruns)
-	minsilhouette = Array{Float64}(undef, nruns)
+	minsilhouette = Array{T}(undef, nruns)
 	if Distributed.nprocs() > 1 && !serial
 		r = Distributed.pmap(i->(Random.seed!(seed+i); analysis(X, tranks[i], nTF; method=method, resultdir=resultdir, prefix=prefix, kw..., serial=true, quiet=true)), 1:nruns)
 		cpf = map(i->(r[i][1]), 1:nruns)

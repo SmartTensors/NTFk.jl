@@ -25,7 +25,7 @@ function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Int
 	@info("TensorDecompositions Tucker analysis for a series of $(length(csizes)) core sizes ...")
 	@info("Clustering Dimension: $clusterdim")
 	recursivemkdir(resultdir; filename=false)
-	recursivemkdir(prefix; filename=false)
+	recursivemkdir(prefix; filename=true)
 	@assert clusterdim <= N || clusterdim > 1
 	seed > 0 && Random.seed!(seed)
 	tsize = size(X)
@@ -113,7 +113,7 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 	tsize = size(X)
 	ndimensons = length(tsize)
 	@info("Tensor size: $(tsize)")
-	residues = Vector{Float64}(undef, nTF)
+	residues = Vector{T}(undef, nTF)
 	tsi = Vector{TensorDecompositions.Tucker{T,N}}(undef, nTF)
 	WBig = Vector{Matrix}(undef, nTF)
 	# nans = isnan.(X)
@@ -162,7 +162,7 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 		println("$(csize): relative residual $(residues[imin]) worst tensor correlations $(correlations) rank $(csize_new) silhouette $(minsilhouette)")
 		if saveall
 			recursivemkdir(resultdir; filename=false)
-			recursivemkdir(prefix; filename=false)
+			recursivemkdir(prefix; filename=true)
 			FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize))->$(mapsize(csize_new)).$(outputformat)", "tucker", tsi[imin])
 		end
 		return tsi[imin], residues[imin], correlations, minsilhouette
@@ -178,7 +178,7 @@ methods: spnntucker, tucker_als, tucker_sym, tensorly_
 
 $(DocumentFunction.documentfunction(tucker))
 """
-function tucker(X::AbstractArray{T, N}, csize::NTuple{N, Int}; seed::Number=0, method::Symbol=:spnntucker, functionname::String=string(method), maxiter::Integer=DMAXITER, core_nonneg::Bool=true, verbose::Bool=false, tol::Number=1e-8, ini_decomp::Symbol=:ntfk_hosvd, lambda::Number=0.1, lambdas=fill(lambda, length(size(X)) + 1), eigmethod=trues(N), eigreduce=eigmethod, progressbar::Bool=false, order=1:N, compute_error::Bool=true, compute_rank::Bool=true, whichm::Symbol=:LM, hosvd_tol::Number=0.0, hosvd_maxiter::Integer=300, rtol::Number=0., kw...) where {T,N}
+function tucker(X::AbstractArray{T, N}, csize::NTuple{N, Int}; seed::Number=0, method::Symbol=:spnntucker, functionname::String=string(method), maxiter::Integer=DMAXITER, core_nonneg::Bool=true, verbose::Bool=false, tol::Number=1e-8, ini_decomp::Symbol=:ntfk_hosvd, lambda::Number=0.1, lambdas=convert.(T, fill(lambda, length(size(X)) + 1)), eigmethod=trues(N), eigreduce=eigmethod, progressbar::Bool=false, order=1:N, compute_error::Bool=true, compute_rank::Bool=true, whichm::Symbol=:LM, hosvd_tol::Number=0.0, hosvd_maxiter::Integer=300, rtol::Number=0., kw...) where {T,N}
 	if occursin("tucker_", string(method))
 		c = ttanalysis(X, csize; seed=seed, functionname=functionname, maxiter=maxiter, tol=tol, kw...)
 	elseif occursin("tensorly_", string(method))
