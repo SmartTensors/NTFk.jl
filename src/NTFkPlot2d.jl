@@ -61,16 +61,11 @@ function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	@assert dim >= 1 && dim <= ndimensons
 	crank = csize[dim]
 	nx, ny = size(t.factors[dim])
+	xfilter = xfilter == nothing ? (1:nx) : xfilter
 	if datestart != nothing
-		xvalues = NTFk.daterange(datestart, nx; dateend=dateend, dateincrement=dateincrement)
+		xvalues, xmin, xmax = NTFk.daterange(datestart, nx; dateend=dateend, dateincrement=dateincrement)
 	else
-		if xmax == nothing
-			xmax = timescale ? 1 : nx
-		end
-		xvalues = timescale ? vec(collect(xmin:(xmax-xmin)/(nx-1):xmax)) : vec(collect(1:nx))
-	end
-	if xfilter == nothing
-		xfilter = 1:nx
+		xvalues, xmin, xmax = NTFk.valuerange(xmin, xmax, nx, timescale)
 	end
 	ncomponents = length(filter)
 	loopcolors = ncomponents > ncolors ? true : false
@@ -121,14 +116,9 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	loopcolors = crank > ncolors ? true : false
 	nx, ny = size(t.factors[dim])
 	if datestart != nothing
-		xvalues = NTFk.daterange(datestart, nx; dateend=dateend, dateincrement=dateincrement)
-		xmin = minimum(xvalues)
-		xmax = maximum(xvalues)
+		xvalues, xmin, xmax = NTFk.daterange(datestart, nx; dateend=dateend, dateincrement=dateincrement)
 	else
-		if xmax == nothing
-			xmax = 1
-		end
-		xvalues = timescale ? vec(collect(xmin:(xmax-xmin)/(nx-1):xmax)) : vec(collect(1:nx))
+		xvalues, xmin, xmax = NTFk.valuerange(xmin, xmax, nx, timescale)
 	end
 	componentnames = map(i->"T$i", 1:crank)
 	dp = Vector{Int64}(undef, 0)
@@ -178,14 +168,9 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	loopcolors = crank > ncolors ? true : false
 	nx, ny = size(t.factors[dim])
 	if datestart != nothing
-		xvalues = NTFk.daterange(datestart, nx; dateend=dateend, dateincrement=dateincrement)
-		xmin = minimum(xvalues)
-		xmax = maximum(xvalues)
+		xvalues, xmin, xmax = NTFk.daterange(datestart, nx; dateend=dateend, dateincrement=dateincrement)
 	else
-		if xmax == nothing
-			xmax = 1
-		end
-		xvalues = timescale ? vec(collect(xmin:(xmax-xmin)/(nx-1):xmax)) : vec(collect(1:nx))
+		xvalues, xmin, xmax = NTFk.valuerange(xmin, xmax, nx, timescale)
 	end
 	componentnames = map(i->"T$i", 1:crank)
 	dp = Vector{Int64}(undef, 0)
@@ -324,4 +309,14 @@ function daterange(datestart, nx; dateend=nothing, dateincrement::String="Dates.
 	else
 		xvalues = datestart .+ (vec(collect(1:nx)) ./ nx .* (dateend .- datestart))
 	end
+	return xvalues, minimum(xvalues), maximum(xvalues)
+end
+
+function valuerange(xmin, xmax, nx, timescale)
+	xmin = xmin == nothing ? 0 : xmin
+	if xmax == nothing
+		xmax = timescale ? 1 : nx
+	end
+	xvalues = timescale ? vec(collect(xmin:(xmax-xmin)/(nx-1):xmax)) : vec(collect(1:nx))
+	return xvalues, xmin, xmaxs
 end
