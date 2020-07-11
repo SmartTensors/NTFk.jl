@@ -43,7 +43,7 @@ function clusterfactors(W, quiet=true)
 	_, clustersilhouettes, _ = NMFk.finalize(W, clusterassignments)
 	if !quiet
 		@info("Silhouettes for each of the $(length(clustersilhouettes)) clusters:" )
-		display(clustersilhouettes')
+		display(vec(clustersilhouettes))
 		println("Mean silhouette = ", Statistics.mean(clustersilhouettes))
 		println("Min  silhouette = ", minimum(clustersilhouettes))
 	end
@@ -353,7 +353,7 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 	return order
 end
 
-function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, prefix::String="", mask=nothing, transform=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savetensorslices::Bool=false)
+function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::String="", mask=nothing, transform=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savetensorslices::Bool=false)
 	cs = size(t.core)
 	ndimensons = length(cs)
 	@assert dim >= 1 && dim <= ndimensons
@@ -401,12 +401,12 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 	return X
 end
 
-function gettensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, prefix::String="", transform=nothing, mask=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude))
+function gettensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::String="", transform=nothing, mask=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude))
 	cs = size(t.core)
 	ndimensons = length(cs)
 	@assert dim >= 1 && dim <= ndimensons
 
-	X = gettensorcomponents(t, dim, pdim; transpose=transpose, prefix=prefix, mask=mask, transform=transform, filter=filter, order=order, maxcomponent=true)
+	X = gettensorcomponents(t, dim, pdim; prefix=prefix, mask=mask, transform=transform, filter=filter, order=order, maxcomponent=true)
 	pt = getptdimensions(pdim, ndimensons)
 	nt = ntuple(k->(k == dim ? 1 : Colon()), ndimensons)
 	sz = size(X[1][nt...])
@@ -417,12 +417,12 @@ function gettensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::U
 	return Xs
 end
 
-function savetensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, prefix::String="", transform=nothing, mask=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude))
+function savetensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::String="", transform=nothing, mask=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude))
 	cs = size(t.core)
 	ndimensons = length(cs)
 	@assert dim >= 1 && dim <= ndimensons
 
-	X = gettensorcomponents(t, dim, pdim; transpose=transpose, prefix=prefix, mask=mask, transform=transform, filter=filter, order=order, maxcomponent=true)
+	X = gettensorcomponents(t, dim, pdim; prefix=prefix, mask=mask, transform=transform, filter=filter, order=order, maxcomponent=true)
 	pt = getptdimensions(pdim, ndimensons)
 	nt = ntuple(k->(k == dim ? 1 : Colon()), ndimensons)
 	sz = size(X[1][nt...])

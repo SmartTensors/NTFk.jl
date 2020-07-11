@@ -5,7 +5,7 @@ import TensorToolbox
 import TensorDecompositions
 import Statistics
 
-function movie2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, M=nothing; order=gettensorcomponentorder(t, dim; method=:factormagnitude), quiet::Bool=false, timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", movie=true, prefix="", dpi::Integer=imagedpi, hsize=12Compose.inch, vsize=2Compose.inch, moviedir=".", vspeed=1.0, keyword="frame", movieformat="mp4", movieopacity::Bool=false, cleanup::Bool=true, kw...)
+function movietensorfactors(t::TensorDecompositions.Tucker, dim::Integer=1, M=nothing; order=gettensorcomponentorder(t, dim; method=:factormagnitude), quiet::Bool=false, timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", movie=true, prefix="", dpi::Integer=imagedpi, hsize=12Compose.inch, vsize=2Compose.inch, moviedir=".", vspeed=1.0, keyword="frame", movieformat="mp4", movieopacity::Bool=false, cleanup::Bool=true, kw...)
 	nc = length(order)
 	if M != nothing
 		np = convert(Int, ceil(nc / 3))
@@ -23,7 +23,7 @@ function movie2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1,
 			filter = 1:nc
 			prefixnew = prefix
 		end
-		s = plot2dtensorcomponents(t, dim; kw..., order=order, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, code=true, filter=filter)
+		s = plottensorfactors(t, dim; kw..., order=order, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, code=true, filter=filter)
 		nt = size(t.factors[dim], 1)
 		timestep = 1 / nt
 		progressbar_2d = make_progressbar_2d(s)
@@ -53,7 +53,7 @@ function movie2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1,
 	end
 end
 
-function plot2dtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, dpi::Integer=imagedpi, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), xmin=datestart, xmax=dateend, xfilter=nothing, transform=nothing, linewidth=2Gadfly.pt, separate::Bool=false)
+function plottensorfactors(t::TensorDecompositions.Tucker, dim::Integer=1; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, dpi::Integer=imagedpi, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", code::Bool=false, order=gettensorcomponentorder(t, dim; method=:factormagnitude), filter=vec(1:length(order)), xmin=datestart, xmax=dateend, xfilter=nothing, transform=nothing, linewidth=2Gadfly.pt, separate::Bool=false)
 	recursivemkdir(figuredir; filename=false)
 	recursivemkdir(filename)
 	csize = TensorToolbox.mrank(t.core)

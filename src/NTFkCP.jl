@@ -16,7 +16,7 @@ function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1,
 		@info("TensorDecompositions CanDecomp analysis using $(string(method)) ...")
 	end
 	recursivemkdir(resultdir; filename=false)
-	recursivemkdir(prefix; filename=true)
+	recursivemkdir(prefix; filename=false)
 	if seed < 0
 		seed = abs(rand(Int16))
 		@info("Random seed: $seed")
@@ -41,8 +41,8 @@ function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1,
 	for n = 1:nTF
 		residues[n] = TensorDecompositions.rel_residue(cpi[n], X)
 		normalizelambdas!(cpi[n])
-		f = map(k->cpi[n].factors[k]', 1:ndimensons)
-		# p = NTFk.plotmatrix(cpi[n].factors[1]')
+		f = map(k->permutedims(cpi[n].factors[k]), 1:ndimensons)
+		# p = NTFk.plotmatrix(permutedims(cpi[n].factors[1]))
 		# display(p); println()
 		# p = NTFk.plotmatrix(f)
 		# display(p); println()
@@ -57,7 +57,7 @@ function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1,
 	println("$(trank): residual $(residues[imin]) worst tensor correlations $(correlations) rank $(csize) silhouette $(minsilhouette)")
 	if saveall
 		recursivemkdir(resultdir; filename=false)
-		recursivemkdir(prefix; filename=true)
+		recursivemkdir(prefix; filename=false)
 		FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "cp", cpi[imin])
 	end
 	return cpi[imin], residues[imin], correlations, minsilhouette
@@ -77,7 +77,7 @@ function analysis(X::AbstractArray{T,N}, tranks::Vector{Int}, nTF=1; seed::Numbe
 	end
 	Random.seed!(seed)
 	recursivemkdir(resultdir; filename=false)
-	recursivemkdir(prefix; filename=true)
+	recursivemkdir(prefix; filename=false)
 	tsize = size(X)
 	ndimensons = length(tsize)
 	nruns = length(tranks)

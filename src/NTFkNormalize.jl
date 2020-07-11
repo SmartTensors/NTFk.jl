@@ -8,6 +8,7 @@ $(DocumentFunction.documentfunction(normalizefactors!))
 """
 function normalizefactors!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::Bool=false) where {T,N}
 	check && (Xi = TensorDecompositions.compose(X))
+	@assert length(order) == N
 	l = size(X.core)
 	for i = order
 		m = maximum(X.factors[i]; dims=1)
@@ -33,16 +34,16 @@ $(DocumentFunction.documentfunction(normalizecore!))
 """
 function normalizecore!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::Bool=false) where {T,N}
 	check && (Xi = TensorDecompositions.compose(X))
+	@assert length(order) == N
 	l = size(X.core)
 	v = collect(1:N)
 	for i = order
 		m = vec(maximum(X.core; dims=v[v.!=i]))
-		X.factors[i] .*= m'
+		X.factors[i] .*= permutedims(m)
 		m[m.==0] .= 1.0
 		for j = 1:l[i]
 			ind = map(k->((i==k) ? j : Colon()), 1:N)
 			X.core[ind...] ./= m[j]
-			# @show m[j]
 		end
 		m = vec(maximum(X.core; dims=v[v.!=i]))
 	end
@@ -60,7 +61,8 @@ $(DocumentFunction.documentfunction(normalizeslices!))
 """
 function normalizeslices!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::Bool=false) where {T,N}
 	check && (Xi = TensorDecompositions.compose(X))
-	NTFk.normalizefactors!(X)
+	@assert length(order) == N
+	NTFk.normalizefactors!(X, order)
 	NTFk.normalizecore!(X, order)
 	M = NTFk.compose(X, order[2:end])
 	m = maximum(M; dims=order[2:end])
@@ -76,17 +78,29 @@ function normalizeslices!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check:
 end
 
 """
-Scale Tucker deconstructed slices
+Normalize Tucker deconstructed components
 
-$(DocumentFunction.documentfunction(scalefactors!))
+$(DocumentFunction.documentfunction(normalizeslices!))
 """
-function scalefactors!(X::TensorDecompositions.Tucker{T,N}, m::AbstractVector, order=1:N; check::Bool=false) where {T,N}
+function normalizecomponents!(X::TensorDecompositions.Tucker{T,N}, dim::Number; check::Bool=false) where {T,N}
+	X = gettensorcomponents(t, dim)
+	m = NMFk.maximumnan.(X)
+	X ./= m
+	normalizecomponents!(t, dim, m, check=check)
+end
+
+"""
+Scale Tucker components
+
+$(DocumentFunction.documentfunction(normalizecomponents!))
+"""
+function normalizecomponents!(X::TensorDecompositions.Tucker{T,N}, dim::Number, m::AbstractVector; check::Bool=false) where {T,N}
 	check && (Xi = TensorDecompositions.compose(X))
-	NTFk.normalizefactors!(X)
-	NTFk.normalizecore!(X, order)
-	@assert length(m) == size(X.core, order[1])
+	@assert length(m) == size(X.core, dim)
 	for i = 1:length(m)
-		X.factors[order[1]][:,i] .*= m[i]
+		t = ntuple(k->(k == dim ? i : Colon()), N)
+		X.core[t...] ./= m[i]
+		X.factors[dim][:,i] .*= m[i]
 	end
 	if check
 		Xe = TensorDecompositions.compose(X)
@@ -121,7 +135,7 @@ $(DocumentFunction.documentfunction(normalizelambdas!))
 """
 function normalizelambdas!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; check::Bool=false) where {T,N}
 	check && (Xi = TensorDecompositions.compose(X))
-	m = vec(X.lambdas)' .^ (1/N)
+	m = permutedims(vec(X.lambdas)) .^ (1/N)
 	for i = order
 		X.factors[i] .*= m
 	end

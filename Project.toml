@@ -1,7 +1,7 @@
 name = "NTFk"
 uuid = "1226e131-0b97-51f8-8a3f-c1798118cd52"
 authors = ["Velimir V Vesselinov (monty) <velimir.vesselinov@gmail.com>"]
-version = "0.3.7"
+version = "0.4.0"
 
 [deps]
 Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
@@ -61,7 +61,7 @@ JLD2 = "^0"
 LoadTensorDecompositions = "^0"
 MATLAB = "^0"
 Measures = "^0"
-NMFk = "^0.6"
+NMFk = "^0.7"
 PyCall = "^1"
 PyPlot = "^2"
 TensorDecompositions = "^1"

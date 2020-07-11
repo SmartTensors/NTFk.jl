@@ -25,7 +25,7 @@ function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Int
 	@info("TensorDecompositions Tucker analysis for a series of $(length(csizes)) core sizes ...")
 	@info("Clustering Dimension: $clusterdim")
 	recursivemkdir(resultdir; filename=false)
-	recursivemkdir(prefix; filename=true)
+	recursivemkdir(prefix; filename=false)
 	@assert clusterdim <= N || clusterdim > 1
 	seed > 0 && Random.seed!(seed)
 	tsize = size(X)
@@ -138,12 +138,6 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 			println("$(n): relative residual $(residues[n])")
 			normalizecore!(tsi[n])
 			f = permutedims(tsi[n].factors[clusterdim])
-			# f[f.==0] = max(minimum(f), 1e-6)
-			# p = NTFk.plotmatrix(cpi[n].factors[1]')
-			# display(p); println()
-			# p = NTFk.plotmatrix(f)
-			# display(p); println()
-			# @show minimum(cpi[n].lambdas), maximum(cpi[n].lambdas)
 			WBig[n] = hcat(f)
 		else
 			residues[n] = Inf
@@ -162,7 +156,7 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 		println("$(csize): relative residual $(residues[imin]) worst tensor correlations $(correlations) rank $(csize_new) silhouette $(minsilhouette)")
 		if saveall
 			recursivemkdir(resultdir; filename=false)
-			recursivemkdir(prefix; filename=true)
+			recursivemkdir(prefix; filename=false)
 			FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize))->$(mapsize(csize_new)).$(outputformat)", "tucker", tsi[imin])
 		end
 		return tsi[imin], residues[imin], correlations, minsilhouette
