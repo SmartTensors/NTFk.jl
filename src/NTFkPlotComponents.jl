@@ -250,7 +250,7 @@ function plotMtensorslices(t::TensorDecompositions.Tucker, M::Integer, dim::Inte
 	minvalue = NMFk.minimumnan(map(i->NMFk.minimumnan(X[i]), 1:M))
 	maxvalue = NMFk.maximumnan(map(i->NMFk.maximumnan(X[i]), 1:M))
 	pt = getptdimensions(pdim, length(csize), transpose)
-	XM = Vector{AbstractArray}(undef, M)
+	XM = Vector{Array}(undef, M)
 	for i = 1:M
 		XM[i] = permutedims(X[order[i]], pt)
 	end
