@@ -394,6 +394,7 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 		nanmask!(X[i], mask)
 		tt.core .= t.core
 	end
+	X = convert(Array{typeof(X[1])}, X)
 	if savetensorslices
 		pt = getptdimensions(pdim, ndimensons)
 		nt = ntuple(k->(k == dim ? 1 : Colon()), ndimensons)

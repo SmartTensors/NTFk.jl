@@ -250,10 +250,11 @@ function plotMtensorslices(t::TensorDecompositions.Tucker, M::Integer, dim::Inte
 	minvalue = NMFk.minimumnan(map(i->NMFk.minimumnan(X[i]), 1:M))
 	maxvalue = NMFk.maximumnan(map(i->NMFk.maximumnan(X[i]), 1:M))
 	pt = getptdimensions(pdim, length(csize), transpose)
-	XM = Vector{Array}(undef, M)
+	XM = Vector{Any}(undef, M)
 	for i = 1:M
 		XM[i] = permutedims(X[order[i]], pt)
 	end
+	XM = convert(Array{typeof(XM[1])}, XM)
 	nc = length(X)
 	if length(gla) > 1
 		@assert length(gla) == nc
