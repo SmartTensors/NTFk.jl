@@ -236,7 +236,7 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 	filename = plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt), 1; prefix=prefix, barratio=barratio, gla=[gla[order[1]], gla[order[2]], gla[order[3]]], kw...)
 	if maxcomponent && prefix != ""
 		recursivemkdir(prefix; filename=true)
-		mv("$prefix-frame000001.png", "$prefix-max.png"; force=true)
+		mv("$prefix.png", "$prefix-max.png"; force=true)
 		return
 	else
 		return filename
@@ -267,7 +267,7 @@ function plotMtensorslices(t::TensorDecompositions.Tucker, M::Integer, dim::Inte
 	filename = plotMtensors(XM, 1; prefix=prefix, barratio=barratio, gla=[gla[order[i]] for i=1:M], kw...)
 	if maxcomponent && prefix != ""
 		recursivemkdir(prefix; filename=true)
-		mv("$prefix-frame000001.png", "$prefix-max.png"; force=true)
+		mv("$prefix.png", "$prefix-max.png"; force=true)
 	else
 		return filename
 	end

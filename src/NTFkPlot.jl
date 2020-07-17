@@ -281,7 +281,11 @@ function plotMtensors(X::Vector{Array{T,N}}, dim::Integer=1; sizes=size(X[1]), M
 			end
 		end
 		if prefix != ""
-			filename = setnewfilename(prefix, i; keyword=keyword)
+			if sizes[dim] > 1
+				filename = setnewfilename(prefix, i; keyword=keyword)
+			else
+				filename = prefix * ".png"
+			end
 			if typeof(f) != Compose.Context
 				if overlap
 					Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, 1 - barratio), g), Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(f))))
