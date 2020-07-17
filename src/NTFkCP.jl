@@ -7,7 +7,7 @@ Candecomp/Parafac (CP) deconstruction: single tensor rank analysis
 
 methods: ALS, SGSD, cp_als, cp_apr, cp_nmu, cp_opt, cp_sym, cp_wopt
 """
-function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1, tol=1e-8, verbose=false, max_iter=DMAXITER, method=:ALS, resultdir::String=".", prefix::String="$(string(method))", quiet=true, serial::Bool=false, saveall=false, kw...) where {T,N}
+function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1, tol=1e-8, verbose=false, max_iter=DMAXITER, method=:ALS, resultdir::String=".", prefix::String="$(string(method))", quiet=true, serial::Bool=false, saveall::Bool=true, kw...) where {T,N}
 	if occursin("cp_", string(method))
 		@info("MATLAB TensorToolbox CanDecomp analysis using $(string(method)) ...")
 	elseif occursin("bcu_", string(method))
