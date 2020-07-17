@@ -11,7 +11,7 @@ function plotfactor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CA
 end
 
 function plotfactors(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, cutoff::Number=0; prefix="", kw...)
-	recursivemkdir(prefix)
+	recursivemkdir(prefix; filename=true)
 	for i = 1:length(t.factors)
 		display(plotfactor(t, i, cutoff; filename="$(prefix)_factor$(i).png", kw...))
 		println()
@@ -40,7 +40,7 @@ function plottensor(X::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k
 		return
 	end
 	recursivemkdir(moviedir; filename=false)
-	recursivemkdir(prefix)
+	recursivemkdir(prefix; filename=true)
 	dimname = namedimension(N; char="D", names=("Row", "Column", "Layer"))
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
@@ -79,7 +79,7 @@ function plot2tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, dim::Integ
 	if !checkdimension(dim, N)
 		return
 	end
-	recursivemkdir(prefix)
+	recursivemkdir(prefix; filename=true)
 	if !uniformscaling
 		minvalue = NMFk.minimumnan(X1)
 		maxvalue = NMFk.maximumnan(X1)
@@ -131,7 +131,7 @@ function plotcmptensors(X1::Array{T,N}, T2::Union{TensorDecompositions.Tucker,Te
 end
 
 function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=NMFk.minimumnan([X1 X2 X3]), maxvalue=NMFk.maximumnan([X1 X2 X3]), minvalue2=minvalue, maxvalue2=maxvalue, minvalue3=minvalue, maxvalue3=maxvalue, prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi,moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, sizes=size(X1), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::String="Dates.Day", dateend=nothing, progressbar=progressbar_regular, barratio::Number=1/2, uniformscaling::Bool=true, vspeed=1.0, movieformat="mp4", movieopacity::Bool=false, colormap=colormap_gyr, overlap::Bool=false, key_label_font_size=12Gadfly.pt, opacity=0.8, gla=[], signalnames=["T1", "T2", "T3"], kw...) where {T,N}
-	recursivemkdir(prefix)
+	recursivemkdir(prefix; filename=true)
 	if !checkdimension(dim, N)
 		return
 	end
@@ -222,7 +222,7 @@ function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::Abstra
 end
 
 function plotMtensors(X::Vector{Array{T,N}}, dim::Integer=1; sizes=size(X[1]), M=length(X), mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=NMFk.minimumnan(map(i->NMFk.minimumnan(X[i]), 1:M)), maxvalue=NMFk.maximumnan(map(i->NMFk.maximumnan(X[i]), 1:M)), prefix::String="", keyword="frame", movie::Bool=false, hsize=24Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi,moviedir::String=".", ltitle::String="", ctitle::String="", rtitle::String="", quiet::Bool=false, cleanup::Bool=true, timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::String="Dates.Day", dateend=nothing, progressbar=progressbar_regular, barratio::Number=1/2, uniformscaling::Bool=true, vspeed=1.0, movieformat="mp4", movieopacity::Bool=false, colormap=colormap_gyr, overlap::Bool=false, key_label_font_size=16Gadfly.pt, opacity=0.8, gla=[], signalnames=["T$i" for i=1:M], signalcolors=colors[1:M], kw...) where {T, N}
-	recursivemkdir(prefix)
+	recursivemkdir(prefix; filename=true)
 	if !checkdimension(dim, N)
 		return
 	end

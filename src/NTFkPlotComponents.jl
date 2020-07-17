@@ -8,7 +8,7 @@ import Distributions
 import Statistics
 
 function plottensorslices(X1::Array, t2::TensorDecompositions.CANDECOMP; prefix::String="", filter=(), kw...)
-	recursivemkdir(prefix)
+	recursivemkdir(prefix; filename=true)
 	ndimensons = length(size(X1))
 	crank = length(t2.lambdas)
 	tt = deepcopy(t2)
@@ -26,7 +26,7 @@ function plottensorslices(X1::Array, t2::TensorDecompositions.CANDECOMP; prefix:
 end
 
 function plottensorslices(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t2.core), prefix::String="", filter=(), kw...)
-	recursivemkdir(prefix)
+	recursivemkdir(prefix; filename=true)
 	ndimensons = length(size(X1))
 	@assert dim >= 1 && dim <= ndimensons
 	@assert ndimensons == length(csize)
@@ -54,7 +54,7 @@ function plottensorslices(X1::Array, t2::TensorDecompositions.Tucker, dim::Integ
 end
 
 function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), mask=nothing, transform=nothing, prefix::String="", filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), kw...)
-	recursivemkdir(prefix)
+	recursivemkdir(prefix; filename=true)
 	ndimensons = length(csize)
 	@assert dim >= 1 && dim <= ndimensons
 	dimname = namedimension(ndimensons)
@@ -86,7 +86,7 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 end
 
 function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t2.core), mask=nothing, transform=nothing, prefix::String="", filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), kw...)
-	recursivemkdir(prefix)
+	recursivemkdir(prefix; filename=true)
 	ndimensons = length(size(X1))
 	@assert dim >= 1 && dim <= ndimensons
 	@assert ndimensons == length(csize)
@@ -121,7 +121,7 @@ end
 function plottensorandsomething(X::Array, something, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; minvalue=NMFk.minimumnan(X), maxvalue=NMFk.maximumnan(X), sizes=size(X), xtitle::AbstractString="Time", ytitle::AbstractString="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::String="Dates.Day", dateend=(datestart != nothing) ? datestart + Core.eval(Main, Meta.parse(dateincrement))(sizes[dim]) : nothing, cleanup::Bool=true, movie::Bool=false, moviedir=".", prefix::String="", vspeed=1.0, keyword="frame", quiet::Bool=false, hsize=6Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi, movieformat="mp4", movieopacity::Bool=false, barratio=2/3, kw...)
 	ndimensons = length(sizes)
 	recursivemkdir(moviedir; filename=false)
-	recursivemkdir(prefix)
+	recursivemkdir(prefix; filename=true)
 	dimname = namedimension(ndimensons; char="D", names=("Row", "Column", "Layer"))
 	progressbar_2d = make_progressbar_2d(something)
 	for i = 1:sizes[dim]
@@ -192,7 +192,7 @@ function plotall3slices_factors(t::TensorDecompositions.Tucker, dim::Integer=1, 
 	plotallMslices_factors(t, 3, dim, pdim; kw...)
 end
 
-function plotallMslices_factors(t::TensorDecompositions.Tucker, M::Integer, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; mask=nothing, csize::Tuple=TensorToolbox.mrank(t.core), transpose::Bool=false, xtitle::AbstractString="Time", ytitle::AbstractString="Magnitude", timescale::Bool=true, normalizeslices::Bool=false, datestart=nothing, dateincrement::String="Dates.Day", dateend=nothing, functionname="Statistics.mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), xmin=datestart, xmax=dateend, ymin=nothing, ymax=nothing, prefix=nothing, maxcomponent::Bool=false, savetensorslices::Bool=false, transform=nothing, transform2d=nothing, tensorfilter=(), gm=[], kw...)
+function plotallMslices_factors(t::TensorDecompositions.Tucker, M::Integer, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; mask=nothing, csize::Tuple=TensorToolbox.mrank(t.core), transpose::Bool=false, xtitle::AbstractString="Time", ytitle::AbstractString="Magnitude", timescale::Bool=true, normalizeslices::Bool=false, datestart=nothing, dateincrement::String="Dates.Day", dateend=nothing, functionname="Statistics.mean", order=gettensorcomponentorder(t, dim; method=:factormagnitude), xmin=datestart, xmax=dateend, ymin=nothing, ymax=nothing, prefix=nothing, maxcomponent::Bool=false, savetensorslices::Bool=false, transform=nothing, transform2d=nothing, tensorfilter=(), gm=[], key_label_font_size=8Gadfly.pt, kw...)
 	ndimensons = length(t.factors)
 	if !checkdimension(dim, ndimensons) || !checkdimension(pdim, ndimensons)
 		return
@@ -208,7 +208,7 @@ function plotallMslices_factors(t::TensorDecompositions.Tucker, M::Integer, dim:
 		s2 = plottensorfactors(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, code=true, order=order, filter=filter, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, transform=transform2d, gm=gm)
 		progressbar_2d = make_progressbar_2d(s2)
 		prefixnew = (prefix == "") || prefix == nothing ? "" : prefix * "-$(length(X))-$(join(filter, "_"))"
-		plotMtensorslices(t, length(filter), dim, pdim; csize=csize, transpose=transpose, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], prefix=prefixnew, X=X, maxcomponent=maxcomponent, savetensorslices=savetensorslices, mask=mask, signalnames=["T$i" for i = filter], kw...)
+		plotMtensorslices(t, length(filter), dim, pdim; csize=csize, transpose=transpose, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], prefix=prefixnew, X=X, maxcomponent=maxcomponent, savetensorslices=savetensorslices, mask=mask, signalnames=["T$i" for i = filter], key_label_font_size=key_label_font_size, kw...)
 	end
 	if normalizeslices
 		normalizecomponents!(t, dim, 1 ./ m)
@@ -235,7 +235,7 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 	pt = getptdimensions(pdim, length(csize), transpose)
 	filename = plot3tensors(permutedims(X[order[1]], pt), permutedims(X[order[2]], pt), permutedims(X[order[3]], pt), 1; prefix=prefix, barratio=barratio, gla=[gla[order[1]], gla[order[2]], gla[order[3]]], kw...)
 	if maxcomponent && prefix != ""
-		recursivemkdir(prefix)
+		recursivemkdir(prefix; filename=true)
 		mv("$prefix-frame000001.png", "$prefix-max.png"; force=true)
 		return
 	else
@@ -266,7 +266,7 @@ function plotMtensorslices(t::TensorDecompositions.Tucker, M::Integer, dim::Inte
 	end
 	filename = plotMtensors(XM, 1; prefix=prefix, barratio=barratio, gla=[gla[order[i]] for i=1:M], kw...)
 	if maxcomponent && prefix != ""
-		recursivemkdir(prefix)
+		recursivemkdir(prefix; filename=true)
 		mv("$prefix-frame000001.png", "$prefix-max.png"; force=true)
 	else
 		return filename

@@ -433,7 +433,7 @@ function savetensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::
 end
 
 function savetensorslices(X::AbstractArray, pt, sz, order, prefix::String="")
-	recursivemkdir(prefix)
+	recursivemkdir(prefix; filename=true)
 	for (i, e) in enumerate(order)
 		ii = lpad("$i", 4, "0")
 		# @show NMFk.minimumnan(X[e]), NMFk.maximumnan(X[e])

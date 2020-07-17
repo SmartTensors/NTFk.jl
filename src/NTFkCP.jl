@@ -16,7 +16,7 @@ function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1,
 		@info("TensorDecompositions CanDecomp analysis using $(string(method)) ...")
 	end
 	recursivemkdir(resultdir; filename=false)
-	recursivemkdir(prefix; filename=false)
+	recursivemkdir(prefix; filename=true)
 	if seed < 0
 		seed = abs(rand(Int16))
 		@info("Random seed: $seed")
@@ -57,7 +57,7 @@ function analysis(X::AbstractArray{T,N}, trank::Integer, nTF=1; seed::Number=-1,
 	println("$(trank): residual $(residues[imin]) worst tensor correlations $(correlations) rank $(csize) silhouette $(minsilhouette)")
 	if saveall
 		recursivemkdir(resultdir; filename=false)
-		recursivemkdir(prefix; filename=false)
+		recursivemkdir(prefix; filename=true)
 		FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "cp", cpi[imin])
 	end
 	return cpi[imin], residues[imin], correlations, minsilhouette
@@ -77,7 +77,7 @@ function analysis(X::AbstractArray{T,N}, tranks::Vector{Int}, nTF=1; seed::Numbe
 	end
 	Random.seed!(seed)
 	recursivemkdir(resultdir; filename=false)
-	recursivemkdir(prefix; filename=false)
+	recursivemkdir(prefix; filename=true)
 	tsize = size(X)
 	ndimensons = length(tsize)
 	nruns = length(tranks)
@@ -111,9 +111,9 @@ function analysis(X::AbstractArray{T,N}, tranks::Vector{Int}, nTF=1; seed::Numbe
 	@info("Estimated true core size (diagonal length): $(csize)")
 	if prefix != ""
 		if nruns > 1
-			FileIO.save("$(resultdir)/$(prefix)-$(csize).$(outputformat)", "cp_vector", cpf)
+			FileIO.save("$(resultdir)/$(prefix)-$(csize)-all.$(outputformat)", "cp_vector", cpf)
 		else
-			FileIO.save("$(resultdir)/$(prefix)-$(csize).$(outputformat)", "cp", cpf[1])
+			FileIO.save("$(resultdir)/$(prefix)-$(csize)-all.$(outputformat)", "cp", cpf[1])
 		end
 	end
 	return cpf, csize, ibest

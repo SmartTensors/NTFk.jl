@@ -25,7 +25,7 @@ function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Int
 	@info("TensorDecompositions Tucker analysis for a series of $(length(csizes)) core sizes ...")
 	@info("Clustering Dimension: $clusterdim")
 	recursivemkdir(resultdir; filename=false)
-	recursivemkdir(prefix; filename=false)
+	recursivemkdir(prefix; filename=true)
 	@assert clusterdim <= N || clusterdim > 1
 	seed > 0 && Random.seed!(seed)
 	tsize = size(X)
@@ -70,9 +70,9 @@ function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Int
 		@info("Estimated true core size based on the reconstruction: $(csize)")
 		if prefix != ""
 			if nruns > 1
-				FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "tucker_vector", tucker_spnn)
+				FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize))-all.$(outputformat)", "tucker_vector", tucker_spnn)
 			else
-				FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "tucker", tucker_spnn[1])
+				FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize))-all.$(outputformat)", "tucker", tucker_spnn[1])
 			end
 		end
 		return tucker_spnn, csize, ibest
@@ -156,8 +156,8 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 		println("$(csize): relative residual $(residues[imin]) worst tensor correlations $(correlations) rank $(csize_new) silhouette $(minsilhouette)")
 		if saveall
 			recursivemkdir(resultdir; filename=false)
-			recursivemkdir(prefix; filename=false)
-			FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize))->$(mapsize(csize_new)).$(outputformat)", "tucker", tsi[imin])
+			recursivemkdir(prefix; filename=true)
+			FileIO.save("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "tucker", tsi[imin])
 		end
 		return tsi[imin], residues[imin], correlations, minsilhouette
 	else
