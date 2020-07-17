@@ -94,7 +94,7 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 		try
 			tsi, residues, correlations, minsilhouette = FileIO.load("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "tucker", "residues", "correlations", "silhouette")
 			return tsi, residues, correlations, minsilhouette
-		catch
+		catch errmsg
 			@warn("File $(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat) does not provide the expected information; simulations will be rerun!")
 		end
 	end
