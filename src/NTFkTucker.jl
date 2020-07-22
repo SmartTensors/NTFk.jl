@@ -94,6 +94,7 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 		if isfile("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)")
 			try
 				tsi, residues, correlations, minsilhouette = FileIO.load("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "tucker", "residues", "correlations", "silhouette")
+				@info("Tensor decompositions loaded from $(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat).")
 				return tsi, residues, correlations, minsilhouette
 			catch errmsg
 				@warn("File $(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat) does not provide the expected information; tensor decompositions will be rerun!")
