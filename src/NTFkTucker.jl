@@ -90,12 +90,16 @@ methods: spnntucker, tucker_als, tucker_sym, tensorly_
 $(DocumentFunction.documentfunction(analysis))
 """
 function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Integer=1; serial::Bool=false, clusterdim::Integer=1, resultdir::String=".", loadall::Bool=false, saveall::Bool=true, quiet::Bool=true, method=:spnntucker, prefix::String="spnn", seed::Integer=-1, kw...) where {T,N}
-	if loadall && isfile("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)")
-		try
-			tsi, residues, correlations, minsilhouette = FileIO.load("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "tucker", "residues", "correlations", "silhouette")
-			return tsi, residues, correlations, minsilhouette
-		catch errmsg
-			@warn("File $(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat) does not provide the expected information; simulations will be rerun!")
+	if loadall
+		if isfile("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)")
+			try
+				tsi, residues, correlations, minsilhouette = FileIO.load("$(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat)", "tucker", "residues", "correlations", "silhouette")
+				return tsi, residues, correlations, minsilhouette
+			catch errmsg
+				@warn("File $(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat) does not provide the expected information; tensor decompositions will be rerun!")
+			end
+		else
+			@warn("File $(resultdir)/$(prefix)-$(mapsize(csize)).$(outputformat) does not exist; tensor decompositions will be executed!")
 		end
 	end
 	if occursin("tucker_", string(method))

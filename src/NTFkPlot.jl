@@ -121,6 +121,10 @@ function plot3matrices(X1::Matrix, X2::Matrix, X3::Matrix; kw...)
 	plot3tensors([X1], [X2], [X3], 1; minvalue=NMFk.minimumnan([X1 X2 X3]), maxvalue=NMFk.maximumnan([X1 X2 X3]), kw...)
 end
 
+function plotcmptensors(X1::Array{T,N}, X2::Array{T,N}, dim::Integer=1; center=true, transform=nothing, mask=nothing, kw...) where {T,N}
+	plot2tensors(X1, X2, dim; minvalue=NMFk.minimumnan([X1 X2]), maxvalue=NMFk.maximumnan([X1 X2]), kw...)
+end
+
 function plotcmptensors(X1::Array{T,N}, T2::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1; center=true, transform=nothing, mask=nothing, kw...) where {T,N}
 	X2 = TensorDecompositions.compose(T2)
 	if transform != nothing
