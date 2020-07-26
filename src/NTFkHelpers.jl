@@ -287,7 +287,41 @@ function getpredictions(t::TensorDecompositions.Tucker{T,N}, dim, v; sp=[Interpo
 	return tn
 end
 
-function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core, firstpeak::Bool=true, flipdim::Bool=true, quiet::Bool=true)
+function getsignalorder(X::Vector{Array{T,N}}; flipdim::Bool=true, rev=flipdim, functionname::String="NMFk.sumnan") where {T,N}
+	vm = vec(map(i->Core.eval(NTFk, Meta.parse(functionname))(X[i]), 1:length(X)))
+	return sortperm(vm; rev=rev)
+end
+
+function getsignalorder(p::Array; firstpeak::Bool=true, flipdim::Bool=true, quiet::Bool=true)
+	crank = size(p, 2)
+	fmin = vec(NMFk.minimumnan(p, dims=1))
+	fmax = vec(NMFk.maximumnan(p, dims=1))
+	fdx = fmax .- fmin
+	for i = 1:size(p, 2)
+		if fmax[i] == 0
+			@warn("Maximum of signal $i is equal to zero!")
+		end
+		if fdx[i] == 0
+			@warn("Signal $i has zero variability!")
+			crank -= 1
+		end
+	end
+	if flipdim
+		ifdx = sortperm(fdx; rev=true)[1:crank]
+	else
+		ifdx = reverse(sortperm(fdx; rev=true)[1:crank]; dims=1)
+	end
+	!quiet && @info("Signal magnitudes (max - min): $fdx")
+	if firstpeak
+		imax = map(i->argmax(p[:, ifdx[i]]), 1:crank)
+		order = ifdx[sortperm(imax)]
+	else
+		order = ifdx
+	end
+	return order
+end
+
+function getsignalorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core, firstpeak::Bool=true, flipdim::Bool=true, quiet::Bool=true)
 	sc = size(t.core)
 	@assert dim > 0 && dim <= length(sc)
 	cs = sc[dim]
@@ -298,31 +332,7 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 	@assert dim >= 1 && dim <= ndimensons
 	crank = cs
 	if method == :factormagnitude
-		fmin = vec(minimum(t.factors[dim], dims=1))
-		fmax = vec(maximum(t.factors[dim], dims=1))
-		@assert cs == length(fmax)
-		fdx = fmax .- fmin
-		for i = 1:cs
-			if fmax[i] == 0
-				@warn("Maximum of component $i is equal to zero!")
-			end
-			if fdx[i] == 0
-				@warn("Component $i has zero variability!")
-				crank -= 1
-			end
-		end
-		if flipdim
-			ifdx = sortperm(fdx; rev=true)[1:crank]
-		else
-			ifdx = reverse(sortperm(fdx; rev=true)[1:crank]; dims=1)
-		end
-		!quiet && @info("Factor magnitudes (max - min): $fdx")
-		if firstpeak
-			imax = map(i->argmax(t.factors[dim][:, ifdx[i]]), 1:crank)
-			order = ifdx[sortperm(imax)]
-		else
-			order = ifdx
-		end
+		order = getsignalorder(t.factors[dim]; firstpeak=firstpeak, flipdim=flipdim, quiet=quiet)
 	else
 		maxXe = Vector{Float64}(undef, cs)
 		tt = deepcopy(t)
@@ -355,7 +365,7 @@ function gettensorcomponentorder(t::TensorDecompositions.Tucker, dim::Integer=1;
 	return order
 end
 
-function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::String="", mask=nothing, transform=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savetensorslices::Bool=false)
+function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::String="", mask=nothing, transform=nothing, filter=(), order=getsignalorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savetensorslices::Bool=false)
 	cs = size(t.core)
 	ndimensons = length(cs)
 	@assert dim >= 1 && dim <= ndimensons
@@ -404,7 +414,7 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 	return X
 end
 
-function gettensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::String="", transform=nothing, mask=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude))
+function gettensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::String="", transform=nothing, mask=nothing, filter=(), order=getsignalorder(t, dim; method=:factormagnitude))
 	cs = size(t.core)
 	ndimensons = length(cs)
 	@assert dim >= 1 && dim <= ndimensons
@@ -420,7 +430,7 @@ function gettensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::U
 	return Xs
 end
 
-function savetensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::String="", transform=nothing, mask=nothing, filter=(), order=gettensorcomponentorder(t, dim; method=:factormagnitude))
+function savetensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::String="", transform=nothing, mask=nothing, filter=(), order=getsignalorder(t, dim; method=:factormagnitude))
 	cs = size(t.core)
 	ndimensons = length(cs)
 	@assert dim >= 1 && dim <= ndimensons
@@ -769,6 +779,7 @@ function getradialmap(X::Matrix, x0, y0, nr, na)
 	return R
 end
 
+"vspeed = 10 - ten times slower; vspped=0.1 - ten times faster"
 function makemovie(; movieformat="mp4", movieopacity::Bool=false, moviedir=".", prefix::String="", keyword="frame", imgformat = "png", cleanup::Bool=true, quiet::Bool=true, vspeed::Number=1.0, numberofdigits::Integer=6)
 	p = joinpath(moviedir, prefix)
 	if moviedir == "."

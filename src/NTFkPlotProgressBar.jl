@@ -36,7 +36,7 @@ function make_progressbar_2d(s; vlinecolor="gray", vlinesize=2Gadfly.pt)
 						catch
 						end
 					end
-					xi = datestart + ((dateend .- datestart) * (i-1) * timestep)
+					xi = datestart + ((dateend .- datestart) * i * timestep)
 					if typeof(datestart) <: Integer
 						try
 							xi = convert(Int64, xi)
@@ -44,7 +44,7 @@ function make_progressbar_2d(s; vlinecolor="gray", vlinesize=2Gadfly.pt)
 						end
 					end
 				else
-					xi = datestart + Core.eval(Main, Meta.parse(dateincrement))(i-1)
+					xi = datestart + Core.eval(Main, Meta.parse(dateincrement))(i)
 				end
 			end
 			return Gadfly.plot(s..., Gadfly.layer(xintercept=[xi], Gadfly.Geom.vline(color=[vlinecolor], size=[vlinesize])))
