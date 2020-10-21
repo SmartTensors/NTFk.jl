@@ -4,7 +4,6 @@ import Colors
 import Compose
 import TensorToolbox
 import TensorDecompositions
-import Distributions
 import Statistics
 
 function plottensorslices(X1::Array, t2::TensorDecompositions.CANDECOMP; prefix::String="", filter=(), kw...)

@@ -4,7 +4,6 @@ import Colors
 import Compose
 import TensorToolbox
 import TensorDecompositions
-import Distributions
 
 function plotfactor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, dim::Integer=1, cutoff::Number=0; kw...)
 	plotmatrix(getfactor(t, dim, cutoff); kw...)
