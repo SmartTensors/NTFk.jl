@@ -7,10 +7,11 @@
 	logallrefupdates = true
 [remote "origin"]
     url = git@github.com:TensorDecompositions/NTFk.jl.git
-    fetch = +refs/heads/*:refs/remotes/origin/*	
-[remote "gitlab"]
-	url = git@gitlab.com:TensorFactorization/NTFk.jl.git
+    url = git@github.com:SmartTensors/NTFk.jl.git
+	url = git@gitlab.com:SmartTensors/NTFk.jl.git
 	fetch = +refs/heads/*:refs/remotes/origin/*
 [branch "master"]
 	remote = origin
 	merge = refs/heads/master
+[pull]
+    rebase = false
