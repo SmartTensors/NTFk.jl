@@ -185,7 +185,7 @@ methods: spnntucker, tucker_als, tucker_sym, tensorly_
 
 $(DocumentFunction.documentfunction(tucker))
 """
-function tucker(X::AbstractArray{T, N}, csize::NTuple{N, Int}; seed::Number=0, method::Symbol=:spnntucker, functionname::String=string(method), maxiter::Integer=DMAXITER, core_nonneg::Bool=true, verbose::Bool=false, tol::Number=1e-8, ini_decomp::Symbol=:ntfk_hosvd, lambda::Number=0.1, lambdas=convert.(T, fill(lambda, length(size(X)) + 1)), eigmethod=trues(N), eigreduce=eigmethod, progressbar::Bool=false, order=1:N, compute_error::Bool=true, compute_rank::Bool=true, whichm::Symbol=:LM, hosvd_tol::Number=0.0, hosvd_maxiter::Integer=300, rtol::Number=0., kw...) where {T,N}
+function tucker(X::AbstractArray{T, N}, csize::NTuple{N, Int}; seed::Number=0, method::Symbol=:spnntucker, functionname::String=string(method), maxiter::Integer=DMAXITER, core_nonneg::Bool=true, verbose::Bool=false, tol::Number=1e-8, ini_decomp::Union{Symbol,TensorDecompositions.Tucker{T,N}}=:ntfk_hosvd, lambda::Number=0.1, lambdas=convert.(T, fill(lambda, length(size(X)) + 1)), eigmethod=trues(N), eigreduce=eigmethod, progressbar::Bool=false, order=1:N, compute_error::Bool=true, compute_rank::Bool=true, whichm::Symbol=:LM, hosvd_tol::Number=0.0, hosvd_maxiter::Integer=300, rtol::Number=0., kw...) where {T,N}
 	if occursin("tucker_", string(method))
 		c = ttanalysis(X, csize; seed=seed, functionname=functionname, maxiter=maxiter, tol=tol, kw...)
 	elseif occursin("tensorly_", string(method))

@@ -1,7 +1,7 @@
 name = "NTFk"
 uuid = "1226e131-0b97-51f8-8a3f-c1798118cd52"
 authors = ["Velimir V Vesselinov (monty) <velimir.vesselinov@gmail.com>"]
-version = "1.0.1"
+version = "1.0.2"
 
 [deps]
 Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
@@ -52,7 +52,7 @@ Gadfly = "1"
 Images = "0.23, 0.24"
 Interpolations = "0.12, 0.14"
 Ipopt = "0.6, 0.7"
-JLD = "0.10, 0.11"
+JLD = "0.10, 0.11, 0.12"
 JLD2 = "0.2, 0.3"
 LoadTensorDecompositions = "1"
 MATLAB = "0.7.3, 0.8"
