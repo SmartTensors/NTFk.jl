@@ -1,13 +1,14 @@
-NTFk: Nonnegative Tensor Factorization using k-means clustering
+NTFk: Nonnegative Tensor Factorization using k-means clustering and physics constraints
 ================
 
 <div style="text-align: left">
     <img src="logo/ntfk-logo.png" alt="ntfk" width=25%  max-width=125px;/>
 </div>
 
-**NTFk** performs a novel unsupervised Machine Learning (ML) method based on Tensor Decomposition coupled with sparsity and nonnegativity constraints.
+**NTFk** performs a novel unsupervised Machine Learning (ML) method based on Tensor Decomposition coupled with constraints (sparsity, nonnegativity, physical, mathematical).
+
 **NTFk** methodology allows for automatic identification of the optimal number of features (signals) present in multi-dimensional data arrays (tensors).
-The number of features (tensor "rank") along different dimensions can be estimated jointly and independently.
+The number of features (tensor rank / multi-rank) along different dimensions can be estimated jointly and independently.
 
 **NMFk** can be applied to perform various types of analyses of multi-dimensional data:
 
@@ -17,7 +18,7 @@ The number of features (tensor "rank") along different dimensions can be estimat
 - Image recognition
 - Separation of (physics) processes
 - Discovery of unknown dependencies and phenomena
-- Development reduced-order/surrogate models
+- Development of reduced-order/surrogate models
 - Identification of dependencies between model inputs and outputs
 - Guiding development of physics models representing the ML analyzed data
 - Data classification
@@ -28,7 +29,7 @@ The number of features (tensor "rank") along different dimensions can be estimat
 
 **NTFk** provides high-performance computing capabilities to solve problems with Shared and Distributed Arrays in parallel.
 The parallelization allows for utilization of multi-core / multi-processor environments.
-GPU and TPU accelerations are also available through existing Julia packages.
+GPU and TPU accelerations are available through existing Julia packages.
 
 **NTFk** can be employed to perform tensor decomposition using CP (Candecomp/Parafac) and Tucker methods.
 
@@ -40,7 +41,15 @@ GPU and TPU accelerations are also available through existing Julia packages.
 
 **NTFk** methodology and applications are discussed in the the papers and presentations listed below.
 
-Tensor network decompositions can be be performed using our [**NTNk**](https://github.com/TensorDecompositions/NTNk.jl) package.
+**NTFk** is one of the tools in the **SmartTensors** ML framework ([smarttensors.github.io](https://smarttensors.github.io)).
+
+<div style="text-align: left">
+    <img src="logo/SmartTensorsNewSmall.png" alt="SmartTensors" width=25%  max-width=125px;/>
+</div>
+
+Tensor network decompositions can be be performed using our [**NTNk**](https://github.com/SmartTensors/NTNk.jl) package.
+
+Matrix factorization can be be performed using our [**NMFk**](https://github.com/SmartTensors/NMFk.jl) package.
 
 ### Installation
 
@@ -64,7 +73,7 @@ Docker
 docker run --interactive --tty montyvesselinov/tensors
 ```
 
-The docker image provides access to all **TensorDecomposition** packages.
+The docker image provides access to all **SmartTensors** packages ([smarttensors.github.io](https://smarttensors.github.io)).
 
 ### Testing
 
@@ -305,4 +314,14 @@ ENV["rsync_proxy"] = "http://proxyout.lanl.gov:8080"
 ENV["http_proxy"] = "http://proxyout.lanl.gov:8080"
 ENV["https_proxy"] = "http://proxyout.lanl.gov:8080"
 ENV["no_proxy"] = ".lanl.gov"
+
+To disable proxies, type these commands in the Julia REPL:
+
+```julia
+ENV["ftp_proxy"] =  ""
+ENV["rsync_proxy"] = ""
+ENV["http_proxy"] = ""
+ENV["https_proxy"] = ""
+ENV["no_proxy"] = ""
+```
 ```
