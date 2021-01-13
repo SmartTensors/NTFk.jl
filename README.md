@@ -314,6 +314,7 @@ ENV["rsync_proxy"] = "http://proxyout.lanl.gov:8080"
 ENV["http_proxy"] = "http://proxyout.lanl.gov:8080"
 ENV["https_proxy"] = "http://proxyout.lanl.gov:8080"
 ENV["no_proxy"] = ".lanl.gov"
+```
 
 To disable proxies, type these commands in the Julia REPL:
 
@@ -323,5 +324,4 @@ ENV["rsync_proxy"] = ""
 ENV["http_proxy"] = ""
 ENV["https_proxy"] = ""
 ENV["no_proxy"] = ""
-```
 ```
