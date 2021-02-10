@@ -15,7 +15,7 @@ end
 
 tsize = (50, 50, 50)
 v = [1.1,1.2,1.3,1.4,1.5,1.6]
-tt = Vector(length(v))
+tt = Vector(undef, length(v))
 for i = 1:length(v)
 	tt[i] = makesignal(tsize[1], tsize[3], v[i])
 end

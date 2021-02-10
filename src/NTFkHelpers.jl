@@ -139,7 +139,7 @@ function getcsize(case::String; resultdir::String=".", longname=false, extension
 		else
 			m = match(Regex(string("$(case)(.*)-([0-9]+)_([0-9]+)_([0-9]+).$extension\$")), f)
 		end
-		if m != nothing
+		if m !== nothing
 			push!(kwa, m.captures[1])
 			c = parse.(Int64, m.captures[2:end])
 			push!(csize, c)
@@ -250,7 +250,7 @@ end
 
 function getinterpolatedtensor(t::TensorDecompositions.Tucker{T,N}, v; sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line())), Interpolations.OnGrid()]) where {T,N}
 	lv = length(v)
-	f = Vector(lv)
+	f = Vector(undef, lv)
 	factors = []
 	for i = 1:N
 		push!(factors, t.factors[i])
@@ -398,7 +398,7 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 		else
 			X[i] = TensorDecompositions.compose(tt)[filter...]
 		end
-		if transform != nothing
+		if transform !== nothing
 			X[i] = transform.(X[i])
 		end
 		nanmask!(X[i], mask)

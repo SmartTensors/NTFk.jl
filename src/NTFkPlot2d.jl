@@ -7,7 +7,7 @@ import Statistics
 
 function movietensorfactors(t::TensorDecompositions.Tucker, dim::Integer=1, M=nothing; order=getsignalorder(t, dim; method=:factormagnitude), quiet::Bool=false, timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", movie=true, prefix="", dpi::Integer=imagedpi, hsize=12Compose.inch, vsize=2Compose.inch, moviedir=".", vspeed=1.0, keyword="frame", movieformat="mp4", movieopacity::Bool=false, cleanup::Bool=true, kw...)
 	nc = length(order)
-	if M != nothing
+	if M !== nothing
 		np = convert(Int, ceil(nc / 3))
 		x = reshape(collect(1:3*np), (3, np))
 		x[x.>nc] .= nc
@@ -16,7 +16,7 @@ function movietensorfactors(t::TensorDecompositions.Tucker, dim::Integer=1, M=no
 	end
 	movie && prefix != "" && (moviefiles = Vector{String}(undef, np))
 	for f = 1:np
-		if M != nothing
+		if M !== nothing
 			filter = vec(x[:,f])
 			prefixnew = prefix == "" ? "" : prefix * "-$(join(filter, "_"))"
 		else
@@ -26,7 +26,7 @@ function movietensorfactors(t::TensorDecompositions.Tucker, dim::Integer=1, M=no
 		s = plottensorfactors(t, dim; kw..., order=order, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, code=true, filter=filter)
 		nt = size(t.factors[dim], 1)
 		timestep = 1 / nt
-		progressbar_2d = make_progressbar_2d(s)
+		progressbar_2d = NMFk.make_progressbar_2d(s)
 		if movie
 			for i = 1:nt
 				framename = "Time $i"
@@ -34,14 +34,14 @@ function movietensorfactors(t::TensorDecompositions.Tucker, dim::Integer=1, M=no
 				!quiet && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=dpi), p); println())
 				if prefixnew != ""
 					filename = setnewfilename(prefixnew, i; keyword=keyword)
-					Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), p)
+					Gadfly.draw(Gadfly.PNG(NMFk.joinpathcheck(moviedir, filename), hsize, vsize, dpi=dpi), p)
 				end
 			end
 		else
 			!quiet && (Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=dpi), Gadfly.plot(s...)); println())
 			if prefixnew != ""
 				filename = prefixnew * ".png"
-				Gadfly.draw(Gadfly.PNG(joinpath(moviedir, filename), hsize, vsize, dpi=dpi), Gadfly.plot(s...))
+				Gadfly.draw(Gadfly.PNG(NMFk.joinpathcheck(moviedir, filename), hsize, vsize, dpi=dpi), Gadfly.plot(s...))
 			end
 		end
 		if movie && prefix != ""
@@ -63,12 +63,12 @@ end
 function plottensorfactors(p::Array; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, dpi::Integer=imagedpi, figuredir::String=".", filename::String="", title::String="", xtitle::String="", ytitle::String="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, order=getsignalorder(p), filter=vec(1:length(order)), datestart=nothing, dateend=nothing, dateincrement::String="Dates.Day", code::Bool=false, xmin=datestart, xmax=dateend, xfilter=nothing, transform=nothing, linewidth=2Gadfly.pt, separate::Bool=false)
 	recursivemkdir(figuredir; filename=false)
 	recursivemkdir(filename)
-	if transform != nothing
+	if transform !== nothing
 		p = transform.(p)
 	end
 	nx, ny = size(p)
-	xfilter = xfilter == nothing ? (1:nx) : xfilter
-	if datestart != nothing
+	xfilter = xfilter === nothing ? (1:nx) : xfilter
+	if datestart !== nothing
 		xvalues, xmin, xmax = NTFk.daterange(datestart, nx; dateend=dateend, dateincrement=dateincrement)
 	else
 		xvalues, xmin, xmax = NTFk.valuerange(xmin, xmax, nx, timescale)
@@ -97,13 +97,13 @@ function plottensorfactors(p::Array; quiet::Bool=false, hsize=8Compose.inch, vsi
 			!quiet && (display(ff); println())
 			fs = split(filename, ".")
 			fn = fs[1] * "-$(lpad("$(order[filter[i]])", 4, "0"))." * fs[2]
-			Gadfly.draw(Gadfly.PNG(joinpath(figuredir, fn), hsize, vsize, dpi=dpi), ff)
+			Gadfly.draw(Gadfly.PNG(NMFk.joinpathcheck(figuredir, fn), hsize, vsize, dpi=dpi), ff)
 		end
 	end
 	ff = Gadfly.plot(pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., tc..., Gadfly.Coord.Cartesian(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax), Gadfly.Theme(discrete_highlight_color=c->nothing))
 	!quiet && (display(ff); println())
 	if filename != ""
-		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize, dpi=dpi), ff)
+		Gadfly.draw(Gadfly.PNG(NMFk.joinpathcheck(figuredir, filename), hsize, vsize, dpi=dpi), ff)
 	end
 	return ff
 end
@@ -117,7 +117,7 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	crank = csize[dim]
 	loopcolors = crank > ncolors ? true : false
 	nx, ny = size(t.factors[dim])
-	if datestart != nothing
+	if datestart !== nothing
 		xvalues, xmin, xmax = NTFk.daterange(datestart, nx; dateend=dateend, dateincrement=dateincrement)
 	else
 		xvalues, xmin, xmax = NTFk.valuerange(xmin, xmax, nx, timescale)
@@ -141,7 +141,7 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 		X2 = TensorDecompositions.compose(tt)
 		tt.core .= t.core
 		tm = Core.eval(NTFk, Meta.parse(functionname))(X2; dims=dp)
-		if transform != nothing
+		if transform !== nothing
 			tm = transform.(tm)
 		end
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
@@ -151,7 +151,7 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	ff = Gadfly.plot(pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., Gadfly.Coord.Cartesian(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax), tc..., Gadfly.Theme(discrete_highlight_color=c->nothing))
 	!quiet && (display(ff); println())
 	if filename != ""
-		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize, dpi=dpi), ff)
+		Gadfly.draw(Gadfly.PNG(NMFk.joinpathcheck(figuredir, filename), hsize, vsize, dpi=dpi), ff)
 	end
 	if code
 		return [pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., Gadfly.Coord.Cartesian(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax), tc...]
@@ -169,7 +169,7 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	crank = csize[dim]
 	loopcolors = crank > ncolors ? true : false
 	nx, ny = size(t.factors[dim])
-	if datestart != nothing
+	if datestart !== nothing
 		xvalues, xmin, xmax = NTFk.daterange(datestart, nx; dateend=dateend, dateincrement=dateincrement)
 	else
 		xvalues, xmin, xmax = NTFk.valuerange(xmin, xmax, nx, timescale)
@@ -193,7 +193,7 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 		X2 = TensorDecompositions.compose(tt)
 		tt.core .= t.core
 		tm = Core.eval(NTFk, Meta.parse(functionname1))(X2; dims=dp)
-		if transform != nothing
+		if transform !== nothing
 			tm = transform.(tm)
 		end
 		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
@@ -208,7 +208,7 @@ function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim
 	ff = Gadfly.plot(pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., Gadfly.Coord.Cartesian(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax), tc..., Gadfly.Theme(discrete_highlight_color=c->nothing))
 	!quiet && (display(ff); println())
 	if filename != ""
-		Gadfly.draw(Gadfly.PNG(joinpath(figuredir, filename), hsize, vsize, dpi=dpi), ff)
+		Gadfly.draw(Gadfly.PNG(NMFk.joinpathcheck(figuredir, filename), hsize, vsize, dpi=dpi), ff)
 	end
 	if code
 		return [pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., Gadfly.Coord.Cartesian(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax), tc...]
@@ -229,12 +229,12 @@ function plot2d(T::AbstractArray, Te::AbstractArray=T; quiet::Bool=false, wellna
 	else
 		nlayers = c[3]
 	end
-	if wellnames != nothing
+	if wellnames !== nothing
 		@assert length(wellnames) == c[1]
 	end
 	@assert c == size(Te)
 	@assert length(vec(collect(xaxis))) == c[2]
-	if Tmax != nothing && Tmin != nothing
+	if Tmax !== nothing && Tmin !== nothing
 		@assert size(Tmax) == size(Tmin)
 		@assert size(Tmax, 1) == c[1]
 		@assert size(Tmax, 2) == c[3]
@@ -250,7 +250,7 @@ function plot2d(T::AbstractArray, Te::AbstractArray=T; quiet::Bool=false, wellna
 		append *= "_$(keyword)"
 	end
 	for w = 1:c[1]
-		!quiet && (if wellnames != nothing
+		!quiet && (if wellnames !== nothing
 			println("$dimname $w : $(wellnames[w])")
 		else
 			println("$dimname $w")
@@ -265,7 +265,7 @@ function plot2d(T::AbstractArray, Te::AbstractArray=T; quiet::Bool=false, wellna
 				y = T[w,:,i]
 				ye = Te[w,:,i]
 			end
-			if Tmax != nothing && Tmin != nothing
+			if Tmax !== nothing && Tmin !== nothing
 				y = y * (Tmax[w,i] - Tmin[w,i]) + Tmin[w,i]
 				ye = ye * (Tmax[w,i] - Tmin[w,i]) + Tmin[w,i]
 			end
@@ -274,7 +274,7 @@ function plot2d(T::AbstractArray, Te::AbstractArray=T; quiet::Bool=false, wellna
 			p[pc] = Gadfly.layer(x=xaxis, y=ye, xintercept=xintercept, Gadfly.Geom.line, Gadfly.Theme(line_style=[:dot], line_width=linewidth, default_color=colors[i]), Gadfly.Geom.vline)
 			pc += 1
 		end
-		if wellnames != nothing
+		if wellnames !== nothing
 			if dimname != ""
 				tm = [Gadfly.Guide.title("$dimname $(wellnames[w]) $titletext")]
 				filename = "$(figuredir)/$(lowercase(dimname))_$(wellnames[w])$(append).pdf"
@@ -292,10 +292,10 @@ function plot2d(T::AbstractArray, Te::AbstractArray=T; quiet::Bool=false, wellna
 		end
 		yming = ymin
 		ymaxg = ymax
-		if ymin != nothing && length(ymin) > 1
+		if ymin !== nothing && length(ymin) > 1
 			yming = ymin[w]
 		end
-		if ymax != nothing && length(ymax) > 1
+		if ymax !== nothing && length(ymax) > 1
 			ymaxg = ymax[w]
 		end
 		f = Gadfly.plot(p..., tm..., Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), Gadfly.Coord.Cartesian(xmin=xmin, xmax=xmax, ymin=yming, ymax=ymaxg), gm...)
@@ -306,7 +306,7 @@ function plot2d(T::AbstractArray, Te::AbstractArray=T; quiet::Bool=false, wellna
 end
 
 function daterange(datestart, nx; dateend=nothing, dateincrement::String="Dates.Day")
-	if dateend == nothing
+	if dateend === nothing
 		xvalues = datestart .+ vec(collect(Core.eval(Main, Meta.parse(dateincrement))(0):Core.eval(Main, Meta.parse(dateincrement))(1):Core.eval(Main, Meta.parse(dateincrement))(nx-1)))
 	else
 		xvalues = datestart .+ (vec(collect(1:nx)) ./ nx .* (dateend .- datestart))
@@ -315,8 +315,8 @@ function daterange(datestart, nx; dateend=nothing, dateincrement::String="Dates.
 end
 
 function valuerange(xmin, xmax, nx, timescale)
-	xmin = xmin == nothing ? 0 : xmin
-	if xmax == nothing
+	xmin = xmin === nothing ? 0 : xmin
+	if xmax === nothing
 		xmax = timescale ? 1 : nx
 	end
 	xvalues = timescale ? vec(collect(xmin:(xmax-xmin)/(nx-1):xmax)) : vec(collect(1:nx))

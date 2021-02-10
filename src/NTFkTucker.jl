@@ -45,7 +45,7 @@ function analysis(X::AbstractArray{T,N}, csizes::Vector{NTuple{N,Int}}, nTF::Int
 		s = Distributed.nprocs() > 1 ? false : true
 		for i in 1:nruns
 			a = analysis(X, csizes[i], nTF; clusterdim=clusterdim, resultdir=resultdir, prefix=prefix, serial=s, kw...)
-			if a != nothing
+			if a !== nothing
 				tucker_spnn[i], residues[i], correlations[i,:], minsilhouette[i] = a
 			end
 		end
@@ -140,7 +140,7 @@ function analysis(X::AbstractArray{T,N}, csize::NTuple{N,Int}=size(X), nTF::Inte
 	else
 		for n = 1:nTF
 			@time a = NTFk.tucker(X, csize; seed=seed, method=method, kw...)
-			if a != nothing
+			if a !== nothing
 				tsi[n] = a
 			end
 		end
