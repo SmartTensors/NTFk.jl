@@ -570,7 +570,7 @@ function recursivemkdir(s::String; filename=true, quiet=true)
 	while true
 		sd = splitdir(sc)
 		sc = sd[1]
-		if sc == ""
+		if if sc == "" || sc == "/"
 			break;
 		end
 		push!(d, sc)
