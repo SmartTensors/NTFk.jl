@@ -535,7 +535,7 @@ function gettensorcomponentgroups(t::TensorDecompositions.Tucker, dim::Integer=1
 end
 
 function gettensormaximums(t::TensorDecompositions.Tucker{T,N}) where {T,N}
-	for i=1:N
+	for i = 1:N
 		v = maximum(t.factors[i]; dims=1)
 		if length(v) > 10
 			vv = "[$(v[1]), $(v[2]), $(v[3]), ..., $(v[end])]"
@@ -544,7 +544,7 @@ function gettensormaximums(t::TensorDecompositions.Tucker{T,N}) where {T,N}
 		end
 		@info("D$i factor: $(vv) Max: $(maximum(v))")
 	end
-	for i=1:N
+	for i = 1:N
 		dp = Vector{Int64}(undef, 0)
 		for j = 1:N
 			if j != i
@@ -570,7 +570,7 @@ function recursivemkdir(s::String; filename=true, quiet=true)
 	while true
 		sd = splitdir(sc)
 		sc = sd[1]
-		if if sc == "" || sc == "/"
+		if sc == "" || sc == "/"
 			break;
 		end
 		push!(d, sc)
