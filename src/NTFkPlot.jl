@@ -34,7 +34,7 @@ function plottensor(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CA
 	plottensor(X, dim; kw...)
 end
 
-function plottensor(X::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=NMFk.minimumnan(X), maxvalue=NMFk.maximumnan(X), prefix::String="", keyword="frame", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing,  dateincrement::String="Dates.Day", dateend=(datestart !== nothing) ? datestart + Core.eval(Main, Meta.parse(dateincrement))(sizes[dim]) : nothing, progressbar=progressbar_regular, colormap=colormap_gyr, cutoff::Bool=false, cutvalue::Number=0, vspeed=1.0, movieformat="mp4", movieopacity::Bool=false, kw...) where {T, N}
+function plottensor(X::AbstractArray{T,N}, dim::Integer=1; mdfilter=ntuple(k->(k == dim ? dim : Colon()), N), minvalue=NMFk.minimumnan(X), maxvalue=NMFk.maximumnan(X), prefix::String="", keyword="frame", movie::Bool=false, title="", hsize=6Compose.inch, vsize=6Compose.inch, dpi::Integer=imagedpi, moviedir::String=".", quiet::Bool=false, cleanup::Bool=true, sizes=size(X), timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::String="Dates.Day", dateend=(datestart !== nothing) ? datestart + Core.eval(Main, Meta.parse(dateincrement))(sizes[dim]) : nothing, progressbar=progressbar_regular, colormap=colormap_gyr, cutoff::Bool=false, cutvalue::Number=0, vspeed=1.0, movieformat="mp4", movieopacity::Bool=false, kw...) where {T, N}
 	if !checkdimension(dim, N)
 		return
 	end
