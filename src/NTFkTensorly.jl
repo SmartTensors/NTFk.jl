@@ -37,13 +37,13 @@ function tlanalysis(X::Array{T,N}, crank::NTuple{N, Int}; seed::Number=1, backen
 	if backend != "numpy"
 		converter = backend == "mxnet" ? "asnumpy" : converter
 		converterfield = eval(:($core.$converter))
-		core =  convert(Array{T,N}, converterfield())
+		core = convert(Array{T,N}, converterfield())
 		for i = 1:nc
 			converterfield = eval(:($factors[$i].$converter))
 			f[i] = convert(Matrix{T}, converterfield())
 		end
 	else
-		core =  convert(Array{T,N}, core)
+		core = convert(Array{T,N}, core)
 		for i = 1:nc
 			f[i] = convert(Matrix{T}, factors[i])
 		end

@@ -1,7 +1,7 @@
 import Distributed
 using MPI
 # --prefix /home/vvv/.linuxbrew-mads/bin
-man = MPIManager(np=2, mpirun_cmd=`mpiexec  -np 2 -host es10,es12`)
+man = MPIManager(np=2, mpirun_cmd=`mpiexec -np 2 -host es10,es12`)
 Distributed.addprocs()
 Distributed.addprocs(4)
 Distributed.addprocs(["madsmin", "mads12", "mads14"])

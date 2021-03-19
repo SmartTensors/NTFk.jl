@@ -16,7 +16,7 @@ function computestats(X, Xe, volumeindex=1:size(Xe,1), wellindex=1:size(Xe,3), t
 	f = "%.2f"
 	for (i, v) in enumerate(volumeindex)
 		# se = NMFk.sumnan(Xe[wellindex,timeindex,v])
-		# s =  NMFk.sumnan(X[wellindex,timeindex,v])
+		# s = NMFk.sumnan(X[wellindex,timeindex,v])
 		# @show se
 		# @show s
 		# ferr[i] = (se - s) / s

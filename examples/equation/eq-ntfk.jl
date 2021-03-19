@@ -99,6 +99,6 @@ NTFk.plot3slices_factors(ttu[1], 1; maxvalue=2, xtitle="", timescale=false, ytit
 NTFk.plot3slices_factors(ttu[1], 2; maxvalue=2, xtitle="", timescale=false, ytitle="", movie=true, prefix="figures-results/spnn-345-d2", vspeed=2., order=[1,2,3,4])
 NTFk.plot3slices_factors(ttu[1], 3; maxvalue=2, xtitle="", timescale=false, ytitle="", movie=true, prefix="figures-results/spnn-345-d3", vspeed=2., order=[1,2,3,4,5])
 
-NTFk.plot3slices_factors(ttu[1], 1; maxvalue=2, xtitle="", timescale=false, ytitle="",  prefix="figures-results/spnn-345-d1", maxcomponent=true, order=[1,2,3])
-NTFk.plot3slices_factors(ttu[1], 2; maxvalue=2, xtitle="", timescale=false, ytitle="",  prefix="figures-results/spnn-345-d2", maxcomponent=true, order=[1,2,3,4])
-NTFk.plot3slices_factors(ttu[1], 3; maxvalue=2, xtitle="", timescale=false, ytitle="",  prefix="figures-results/spnn-345-d3", maxcomponent=true, order=[1,2,3,4,5])
+NTFk.plot3slices_factors(ttu[1], 1; maxvalue=2, xtitle="", timescale=false, ytitle="", prefix="figures-results/spnn-345-d1", maxcomponent=true, order=[1,2,3])
+NTFk.plot3slices_factors(ttu[1], 2; maxvalue=2, xtitle="", timescale=false, ytitle="", prefix="figures-results/spnn-345-d2", maxcomponent=true, order=[1,2,3,4])
+NTFk.plot3slices_factors(ttu[1], 3; maxvalue=2, xtitle="", timescale=false, ytitle="", prefix="figures-results/spnn-345-d3", maxcomponent=true, order=[1,2,3,4,5])

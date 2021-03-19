@@ -34,7 +34,7 @@ end
 @show s
 
 function life_step(d::DArray)
-    DArray(size(d),procs(d)) do I
-    	@show I
-    end
+	DArray(size(d),procs(d)) do I
+		@show I
+	end
 end
