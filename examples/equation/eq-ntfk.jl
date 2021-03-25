@@ -1,4 +1,5 @@
 import NTFk
+import Mads
 
 csize = (3, 4, 5)
 tsize = (20, 50, 50)
@@ -6,7 +7,7 @@ tsize = (20, 50, 50)
 xf = [x->x, x->x^2, x->1+tanh(x-5.2)]
 xfactor = Array{Float64}(undef, tsize[1], csize[1]);
 for i = 1:csize[1]
-	x = linspace(0, 10, tsize[1])
+	x = range(0, 10; length=tsize[1])
 	xfactor[:,i] = xf[i].(x)
 end
 xfactor = xfactor ./ maximum(xfactor, 1);
@@ -15,7 +16,7 @@ Mads.plotseries(xfactor, "figures-results/spnn-345-xfactors-true.png"; xaxis=0:1
 yf = [y->y, y->y^3, y->exp(y), y->sin(y)+1]
 yfactor = Array{Float64}(undef, tsize[2], csize[2]);
 for i = 1:csize[2]
-	y = linspace(0, 10, tsize[2])
+	y = range(0, 10; length=tsize[2])
 	yfactor[:,i] = yf[i].(y)
 end
 yfactor = yfactor ./ maximum(yfactor, 1);
@@ -24,7 +25,7 @@ Mads.plotseries(yfactor, "figures-results/spnn-345-yfactors-true.png"; xaxis=0:4
 zf = [z->z, z->z^4, z->log(z+1), z->sin(2z)+1, z->cos(z)+1]
 zfactor = Array{Float64}(undef, tsize[3], csize[3]);
 for i = 1:csize[3]
-	z = linspace(0, 10, tsize[3])
+	z = range(0, 10; length=tsize[3])
 	zfactor[:,i] = zf[i].(z)
 end
 zfactor = zfactor ./ maximum(zfactor, 1);

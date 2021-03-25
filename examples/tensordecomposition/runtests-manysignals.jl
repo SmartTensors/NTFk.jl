@@ -39,7 +39,7 @@ end
 # tt, c, ibest = NTFk.analysis(T, [tsize]; progressbar=true, max_iter=100000, lambda=1e-12)
 # tt, c, ibest = NTFk.analysis(T, [tsize]; progressbar=true, core_nonneg=false)
 # NTFk.plotcmptensors(T, tt[ibest]; minvalue=0, maxvalue=100)
-th = TensorDecompositions.hosvd(T, tsize)
+th = NTFk.hosvd(T, tsize)
 # NTFk.plotcmptensors(T, th; minvalue=0, maxvalue=1)
 # NTFk.plotcmptensors(T, th; minvalue=0, maxvalue=1, movie=true, prefix="movies/signals-$(length(v))-50_50_50-cmp", quiet=true)
 NTFk.normalizefactors!(th)
