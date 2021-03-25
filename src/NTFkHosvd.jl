@@ -51,8 +51,10 @@ function hosvd(tensor::StridedArray{T,N}, core_dims::NTuple{N, Int}, eigmethod=t
 	end
 	return res
 end
-hosvd(tensor::StridedArray{T,N}, r::Int; compute_error::Bool=false, pad_zeros::Bool=false) where {T,N} =
-	NTFk.hosvd(tensor, (fill(r, N)...,); compute_error=compute_error, pad_zeros=pad_zeros)
+
+hosvd(tensor::StridedArray{T,N}, eigmethod=trues(N), eigreduce=eigmethod; kw...) where {T,N} = NTFk.hosvd(tensor, size(tensor), eigmethod, eigreduce; kw...)
+
+hosvd(tensor::StridedArray{T,N}, r::Integer, eigmethod=trues(N), eigreduce=eigmethod; kw...) where {T,N} = NTFk.hosvd(tensor, (fill(r, N)...,), eigmethod, eigreduce; kw...)
 
 @doc """
 High-order singular value decomposition (HO-SVD)

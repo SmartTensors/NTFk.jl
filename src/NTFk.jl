@@ -50,6 +50,7 @@ modules = ["NTFk", "NMFk", "CanDecomp"]
 include("NTFkHosvd.jl")
 include("NTFkTucker.jl")
 include("NTFkCP.jl")
+include("NTFkNMFk.jl")
 include("NTFkNormalize.jl")
 include("NTFkAtensor.jl")
 include("NTFkDistributed.jl")
