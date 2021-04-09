@@ -1,7 +1,7 @@
 import NMFk
 import DocumentFunction
 
-function matrixfactorization(X::AbstractArray{T,N}, range::Union{AbstractRange{Int},Integer}, dims::Union{AbstractRange{Int},Integer}=1:N, aw...; kw...) where {T,N}
+function matrixfactorization(X::AbstractArray{T,N}, range::Union{AbstractRange{Int},Integer}, dims::Union{AbstractRange{Int},Integer}=1:N, aw...; kw...) where {T <: Number, N}
 	@assert maximum(dims) <= N
 	NTFk.hosvd(X)
 	M = Vector{Tuple}(undef, N)
@@ -11,7 +11,7 @@ function matrixfactorization(X::AbstractArray{T,N}, range::Union{AbstractRange{I
 	return M
 end
 
-function matrixfactorization(X::AbstractArray{T,N}, range::AbstractVector, aw...; kw...) where {T,N}
+function matrixfactorization(X::AbstractArray{T,N}, range::AbstractVector, aw...; kw...) where {T <: Number, N}
 	@assert length(range) == N
 	NTFk.hosvd(X)
 	M = Vector{Tuple}(undef, N)

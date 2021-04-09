@@ -4,7 +4,7 @@ import Arpack
 import LinearAlgebra
 import DocumentFunction
 
-function hosvd(tensor::StridedArray{T,N}, core_dims::NTuple{N, Int}, eigmethod=trues(N), eigreduce=eigmethod; order=1:N, pad_zeros::Bool=false, compute_error::Bool=true, compute_rank::Bool=true, whichm::Symbol=:LM, tol::Number=0.0, maxiter::Integer=300, rtol::Number=0.) where {T,N}
+function hosvd(tensor::StridedArray{T,N}, core_dims::NTuple{N, Int}, eigmethod=trues(N), eigreduce=eigmethod; order=1:N, pad_zeros::Bool=false, compute_error::Bool=true, compute_rank::Bool=true, whichm::Symbol=:LM, tol::Number=0.0, maxiter::Integer=300, rtol::Number=0.) where {T <: Number, N}
 	pad_zeros || TensorDecompositions._check_tensor(tensor, core_dims)
 
 	csize = size(tensor)
@@ -52,9 +52,9 @@ function hosvd(tensor::StridedArray{T,N}, core_dims::NTuple{N, Int}, eigmethod=t
 	return res
 end
 
-hosvd(tensor::StridedArray{T,N}, eigmethod=trues(N), eigreduce=eigmethod; kw...) where {T,N} = NTFk.hosvd(tensor, size(tensor), eigmethod, eigreduce; kw...)
+hosvd(tensor::StridedArray{T,N}, eigmethod=trues(N), eigreduce=eigmethod; kw...) where {T <: Number, N} = NTFk.hosvd(tensor, size(tensor), eigmethod, eigreduce; kw...)
 
-hosvd(tensor::StridedArray{T,N}, r::Integer, eigmethod=trues(N), eigreduce=eigmethod; kw...) where {T,N} = NTFk.hosvd(tensor, (fill(r, N)...,), eigmethod, eigreduce; kw...)
+hosvd(tensor::StridedArray{T,N}, r::Integer, eigmethod=trues(N), eigreduce=eigmethod; kw...) where {T <: Number, N} = NTFk.hosvd(tensor, (fill(r, N)...,), eigmethod, eigreduce; kw...)
 
 @doc """
 High-order singular value decomposition (HO-SVD)

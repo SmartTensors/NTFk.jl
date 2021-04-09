@@ -3,7 +3,7 @@ import TensorDecompositions
 function atensor(X::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP})
 	atensor(TensorDecompositions.compose(X))
 end
-function atensor(X::AbstractArray{T,N}) where {T,N}
+function atensor(X::AbstractArray{T,N}) where {T <: Number, N}
 	@info("Number of dimensions: $N")
 	tsize = size(X)
 	mask = Vector{Vector{Bool}}(undef, N)

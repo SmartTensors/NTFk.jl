@@ -5,7 +5,7 @@ Distribute
 
 $(DocumentFunction.documentfunction(distribute))
 """
-function distribute(X::AbstractArray{T,N}) where {T,N}
+function distribute(X::AbstractArray{T,N}) where {T <: Number, N}
 	sz = size(X)
 	@info "Dimension 1: Distributing array with size $(sz)"
 	dX = DistributedArrays.distribute(X)

@@ -30,7 +30,7 @@ end
 rand_kruskal3(r::Int64, dims::NTuple{N, Int}, nonnegative::Bool=true) where {N} =
 	TensorDecompositions.compose(rand_candecomp(r, dims, lambdas_nonneg=nonnegative, factors_nonneg=nonnegative))
 
-function add_noise(tnsr::AbstractArray{T,N}, sn_ratio=0.6, nonnegative::Bool=true) where {T, N}
+function add_noise(tnsr::AbstractArray{T,N}, sn_ratio=0.6, nonnegative::Bool=true) where {T <: Number, N}
 	tnsr_noise = randn(size(tnsr)...)
 	if nonnegative
 		map!(x -> max(0.0, x), tnsr_noise, tnsr_noise)
@@ -38,7 +38,7 @@ function add_noise(tnsr::AbstractArray{T,N}, sn_ratio=0.6, nonnegative::Bool=tru
 	tnsr + 10^(-sn_ratio/0.2) * LinearAlgebra.norm(tnsr) / LinearAlgebra.norm(tnsr) * tnsr_noise
 end
 
-function arrayoperation(A::AbstractArray{T,N}, tmap=ntuple(k->(Colon()), N), functionname="Statistics.mean") where {T, N}
+function arrayoperation(A::AbstractArray{T,N}, tmap=ntuple(k->(Colon()), N), functionname="Statistics.mean") where {T <: Number, N}
 	@assert length(tmap) == N
 	nci = 0
 	for i = 1:N
@@ -66,14 +66,14 @@ function arrayoperation(A::AbstractArray{T,N}, tmap=ntuple(k->(Colon()), N), fun
 	return B
 end
 
-function unfold(X::AbstractArray{T, N}, dim::Int=1) where {T, N}
+function unfold(X::AbstractArray{T, N}, dim::Int=1) where {T <: Number, N}
 	@assert dim > 0 && dim <= N
 	i = [i for i = 1:N]
 	k = i .!= dim
 	TensorDecompositions._unfold(X, [dim], i[k])
 end
 
-function unfold(X::DistributedArrays.DArray{T,N,Array{T,N}}, dim::Int=1) where {T, N}
+function unfold(X::DistributedArrays.DArray{T,N,Array{T,N}}, dim::Int=1) where {T <: Number, N}
 	@assert dim > 0 && dim <= N
 	i = [i for i = 1:N]
 	k = i .!= dim

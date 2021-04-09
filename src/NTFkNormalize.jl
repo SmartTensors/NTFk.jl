@@ -6,7 +6,7 @@ Normalize Tucker deconstructed factors
 
 $(DocumentFunction.documentfunction(normalizefactors!))
 """
-function normalizefactors!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::Bool=false) where {T,N}
+function normalizefactors!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::Bool=false) where {T <: Number, N}
 	check && (Xi = TensorDecompositions.compose(X))
 	@assert length(order) == N
 	l = size(X.core)
@@ -32,7 +32,7 @@ Normalize Tucker deconstructed core
 
 $(DocumentFunction.documentfunction(normalizecore!))
 """
-function normalizecore!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::Bool=false) where {T,N}
+function normalizecore!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::Bool=false) where {T <: Number, N}
 	check && (Xi = TensorDecompositions.compose(X))
 	@assert length(order) == N
 	l = size(X.core)
@@ -59,7 +59,7 @@ Normalize Tucker deconstructed slices
 
 $(DocumentFunction.documentfunction(normalizeslices!))
 """
-function normalizeslices!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::Bool=false) where {T,N}
+function normalizeslices!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check::Bool=false) where {T <: Number, N}
 	check && (Xi = TensorDecompositions.compose(X))
 	@assert length(order) == N
 	NTFk.normalizefactors!(X, order)
@@ -82,7 +82,7 @@ Normalize Tucker deconstructed components
 
 $(DocumentFunction.documentfunction(normalizeslices!))
 """
-function normalizecomponents!(X::TensorDecompositions.Tucker{T,N}, dim::Number; check::Bool=false) where {T,N}
+function normalizecomponents!(X::TensorDecompositions.Tucker{T,N}, dim::Number; check::Bool=false) where {T <: Number, N}
 	X = gettensorcomponents(t, dim)
 	m = NMFk.maximumnan.(X)
 	X ./= m
@@ -94,7 +94,7 @@ Scale Tucker components
 
 $(DocumentFunction.documentfunction(normalizecomponents!))
 """
-function normalizecomponents!(X::TensorDecompositions.Tucker{T,N}, dim::Number, m::AbstractVector; check::Bool=false) where {T,N}
+function normalizecomponents!(X::TensorDecompositions.Tucker{T,N}, dim::Number, m::AbstractVector; check::Bool=false) where {T <: Number, N}
 	check && (Xi = TensorDecompositions.compose(X))
 	@assert length(m) == size(X.core, dim)
 	for i = 1:length(m)
@@ -113,7 +113,7 @@ Normalize CP deconstructed factors
 
 $(DocumentFunction.documentfunction(normalizefactors!))
 """
-function normalizefactors!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; check::Bool=false) where {T,N}
+function normalizefactors!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; check::Bool=false) where {T <: Number, N}
 	check && (Xi = TensorDecompositions.compose(X))
 	for i = order
 		m = maximum(X.factors[i]; dims=1)
@@ -133,7 +133,7 @@ Normalize CP deconstructed lambdas
 
 $(DocumentFunction.documentfunction(normalizelambdas!))
 """
-function normalizelambdas!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; check::Bool=false) where {T,N}
+function normalizelambdas!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; check::Bool=false) where {T <: Number, N}
 	check && (Xi = TensorDecompositions.compose(X))
 	m = permutedims(vec(X.lambdas)) .^ (1/N)
 	for i = order

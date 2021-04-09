@@ -50,7 +50,7 @@ function clusterfactors(W, quiet=true)
 	return minimum(clustersilhouettes)
 end
 
-function mincorrelations(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}) where {T,N}
+function mincorrelations(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}) where {T <: Number, N}
 	c = Vector{T}(undef, N)
 	if N == 3
 		tsize = size(X1)
@@ -66,7 +66,7 @@ function mincorrelations(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}) where {
 	end
 end
 
-function corinf(v1::Vector{T}, v2::Vector{T}) where {T}
+function corinf(v1::Vector{T}, v2::Vector{T}) where {T <: Number}
 	nans = .!isnan.(v2)
 	if length(v2[nans]) == 0
 		return Inf
@@ -223,7 +223,7 @@ function remap(v::AbstractVector, vi::AbstractVector, ve::AbstractVector; nonneg
 	return f1
 end
 
-function getinterpolatedtensor(t::TensorDecompositions.Tucker{T,N}, v; sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line())), Interpolations.OnGrid()]) where {T,N}
+function getinterpolatedtensor(t::TensorDecompositions.Tucker{T,N}, v; sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line())), Interpolations.OnGrid()]) where {T <: Number, N}
 	lv = length(v)
 	f = Vector(undef, lv)
 	factors = []
@@ -244,7 +244,7 @@ function getinterpolatedtensor(t::TensorDecompositions.Tucker{T,N}, v; sp=[Inter
 	return tn
 end
 
-function getpredictions(t::TensorDecompositions.Tucker{T,N}, dim, v; sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line(Interpolations.OnGrid())))], ep=[Interpolations.Line(Interpolations.OnGrid())]) where {T,N}
+function getpredictions(t::TensorDecompositions.Tucker{T,N}, dim, v; sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line(Interpolations.OnGrid())))], ep=[Interpolations.Line(Interpolations.OnGrid())]) where {T <: Number, N}
 	factors = []
 	for i = 1:N
 		push!(factors, t.factors[i])
@@ -262,7 +262,7 @@ function getpredictions(t::TensorDecompositions.Tucker{T,N}, dim, v; sp=[Interpo
 	return tn
 end
 
-function getsignalorder(X::Vector{Array{T,N}}; flipdim::Bool=true, rev=flipdim, functionname::String="NMFk.sumnan") where {T,N}
+function getsignalorder(X::Vector{Array{T,N}}; flipdim::Bool=true, rev=flipdim, functionname::String="NMFk.sumnan") where {T <: Number, N}
 	vm = vec(map(i->Core.eval(NTFk, Meta.parse(functionname))(X[i]), 1:length(X)))
 	return sortperm(vm; rev=rev)
 end
@@ -509,7 +509,7 @@ function gettensorcomponentgroups(t::TensorDecompositions.Tucker, dim::Integer=1
 	return g
 end
 
-function gettensormaximums(t::TensorDecompositions.Tucker{T,N}) where {T,N}
+function gettensormaximums(t::TensorDecompositions.Tucker{T,N}) where {T <: Number, N}
 	for i = 1:N
 		v = maximum(t.factors[i]; dims=1)
 		if length(v) > 10
@@ -729,7 +729,7 @@ function float2date(f::AbstractFloat, period::Type{<:Dates.Period}=Dates.Nanosec
 	return year_start + partial
 end
 
-function movingwindow(A::AbstractArray{T, N}, windowsize::Number=1; functionname::String="maximum") where {T, N}
+function movingwindow(A::AbstractArray{T, N}, windowsize::Number=1; functionname::String="maximum") where {T <: Number, N}
 	if windowsize == 0
 		return A
 	end

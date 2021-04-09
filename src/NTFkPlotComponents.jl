@@ -192,7 +192,7 @@ function plotall3slices_factors(t::TensorDecompositions.Tucker, dim::Integer=1, 
 	plotallMslices_factors(t, 3, dim, pdim; kw...)
 end
 
-function plotallMslices_factors(X::Vector{Array{T,N}}, F::Matrix, M::Integer, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; mask=nothing, csize::Tuple=size(X[1]), transpose::Bool=false, xtitle::AbstractString="Time", ytitle::AbstractString="Magnitude", timescale::Bool=true, normalizeslices::Bool=false, datestart=nothing, dateincrement::String="Dates.Day", dateend=nothing, functionname="Statistics.mean", order=getsignalorder(F), xmin=datestart, xmax=dateend, ymin=nothing, ymax=nothing, prefix=nothing, maxcomponent::Bool=false, transform=nothing, transform2d=nothing, tensorfilter=(), gm=[], key_label_font_size=8Gadfly.pt, kw...) where {T,N}
+function plotallMslices_factors(X::Vector{Array{T,N}}, F::Matrix, M::Integer, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; mask=nothing, csize::Tuple=size(X[1]), transpose::Bool=false, xtitle::AbstractString="Time", ytitle::AbstractString="Magnitude", timescale::Bool=true, normalizeslices::Bool=false, datestart=nothing, dateincrement::String="Dates.Day", dateend=nothing, functionname="Statistics.mean", order=getsignalorder(F), xmin=datestart, xmax=dateend, ymin=nothing, ymax=nothing, prefix=nothing, maxcomponent::Bool=false, transform=nothing, transform2d=nothing, tensorfilter=(), gm=[], key_label_font_size=8Gadfly.pt, kw...) where {T <: Number, N}
 	if !checkdimension(dim, N) || !checkdimension(pdim, N)
 		return
 	end
@@ -277,7 +277,7 @@ function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 	return nothing
 end
 
-function plotMtensorslices(X::Vector{Array{T,N}}, M::Integer, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, csize::Tuple=size(X[1]), prefix::String="", filter=(), mask=nothing, transform=nothing, order=getsignalorder(X), maxcomponent::Bool=false, barratio=(maxcomponent) ? 1/2 : 1/3, gla=[], kw...) where {T,N}
+function plotMtensorslices(X::Vector{Array{T,N}}, M::Integer, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, csize::Tuple=size(X[1]), prefix::String="", filter=(), mask=nothing, transform=nothing, order=getsignalorder(X), maxcomponent::Bool=false, barratio=(maxcomponent) ? 1/2 : 1/3, gla=[], kw...) where {T <: Number, N}
 	minvalue = NMFk.minimumnan(map(i->NMFk.minimumnan(X[i]), 1:M))
 	maxvalue = NMFk.maximumnan(map(i->NMFk.maximumnan(X[i]), 1:M))
 	pt = getptdimensions(pdim, length(csize), transpose)
