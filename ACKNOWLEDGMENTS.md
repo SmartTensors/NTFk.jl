@@ -3,6 +3,8 @@ ACKNOWLEDGMENTS
 
 NTFk development has been supported by:
 
-* Los Alamos National Laboratory Laboratory Directed Research & Development (LANL-LDRD)
+* Advanced Research Projects Agency–Energy (ARPA-E)
 * Los Alamos National Laboratory Environmental Programs (LANL-ADEP)
+* Los Alamos National Laboratory Exploratory Research (LANL-ER)
+* Los Alamos National Laboratory Directed Research (LANL-DR)
 * DOE Office of Science Advanced Scientific Computing Research
