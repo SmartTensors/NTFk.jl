@@ -47,7 +47,7 @@ function plotcube(A::Array; minvalue=NMFk.minimumnan(A), maxvalue=NMFk.maximumna
 	PyPlot.gcf()
 end
 
-function meshgrid(x::Vector, y::Vector)
+function meshgrid(x::AbstractVector, y::AbstractVector)
 	m = length(x)
 	n = length(y)
 	xx = reshape(x, 1, m)

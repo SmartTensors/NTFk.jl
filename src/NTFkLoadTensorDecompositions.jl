@@ -4,7 +4,7 @@ import FileIO
 import JLD
 import JLD2
 
-function loadtucker(f::String, arg...; kw...)
+function loadtucker(f::AbstractString, arg...; kw...)
 	if !isfile(f)
 		@warn("File $f does not exist!")
 	end
@@ -27,11 +27,11 @@ function loadtucker(f::String, arg...; kw...)
 			return nothing
 		end
 	catch
-		return localloadtucker(f::String, arg...; kw...)
+		return localloadtucker(f::AbstractString, arg...; kw...)
 	end
 end
 
-function localloadtucker(f::String, arg...; kw...)
+function localloadtucker(f::AbstractString, arg...; kw...)
 	d = FileIO.load(f)
 	if [keys(d)...][1] == "tucker_vector"
 		di = d["tucker_vector"]
@@ -47,7 +47,7 @@ function localloadtucker(f::String, arg...; kw...)
 	end
 end
 
-function savetucker(tucker_spnn, f::String)
+function savetucker(tucker_spnn, f::AbstractString)
 	if typeof(tucker_spnn) <: TensorDecompositions.Tucker
 		FileIO.save(f, "tucker", tucker_spnn)
 	else

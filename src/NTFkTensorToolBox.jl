@@ -7,7 +7,7 @@ TensorToolbox Candecomp/Parafac (CP) deconstruction
 
 $(DocumentFunction.documentfunction(ttanalysis))
 """
-function ttanalysis(T::Array, crank::Number; seed::Number=1, functionname::String="cp_als", maxiter::Integer=DMAXITER, tol::Number=1e-4, printitn::Integer=0, matlabdir::String="/Users/monty/matlab")
+function ttanalysis(T::Array, crank::Number; seed::Number=1, functionname::AbstractString="cp_als", maxiter::Integer=DMAXITER, tol::Number=1e-4, printitn::Integer=0, matlabdir::AbstractString="/Users/monty/matlab")
 	@MATLAB.mput T crank seed
 	m = """
 	addpath('$matlabdir/TensorToolbox');
@@ -40,7 +40,7 @@ TensorToolbox Tucker deconstruction
 
 $(DocumentFunction.documentfunction(ttanalysis))
 """
-function ttanalysis(T::Array, crank::Vector; seed::Number=1, functionname::String="tucker_als", maxiter::Integer=DMAXITER, tol::Number=1e-4, printitn::Integer=0, matlabdir::String="/Users/monty/matlab")
+function ttanalysis(T::Array, crank::AbstractVector; seed::Number=1, functionname::AbstractString="tucker_als", maxiter::Integer=DMAXITER, tol::Number=1e-4, printitn::Integer=0, matlabdir::AbstractString="/Users/monty/matlab")
 	@MATLAB.mput T crank seed
 	m = """
 	addpath('$matlabdir/TensorToolbox');
@@ -63,7 +63,7 @@ Block-Coordinate Update (BCU) Candecomp/Parafac (CP) deconstruction
 
 $(DocumentFunction.documentfunction(bcuanalysis))
 """
-function bcuanalysis(T::Array, crank::Number; seed::Number=1, functionname::AbstractString="ncp", maxiter::Integer=DMAXITER, tol::Number=1e-4, matlabdir::String="/Users/monty/matlab")
+function bcuanalysis(T::Array, crank::Number; seed::Number=1, functionname::AbstractString="ncp", maxiter::Integer=DMAXITER, tol::Number=1e-4, matlabdir::AbstractString="/Users/monty/matlab")
 	@MATLAB.mput T crank seed
 	m = """
 	addpath('$matlabdir/BCU');

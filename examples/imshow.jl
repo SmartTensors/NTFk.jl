@@ -1,6 +1,6 @@
 import Gadfly
 
-function imshow(x, title::String="", units::String="", args...)
+function imshow(x, title::AbstractString="", units::AbstractString="", args...)
 	is, js, values = findnz(x)
 	m, n = size(x)
 	df = DataFrames.DataFrame(i=is, j=js, value=values)

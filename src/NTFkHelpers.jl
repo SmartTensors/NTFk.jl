@@ -17,7 +17,7 @@ Parse files in a directory
 
 $(DocumentFunction.documentfunction(searchdir))
 """
-searchdir(key::Union{Regex,String}, path::String=".") = filter(x->occursin(key, x), readdir(path))
+searchdir(key::Union{Regex,String}, path::AbstractString=".") = filter(x->occursin(key, x), readdir(path))
 
 """
 Set image dpi
@@ -28,7 +28,7 @@ function setdpi(dpi::Integer)
 	global imagedpi = dpi
 end
 
-function setoutputformat(extension::String)
+function setoutputformat(extension::AbstractString)
 	global outputformat = extension
 end
 
@@ -66,7 +66,7 @@ function mincorrelations(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}) where {
 	end
 end
 
-function corinf(v1::Vector{T}, v2::Vector{T}) where {T <: Number}
+function corinf(v1::AbstractVector{T}, v2::AbstractVector{T}) where {T <: Number}
 	nans = .!isnan.(v2)
 	if length(v2[nans]) == 0
 		return Inf
@@ -104,7 +104,7 @@ function getsizes(csize::Tuple, tsize::Tuple=csize .+ 1)
 	return sizes
 end
 
-function getcsize(case::String; resultdir::String=".", longname=false, extension=outputformat)
+function getcsize(case::AbstractString; resultdir::AbstractString=".", longname=false, extension=outputformat)
 	files = searchdir(case, resultdir)
 	csize = Vector{Vector{Int64}}(undef, 0)
 	kwa = Vector{String}(undef, 0)
@@ -163,7 +163,7 @@ function gettensorcomponentsold(t::TensorDecompositions.Tucker, dim::Integer=1; 
 	return Xe[imax[1:crank]]
 end
 
-function getgridvalues(v::Vector, d::Integer)
+function getgridvalues(v::AbstractVector, d::Integer)
 	l = length(v)
 	Interpolations.interpolate((1:l,), v, Interpolations.Gridded(Interpolations.Linear())).(1:l/(d+1):l)
 end
@@ -262,7 +262,7 @@ function getpredictions(t::TensorDecompositions.Tucker{T,N}, dim, v; sp=[Interpo
 	return tn
 end
 
-function getsignalorder(X::Vector{Array{T,N}}; flipdim::Bool=true, rev=flipdim, functionname::String="NMFk.sumnan") where {T <: Number, N}
+function getsignalorder(X::AbstractVector{Array{T,N}}; flipdim::Bool=true, rev=flipdim, functionname::AbstractString="NMFk.sumnan") where {T <: Number, N}
 	vm = vec(map(i->Core.eval(NTFk, Meta.parse(functionname))(X[i]), 1:length(X)))
 	return sortperm(vm; rev=rev)
 end
@@ -340,7 +340,7 @@ function getsignalorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::
 	return order
 end
 
-function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::String="", mask=nothing, transform=nothing, filter=(), order=getsignalorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savetensorslices::Bool=false)
+function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::AbstractString="", mask=nothing, transform=nothing, filter=(), order=getsignalorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savetensorslices::Bool=false)
 	cs = size(t.core)
 	ndimensons = length(cs)
 	@assert dim >= 1 && dim <= ndimensons
@@ -389,7 +389,7 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 	return X
 end
 
-function gettensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::String="", transform=nothing, mask=nothing, filter=(), order=getsignalorder(t, dim; method=:factormagnitude))
+function gettensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::AbstractString="", transform=nothing, mask=nothing, filter=(), order=getsignalorder(t, dim; method=:factormagnitude))
 	cs = size(t.core)
 	ndimensons = length(cs)
 	@assert dim >= 1 && dim <= ndimensons
@@ -405,7 +405,7 @@ function gettensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::U
 	return Xs
 end
 
-function savetensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::String="", transform=nothing, mask=nothing, filter=(), order=getsignalorder(t, dim; method=:factormagnitude))
+function savetensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::AbstractString="", transform=nothing, mask=nothing, filter=(), order=getsignalorder(t, dim; method=:factormagnitude))
 	cs = size(t.core)
 	ndimensons = length(cs)
 	@assert dim >= 1 && dim <= ndimensons
@@ -417,7 +417,7 @@ function savetensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::
 	NTFk.savetensorslices(X, pt, sz, order, prefix)
 end
 
-function savetensorslices(X::AbstractArray, pt, sz, order, prefix::String="")
+function savetensorslices(X::AbstractArray, pt, sz, order, prefix::AbstractString="")
 	recursivemkdir(prefix; filename=true)
 	for (i, e) in enumerate(order)
 		ii = lpad("$i", 4, "0")
@@ -536,7 +536,7 @@ function gettensormaximums(t::TensorDecompositions.Tucker{T,N}) where {T <: Numb
 	end
 end
 
-function recursivemkdir(s::String; filename=true, quiet=true)
+function recursivemkdir(s::AbstractString; filename=true, quiet=true)
 	d = Vector{String}(undef, 0)
 	sc = deepcopy(s)
 	if !filename && sc!= ""
@@ -564,7 +564,7 @@ function recursivemkdir(s::String; filename=true, quiet=true)
 	end
 end
 
-function recursivermdir(s::String; filename=true)
+function recursivermdir(s::AbstractString; filename=true)
 	d = Vector{String}(undef, )
 	sc = deepcopy(s)
 	if !filename && sc!= ""
@@ -664,7 +664,7 @@ function namedimension(ndimensons::Int; char="C", names=("T", "X", "Y"))
 	return dimname
 end
 
-function setnewfilename(filename::String, frame::Integer=0; keyword::String="frame")
+function setnewfilename(filename::AbstractString, frame::Integer=0; keyword::AbstractString="frame")
 	dir = dirname(filename)
 	fn = splitdir(filename)[end]
 	fs = split(fn, ".")
@@ -701,7 +701,7 @@ function setnewfilename(filename::String, frame::Integer=0; keyword::String="fra
 	end
 end
 
-function getradialmap(X::Matrix, x0, y0, nr, na)
+function getradialmap(X::AbstractMatrix, x0, y0, nr, na)
 	m, n = size(X)
 	itp = Interpolations.interpolate((1:m, 1:n,), X, Interpolations.Gridded(Interpolations.Constant()))
 	R = Array{Float64}(undef, nr, na)
@@ -729,7 +729,7 @@ function float2date(f::AbstractFloat, period::Type{<:Dates.Period}=Dates.Nanosec
 	return year_start + partial
 end
 
-function movingwindow(A::AbstractArray{T, N}, windowsize::Number=1; functionname::String="maximum") where {T <: Number, N}
+function movingwindow(A::AbstractArray{T, N}, windowsize::Number=1; functionname::AbstractString="maximum") where {T <: Number, N}
 	if windowsize == 0
 		return A
 	end

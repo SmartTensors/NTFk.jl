@@ -1,6 +1,6 @@
 import TensorDecompositions
 
-function loadcase(case::String; datadir::String=".")
+function loadcase(case::AbstractString; datadir::AbstractString=".")
 	f = "$(datadir)/$(case)F.jld"
 	if isfile(f)
 		F = JLD.load(f, "X")
@@ -21,7 +21,7 @@ function loadcase(case::String; datadir::String=".")
 	return C
 end
 
-function loadresults(case::String, csize::Tuple=(); resultdir::String=".")
+function loadresults(case::AbstractString, csize::Tuple=(); resultdir::AbstractString=".")
 	filename = "$(resultdir)/$(case)-$(mapsize(csize)).jld"
 	if isfile(filename)
 		t = NTFk.loadtucker(filename, "t")
@@ -32,7 +32,7 @@ function loadresults(case::String, csize::Tuple=(); resultdir::String=".")
 	end
 end
 
-function analysistime1(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", figuredir::String=".", suffix::String="", seed::Number=0, max_iter=DMAXITER, tol=1e-8, ini_decomp=:none, lambda::Number=0.1)
+function analysistime1(case::AbstractString; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::AbstractString=".", resultdir::AbstractString=".", moviedir::AbstractString=".", figuredir::AbstractString=".", suffix::AbstractString="", seed::Number=0, max_iter=DMAXITER, tol=1e-8, ini_decomp=:none, lambda::Number=0.1)
 	recursivemkdir(resultdir; filename=false)
 	recursivemkdir(moviedir; filename=false)
 	recursivemkdir(figuredir; filename=false)
@@ -44,7 +44,7 @@ function analysistime1(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1
 	return csize
 end
 
-function analysistime(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", figuredir::String=".", suffix::String="", seed::Number=0, max_iter=DMAXITER, tol=1e-8, kw...)
+function analysistime(case::AbstractString; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::AbstractString=".", resultdir::AbstractString=".", moviedir::AbstractString=".", figuredir::AbstractString=".", suffix::AbstractString="", seed::Number=0, max_iter=DMAXITER, tol=1e-8, kw...)
 	recursivemkdir(resultdir; filename=false)
 	recursivemkdir(moviedir; filename=false)
 	recursivemkdir(figuredir; filename=false)
@@ -57,7 +57,7 @@ function analysistime(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:
 	return csize
 end
 
-function analysis(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank1=10, trank2=3, datadir::String=".", resultdir::String=".", moviedir::String=".", suffix::String="", seed::Number=0, max_iter=DMAXITER, tol=1e-8, ini_decomp=:none, kw...)
+function analysis(case::AbstractString; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank1=10, trank2=3, datadir::AbstractString=".", resultdir::AbstractString=".", moviedir::AbstractString=".", suffix::AbstractString="", seed::Number=0, max_iter=DMAXITER, tol=1e-8, ini_decomp=:none, kw...)
 	recursivemkdir(resultdir; filename=false)
 	recursivemkdir(moviedir; filename=false)
 	C = loadcase(case; datadir=datadir)
@@ -69,7 +69,7 @@ function analysis(case::String; timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81
 	return csize
 end
 
-function analysis(case::String, X::Array, csize::Tuple=(); timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::String=".", resultdir::String=".", moviedir::String=".", figuredir::String=".", problemname::String="sparse", makemovie::Bool=true, skipmakemovies::Bool=false, skipmakedatamovie::Bool=skipmakemovies, skipmaketimemovies::Bool=skipmakemovies, skipxymakemovies::Bool=true, quiet::Bool=true, seed::Number=0, max_iter=DMAXITER, tol=1e-8, ini_decomp=:none, lambda::Number=0.1, kw...)
+function analysis(case::AbstractString, X::Array, csize::Tuple=(); timeindex=1:5:1000, xindex=1:1:81, yindex=1:1:81, trank=10, datadir::AbstractString=".", resultdir::AbstractString=".", moviedir::AbstractString=".", figuredir::AbstractString=".", problemname::AbstractString="sparse", makemovie::Bool=true, skipmakemovies::Bool=false, skipmakedatamovie::Bool=skipmakemovies, skipmaketimemovies::Bool=skipmakemovies, skipxymakemovies::Bool=true, quiet::Bool=true, seed::Number=0, max_iter=DMAXITER, tol=1e-8, ini_decomp=:none, lambda::Number=0.1, kw...)
 	if length(csize) == 0
 		recursivemkdir(moviedir; filename=false)
 		if !skipmakemovies || !skipmakedatamovie
