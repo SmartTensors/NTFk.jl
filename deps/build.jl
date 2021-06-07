@@ -39,7 +39,12 @@ else
 			end
 			println("Installing required python packages using pip")
 			run(`$(PyCall.python) $(proxy_args) -m pip install --user --upgrade pip setuptools`)
-			run(`$(PyCall.python) $(proxy_args) -m pip install --user $(PACKAGES)`)
+			run(`$(PyCall.python) $(proxy_args) -m pip install --user -c conda`)
+			run(`$(PyCall.python) $(proxy_args) -m pip install --user -c anaconda mxnet`)
+			run(`$(PyCall.python) $(proxy_args) -m pip install --user -c tensorly tensorly`)
+			run(`$(PyCall.python) $(proxy_args) -m pip install --user -c pytorch pytorch`)
+			run(`$(PyCall.python) $(proxy_args) -m pip install --user -c pytorch tensorflow`)
+			run(`$(PyCall.python) $(proxy_args) -m pip install --user -c anaconda matplotlib`)
 		catch errmsg
 			println(errmsg)
 			@warn("Installing Python packages using pip fails!")
@@ -60,17 +65,6 @@ else
 			Conda.add("pytorch"; channel="pytorch")
 			Conda.add("tensorflow")
 			Conda.add("mxnet")
-		end
-
-		try
-			@info("Checking python package MatPlotLib ...")
-			Core.eval(Main, :(PyCall.pyimport("matplotlib")))
-			@info("Python MatPlotLib is installed using pip!")
-		catch errmsg
-			println(errmsg)
-			@warn("Python MatPlotLib installation using pip has failed!")
-			@info("Using Conda instead ...")
-			import Conda
 			Conda.add("matplotlib")
 		end
 	end
