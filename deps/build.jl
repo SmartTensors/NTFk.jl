@@ -3,7 +3,7 @@ if haskey(ENV, "NTFk_NO_PYTHON")
 else
 	import PyCall
 
-	const PACKAGES = ["tensorly", "matplotlib", "pytorch", "tensorflow", "mxnet"]
+	const PACKAGES = ["matplotlib", "numpy", "tensorly", "pytorch", "tensorflow", "mxnet"]
 	@info("Checking for Python packages: $(PACKAGES)...")
 
 	try
@@ -60,12 +60,18 @@ else
 			println(errmsg)
 			@warn("Python package installation using pip has failed!")
 			@info("Using Conda instead ...")
+			try
 			import Conda
-			Conda.add("tensorly"; channel="tensorly")
-			Conda.add("pytorch"; channel="pytorch")
-			Conda.add("tensorflow")
-			Conda.add("mxnet")
-			Conda.add("matplotlib")
+				Conda.add("matplotlib")
+				Conda.add("numpy")
+				Conda.add("tensorly"; channel="tensorly")
+				Conda.add("pytorch"; channel="pytorch")
+				Conda.add("tensorflow")
+				Conda.add("mxnet")
+			catch errmsg
+				println(errmsg)
+				@warn("Installing Python packages using Conda fails!")
+			end
 		end
 	end
 end
