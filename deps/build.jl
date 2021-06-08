@@ -61,7 +61,7 @@ else
 			@warn("Python package installation using pip has failed!")
 			@info("Using Conda instead ...")
 			try
-			import Conda
+				import Conda
 				Conda.add("matplotlib")
 				Conda.add("numpy")
 				Conda.add("tensorly"; channel="tensorly")
