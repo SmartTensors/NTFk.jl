@@ -1,4 +1,5 @@
 import NTFk
+import NMFk
 import Mads
 
 csize = (3, 4, 5)
@@ -60,8 +61,8 @@ tt_orig = TensorDecompositions.Tucker((xfactor, yfactor, zfactor), core)
 T_orig = TensorDecompositions.compose(tt_orig)
 
 NTFk.plottensor(T_orig; maxvalue=2, movie=true, prefix="figures-results/spnn-345")
-NTFk.plot2d(NTFk.flatten(T_orig, 1)')
-Mads.plotseries(NTFk.flatten(T_orig, 1))
+NTFk.plot2d(NMFk.flatten(T_orig, 1)')
+Mads.plotseries(NMFk.flatten(T_orig, 1))
 
 xfactori = xfactor + rand(size(xfactor)) *.01
 yfactori = yfactor + rand(size(yfactor)) *.01

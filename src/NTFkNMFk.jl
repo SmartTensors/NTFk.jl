@@ -6,7 +6,7 @@ function matrixfactorization(X::AbstractArray{T,N}, range::Union{AbstractRange{I
 	NTFk.hosvd(X)
 	M = Vector{Tuple}(undef, N)
 	for d = dims
-		M[d] = NMFk.execute(NTFk.flatten(X, d), range, aw...; kw...)
+		M[d] = NMFk.execute(NMFk.flatten(X, d), range, aw...; kw...)
 	end
 	return M
 end
@@ -17,7 +17,7 @@ function matrixfactorization(X::AbstractArray{T,N}, range::AbstractVector, aw...
 	M = Vector{Tuple}(undef, N)
 	for d = 1:N
 		if length(range[d]) > 0
-			M[d] = NMFk.execute(NTFk.flatten(X, d), range[d], aw...; kw...)
+			M[d] = NMFk.execute(NMFk.flatten(X, d), range[d], aw...; kw...)
 		end
 	end
 	return M

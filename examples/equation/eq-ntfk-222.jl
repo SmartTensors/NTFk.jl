@@ -1,4 +1,5 @@
 import NTFk
+import NMFk
 import Mads
 import TensorDecompositions
 
@@ -67,13 +68,13 @@ Mads.plotseries(ttu[ibest].factors[2])
 Mads.plotseries(zfactor)
 Mads.plotseries(ttu[ibest].factors[3])
 
-Wem, Hem, of, rob, aic = NMFk.execute(NTFk.flatten(T_orig, 1)', 2:3)
+Wem, Hem, of, rob, aic = NMFk.execute(NMFk.flatten(T_orig, 1)', 2:3)
 NTFk.plot2d(Wem[2]')
 
-Wem, Hem, of, rob, aic = NMFk.execute(NTFk.flatten(T_orig, 2)', 2:3)
+Wem, Hem, of, rob, aic = NMFk.execute(NMFk.flatten(T_orig, 2)', 2:3)
 NTFk.plot2d(Wem[2]')
 
-Wem, Hem, of, rob, aic = NMFk.execute(NTFk.flatten(T_orig, 3)', 2:3)
+Wem, Hem, of, rob, aic = NMFk.execute(NMFk.flatten(T_orig, 3)', 2:3)
 NTFk.plot2d(Wem[2]')
 
 tcp, ecsize, ibest = NTFk.analysis(T_orig, [2]; prefix="results/tdcp-222")
