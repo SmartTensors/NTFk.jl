@@ -5,7 +5,7 @@ import TensorToolbox
 import TensorDecompositions
 import Statistics
 
-function movietensorfactors(t::TensorDecompositions.Tucker, dim::Integer=1, M=nothing; order=getsignalorder(t, dim; method=:factormagnitude), quiet::Bool=false, timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::AbstractString="Dates.Day", movie=true, prefix="", dpi::Integer=imagedpi, hsize=12Compose.inch, vsize=2Compose.inch, moviedir=".", vspeed=1.0, keyword="frame", movieformat="mp4", movieopacity::Bool=false, cleanup::Bool=true, kw...)
+function movietensorfactors(t::TensorDecompositions.Tucker, dim::Integer=1, M=nothing; order=getsignalorder(t, dim; method=:factormagnitude), quiet::Bool=false, timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::AbstractString="Dates.Day", movie=true, prefix="", dpi::Integer=imagedpi, hsize::Measures.AbsoluteLength=12Compose.inch, vsize::Measures.AbsoluteLength=2Compose.inch, moviedir=".", vspeed=1.0, keyword="frame", movieformat="mp4", movieopacity::Bool=false, cleanup::Bool=true, kw...)
 	nc = length(order)
 	if M !== nothing
 		np = convert(Int, ceil(nc / 3))
@@ -60,7 +60,7 @@ function plottensorfactors(t::TensorDecompositions.Tucker, dim::Integer=1; order
 	plottensorfactors(t.factors[dim]; order=order, filter=filter, kw...)
 end
 
-function plottensorfactors(p::Array; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, dpi::Integer=imagedpi, figuredir::AbstractString=".", filename::AbstractString="", title::AbstractString="", xtitle::AbstractString="", ytitle::AbstractString="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, order=getsignalorder(p), filter=vec(1:length(order)), datestart=nothing, dateend=nothing, dateincrement::AbstractString="Dates.Day", code::Bool=false, xmin=datestart, xmax=dateend, xfilter=nothing, transform=nothing, linewidth=2Gadfly.pt, separate::Bool=false)
+function plottensorfactors(p::Array; quiet::Bool=false, hsize::Measures.AbsoluteLength=8Compose.inch, vsize::Measures.AbsoluteLength=4Compose.inch, dpi::Integer=imagedpi, figuredir::AbstractString=".", filename::AbstractString="", title::AbstractString="", xtitle::AbstractString="", ytitle::AbstractString="", ymin=nothing, ymax=nothing, gm=[], timescale::Bool=true, order=getsignalorder(p), filter=vec(1:length(order)), datestart=nothing, dateend=nothing, dateincrement::AbstractString="Dates.Day", code::Bool=false, xmin=datestart, xmax=dateend, xfilter=nothing, transform=nothing, linewidth=2Gadfly.pt, separate::Bool=false)
 	recursivemkdir(figuredir; filename=false)
 	recursivemkdir(filename)
 	if transform !== nothing
@@ -108,7 +108,7 @@ function plottensorfactors(p::Array; quiet::Bool=false, hsize=8Compose.inch, vsi
 	return ff
 end
 
-function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, functionname::AbstractString="Statistics.mean"; quiet::Bool=false, hsize=8Compose.inch, vsize=4Compose.inch, dpi::Integer=imagedpi, figuredir::AbstractString=".", filename::AbstractString="", title::AbstractString="", xtitle::AbstractString="", ytitle::AbstractString="", ymin=nothing, ymax=nothing, gm=[], linewidth=2Gadfly.pt, timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::AbstractString="Dates.Day", code::Bool=false, order=getsignalorder(t, dim; method=:factormagnitude), xmin=datestart, xmax=dateend, transform=nothing)
+function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, functionname::AbstractString="Statistics.mean"; quiet::Bool=false, hsize::Measures.AbsoluteLength=8Compose.inch, vsize::Measures.AbsoluteLength=4Compose.inch, dpi::Integer=imagedpi, figuredir::AbstractString=".", filename::AbstractString="", title::AbstractString="", xtitle::AbstractString="", ytitle::AbstractString="", ymin=nothing, ymax=nothing, gm=[], linewidth=2Gadfly.pt, timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::AbstractString="Dates.Day", code::Bool=false, order=getsignalorder(t, dim; method=:factormagnitude), xmin=datestart, xmax=dateend, transform=nothing)
 	recursivemkdir(figuredir; filename=false)
 	recursivemkdir(filename)
 	csize = TensorToolbox.mrank(t.core)
@@ -160,7 +160,7 @@ function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=
 	end
 end
 
-function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, functionname1::AbstractString="Statistics.mean", functionname2::AbstractString="Statistics.mean"; quiet=false, hsize=8Compose.inch, vsize=4Compose.inch, dpi::Integer=imagedpi, figuredir::AbstractString=".", filename::AbstractString="", title::AbstractString="", xtitle::AbstractString="", ytitle::AbstractString="", ymin=nothing, ymax=nothing, gm=[], linewidth=2Gadfly.pt, timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::AbstractString="Dates.Day", code::Bool=false, order=getsignalorder(t, dim; method=:factormagnitude), xmin=datestart, xmax=dateend, transform=nothing)
+function plot2dmodtensorcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, functionname1::AbstractString="Statistics.mean", functionname2::AbstractString="Statistics.mean"; quiet=false, hsize::Measures.AbsoluteLength=8Compose.inch, vsize::Measures.AbsoluteLength=4Compose.inch, dpi::Integer=imagedpi, figuredir::AbstractString=".", filename::AbstractString="", title::AbstractString="", xtitle::AbstractString="", ytitle::AbstractString="", ymin=nothing, ymax=nothing, gm=[], linewidth=2Gadfly.pt, timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::AbstractString="Dates.Day", code::Bool=false, order=getsignalorder(t, dim; method=:factormagnitude), xmin=datestart, xmax=dateend, transform=nothing)
 	csize = TensorToolbox.mrank(t.core)
 	recursivemkdir(figuredir; filename=false)
 	recursivemkdir(filename)
@@ -221,7 +221,7 @@ end
 colors=[parse(Colors.Colorant, "green"), parse(Colors.Colorant, "orange"), parse(Colors.Colorant, "blue"), parse(Colors.Colorant, "gray")]
 gm=[Gadfly.Guide.manual_color_key("", ["Oil", "Gas", "Water"], colors[1:3]), Gadfly.Theme(major_label_font_size=16Gadfly.pt, key_label_font_size=14Gadfly.pt, minor_label_font_size=12Gadfly.pt)]
 """
-function plot2d(T::AbstractArray, Te::AbstractArray=T; quiet::Bool=false, wellnames=nothing, Tmax=nothing, Tmin=nothing, xtitle::AbstractString="", ytitle::AbstractString="", titletext::AbstractString="", figuredir::AbstractString="results", hsize=8Gadfly.inch, vsize=4Gadfly.inch, dpi::Integer=imagedpi, keyword::AbstractString="", dimname::AbstractString="Column", colors=NTFk.colors, linewidth::Measures.Length{:mm,Float64}=2Gadfly.pt, gm=[Gadfly.Theme(key_position=:right, discrete_highlight_color=c->nothing, background_color=nothing, major_label_font_size=16Gadfly.pt, key_label_font_size=14Gadfly.pt, minor_label_font_size=12Gadfly.pt)], xaxis=1:size(Te,2), xmin=nothing, xmax=nothing, ymin=nothing, ymax=nothing, xintercept=[])
+function plot2d(T::AbstractArray, Te::AbstractArray=T; quiet::Bool=false, wellnames=nothing, Tmax=nothing, Tmin=nothing, xtitle::AbstractString="", ytitle::AbstractString="", titletext::AbstractString="", figuredir::AbstractString="results", hsize::Measures.AbsoluteLength=8Gadfly.inch, vsize::Measures.AbsoluteLength=4Gadfly.inch, dpi::Integer=imagedpi, keyword::AbstractString="", dimname::AbstractString="Column", colors=NTFk.colors, linewidth::Measures.AbsoluteLength=2Gadfly.pt, gm=[Gadfly.Theme(key_position=:right, discrete_highlight_color=c->nothing, background_color=nothing, major_label_font_size=16Gadfly.pt, key_label_font_size=14Gadfly.pt, minor_label_font_size=12Gadfly.pt)], xaxis=1:size(Te,2), xmin=nothing, xmax=nothing, ymin=nothing, ymax=nothing, xintercept=[])
 	recursivemkdir(figuredir)
 	c = size(T)
 	if length(c) == 2
