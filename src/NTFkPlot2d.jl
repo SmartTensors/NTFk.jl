@@ -108,6 +108,36 @@ function plottensorfactors(p::Array; quiet::Bool=false, hsize::Measures.Absolute
 	return ff
 end
 
+function plot2dmodtensorcomponents(m::AbstractMatrix, functionname::AbstractString="Statistics.mean"; quiet::Bool=false, hsize::Measures.AbsoluteLength=8Compose.inch, vsize::Measures.AbsoluteLength=4Compose.inch, dpi::Integer=imagedpi, figuredir::AbstractString=".", filename::AbstractString="", title::AbstractString="", xtitle::AbstractString="", ytitle::AbstractString="", ymin=nothing, ymax=nothing, gm=[], linewidth=2Gadfly.pt, timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::AbstractString="Dates.Day", code::Bool=false, order=1:size(m, 1), xmin=datestart, xmax=dateend, transform=nothing)
+	recursivemkdir(figuredir; filename=false)
+	recursivemkdir(filename)
+	crank = size(m, 1)
+	loopcolors = crank > ncolors ? true : false
+	ny, nx = size(m)
+	if datestart !== nothing
+		xvalues, xmin, xmax = NTFk.daterange(datestart, nx; dateend=dateend, dateincrement=dateincrement)
+	else
+		xvalues, xmin, xmax = NTFk.valuerange(xmin, xmax, nx, timescale)
+	end
+	componentnames = map(i->"T$i", 1:crank)
+	pl = Vector{Any}(undef, crank)
+	for (i, o) = enumerate(order)
+		cc = loopcolors ? parse(Colors.Colorant, colors[(i-1)%ncolors+1]) : parse(Colors.Colorant, colors[i])
+		pl[i] = Gadfly.layer(x=xvalues, y=vec(m[i, :]), Gadfly.Geom.line(), Gadfly.Theme(line_width=linewidth, default_color=cc, highlight_width=0Gadfly.pt))
+	end
+	tc = loopcolors ? [] : [Gadfly.Guide.manual_color_key("", componentnames, colors[1:crank])]
+	ff = Gadfly.plot(pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., Gadfly.Coord.Cartesian(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax), tc..., Gadfly.Theme(discrete_highlight_color=c->nothing, highlight_width=0Gadfly.pt))
+	!quiet && (display(ff); println())
+	if filename != ""
+		Gadfly.draw(Gadfly.PNG(NMFk.joinpathcheck(figuredir, filename), hsize, vsize, dpi=dpi), ff)
+	end
+	if code
+		return [pl..., Gadfly.Guide.title(title), Gadfly.Guide.XLabel(xtitle), Gadfly.Guide.YLabel(ytitle), gm..., Gadfly.Coord.Cartesian(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax), tc..., Gadfly.Theme(discrete_highlight_color=c->nothing, highlight_width=0Gadfly.pt)]
+	else
+		return ff
+	end
+end
+
 function plot2dmodtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, functionname::AbstractString="Statistics.mean"; quiet::Bool=false, hsize::Measures.AbsoluteLength=8Compose.inch, vsize::Measures.AbsoluteLength=4Compose.inch, dpi::Integer=imagedpi, figuredir::AbstractString=".", filename::AbstractString="", title::AbstractString="", xtitle::AbstractString="", ytitle::AbstractString="", ymin=nothing, ymax=nothing, gm=[], linewidth=2Gadfly.pt, timescale::Bool=true, datestart=nothing, dateend=nothing, dateincrement::AbstractString="Dates.Day", code::Bool=false, order=getsignalorder(t, dim; method=:factormagnitude), xmin=datestart, xmax=dateend, transform=nothing)
 	recursivemkdir(figuredir; filename=false)
 	recursivemkdir(filename)
@@ -320,5 +350,5 @@ function valuerange(xmin, xmax, nx, timescale)
 		xmax = timescale ? 1 : nx
 	end
 	xvalues = timescale ? vec(collect(xmin:(xmax-xmin)/(nx-1):xmax)) : vec(collect(1:nx))
-	return xvalues, xmin, xmaxs
+	return xvalues, xmin, xmax
 end

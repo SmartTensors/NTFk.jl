@@ -126,7 +126,7 @@ function plottensorandsomething(X::Array, something, dim::Integer=1, pdim::Union
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : Colon()), ndimensons)
-		p1 = NMFk.plotmatrix(X[nt...]; minvalue=minvalue, maxvalue=maxvalue, kw...)
+		p1 = NMFk.plotmatrix(X[nt...]; minvalue=minvalue, maxvalue=maxvalue, quiet=true, plot=true, vsize=vsize * barratio, kw...)
 		p2 = progressbar_2d(i, timescale, timestep, datestart, dateend, dateincrement)
 		!quiet && (sizes[dim] > 1) && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=dpi), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(p1)), Compose.compose(Compose.context(0, 0, 1, 1 - barratio), Gadfly.render(p2)))); println())
 		if prefix != ""
@@ -139,7 +139,16 @@ function plottensorandsomething(X::Array, something, dim::Integer=1, pdim::Union
 	end
 end
 
-function plottensorandcomponents(X::Array, t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; sizes=size(X),xtitle::AbstractString="Time", ytitle::AbstractString="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::AbstractString="Dates.Day", dateend=(datestart !== nothing) ? datestart + Core.eval(Main, Meta.parse(dateincrement))(sizes[dim]) : nothing, quiet::Bool=false, functionname="Statistics.mean", transform2d=nothing, totals::Bool=true, kw...)
+function plottensorandcomponents(X::AbstractArray, m::AbstractMatrix, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; sizes=size(X), xtitle::AbstractString="Time", ytitle::AbstractString="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::AbstractString="Dates.Day", dateend=(datestart !== nothing) ? datestart + Core.eval(Main, Meta.parse(dateincrement))(sizes[dim]) : nothing, quiet::Bool=false, functionname="Statistics.mean", transform2d=nothing, totals::Bool=false, kw...)
+	if totals
+		s2 = plot2dmodtensorcomponents(X, dim, functionname; xtitle=xtitle, ytitle=ytitle, datestart=datestart, dateend=dateend, dateincrement=dateincrement, timescale=timescale, quiet=true, code=true, transform=transform2d)
+	else
+		s2 = plot2dmodtensorcomponents(m, functionname; xtitle=xtitle, ytitle=ytitle, datestart=datestart, dateend=dateend, dateincrement=dateincrement, timescale=timescale, quiet=true, code=true, transform=transform2d)
+	end
+	plottensorandsomething(X, s2, dim, pdim; datestart=datestart, dateend=dateend, dateincrement=dateincrement, timescale=timescale, quiet=quiet, kw...)
+end
+
+function plottensorandcomponents(X::AbstractArray, t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; sizes=size(X),xtitle::AbstractString="Time", ytitle::AbstractString="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::AbstractString="Dates.Day", dateend=(datestart !== nothing) ? datestart + Core.eval(Main, Meta.parse(dateincrement))(sizes[dim]) : nothing, quiet::Bool=false, functionname="Statistics.mean", transform2d=nothing, totals::Bool=true, kw...)
 	if totals
 		s2 = plot2dmodtensorcomponents(X, t, dim, functionname; xtitle=xtitle, ytitle=ytitle, datestart=datestart, dateend=dateend, dateincrement=dateincrement, timescale=timescale, quiet=true, code=true, transform=transform2d)
 	else
@@ -341,7 +350,7 @@ function plotalltensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1,
 	mdfilter = ntuple(k->(k == 1 ? 1 : Colon()), length(csize))
 	for i = 1:length(X)
 		filename = prefix == "" ? "" : "$prefix-tensorslice$(lpad("$i", 4, "0")).png"
-		p = NMFk.plotmatrix(permutedims(X[order[i]], pt)[mdfilter...]; filename=filename, kw...)
+		p = NMFk.plotmatrix(permutedims(X[order[i]], pt)[mdfilter...]; filename=filename, plot=true, kw...)
 		!quiet && (@info("Slice $i"); display(p); println();)
 	end
 	return nothing
