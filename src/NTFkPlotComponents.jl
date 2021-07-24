@@ -126,7 +126,7 @@ function plottensorandsomething(X::Array, something, dim::Integer=1, pdim::Union
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : Colon()), ndimensons)
-		p1 = NMFk.plotmatrix(X[nt...]; minvalue=minvalue, maxvalue=maxvalue, quiet=true, plot=true, vsize=vsize * barratio, kw...)
+		p1 = NMFk.plotmatrix(X[nt...]; minvalue=minvalue, maxvalue=maxvalue, quiet=true, plot=true, kw...)
 		p2 = progressbar_2d(i, timescale, timestep, datestart, dateend, dateincrement)
 		!quiet && (sizes[dim] > 1) && (println(framename); Gadfly.draw(Gadfly.PNG(hsize, vsize, dpi=dpi), Gadfly.vstack(Compose.compose(Compose.context(0, 0, 1, barratio), Gadfly.render(p1)), Compose.compose(Compose.context(0, 0, 1, 1 - barratio), Gadfly.render(p2)))); println())
 		if prefix != ""

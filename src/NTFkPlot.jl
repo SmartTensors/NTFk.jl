@@ -251,9 +251,9 @@ function plotMtensors(X::AbstractVector{Array{T,N}}, dim::Integer=1; sizes=size(
 		else
 			for m = 1:M
 				if length(colormap) > 1
-					gv[m] = NMFk.plotmatrix(X[m][nt...]; minvalue=minvalue, maxvalue=maxvalue, key_label_font_size=key_label_font_size, title=ltitle, colormap=colormap[m], plot=true, kw...)
+					gv[m] = NMFk.plotmatrix(X[m][nt...]; minvalue=minvalue, maxvalue=maxvalue, key_label_font_size=key_label_font_size, title=ltitle, colormap=colormap[m], plot=true, quiet=true, kw...)
 				else
-					gv[m] = NMFk.plotmatrix(X[m][nt...]; minvalue=minvalue, maxvalue=maxvalue, key_label_font_size=key_label_font_size, title=ltitle, colormap=colormap, plot=true, kw...)
+					gv[m] = NMFk.plotmatrix(X[m][nt...]; minvalue=minvalue, maxvalue=maxvalue, key_label_font_size=key_label_font_size, title=ltitle, colormap=colormap, plot=true, quiet=true, kw...)
 				end
 			end
 			g = Compose.hstack(gv...)
