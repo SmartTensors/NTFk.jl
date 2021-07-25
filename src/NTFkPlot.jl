@@ -48,7 +48,7 @@ function plottensor(X::AbstractArray{T,N}, dim::Integer=1; permute::Bool=false, 
 		if cutoff && NMFk.maximumnan(M) .<= cutvalue
 			continue
 		end
-		g = NMFk.plotmatrix(M; minvalue=minvalue, maxvalue=maxvalue, title=title, colormap=colormap, plot=true, quiet=quiet, kw...)
+		g = NMFk.plotmatrix(M; minvalue=minvalue, maxvalue=maxvalue, title=title, colormap=colormap, plot=true, quiet=true, kw...)
 		if progressbar !== nothing
 			f = progressbar(i, timescale, timestep, datestart, dateend, dateincrement)
 		else
@@ -91,8 +91,8 @@ function plot2tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, dim::Integ
 	for i = 1:sizes[dim]
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
-		g1 = NMFk.plotmatrix(X1[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ltitle, colormap=colormap, plot=true, kw...)
-		g2 = NMFk.plotmatrix(X2[nt...]; minvalue=minvalue2, maxvalue=maxvalue2, title=rtitle, colormap=colormap, plot=true, kw...)
+		g1 = NMFk.plotmatrix(X1[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ltitle, colormap=colormap, quiet=true, plot=true, kw...)
+		g2 = NMFk.plotmatrix(X2[nt...]; minvalue=minvalue2, maxvalue=maxvalue2, title=rtitle, colormap=colormap, quiet=true, plot=true, kw...)
 		if title != ""
 			t = Compose.compose(Compose.context(0, 0, 1Compose.w, 0.0001Compose.h),
 				(Compose.context(), Compose.fill("gray"), Compose.fontsize(20Compose.pt), Compose.text(0.5Compose.w, 0, title * " : " * sprintf("%06d", i), Compose.hcenter, Compose.vtop)))
@@ -172,9 +172,9 @@ function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::Abstra
 			g3 = NMFk.plotmatrix(X3[nt...]; minvalue=minvalue3, maxvalue=maxvalue3, key_label_font_size=key_label_font_size, title=rtitle, colormap=nothing, defaultcolor=Colors.RGBA(0.0,0.502,0.0,opacity), code=true, gl=gla[3], kw...)
 			g = Compose.hstack(Gadfly.plot(g1..., g2..., g3..., Gadfly.Guide.manual_color_key("", signalnames, ["red", "blue", "green"])))
 		else
-			g1 = NMFk.plotmatrix(X1[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ltitle, colormap=colormap1, key_label_font_size=key_label_font_size, gl=gla[1], plot=true, kw...)
-			g2 = NMFk.plotmatrix(X2[nt...]; minvalue=minvalue2, maxvalue=maxvalue2, title=ctitle, colormap=colormap2, key_label_font_size=key_label_font_size, gl=gla[2], plot=true, kw...)
-			g3 = NMFk.plotmatrix(X3[nt...]; minvalue=minvalue3, maxvalue=maxvalue3, title=rtitle, colormap=colormap3, key_label_font_size=key_label_font_size, gl=gla[3], plot=true, kw...)
+			g1 = NMFk.plotmatrix(X1[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ltitle, colormap=colormap1, key_label_font_size=key_label_font_size, gl=gla[1], plot=true, quiet=true, kw...)
+			g2 = NMFk.plotmatrix(X2[nt...]; minvalue=minvalue2, maxvalue=maxvalue2, title=ctitle, colormap=colormap2, key_label_font_size=key_label_font_size, gl=gla[2], plot=true, quiet=true, kw...)
+			g3 = NMFk.plotmatrix(X3[nt...]; minvalue=minvalue3, maxvalue=maxvalue3, title=rtitle, colormap=colormap3, key_label_font_size=key_label_font_size, gl=gla[3], plot=true, quiet=true, kw...)
 			g = Compose.hstack(g1, g2, g3)
 		end
 		if progressbar !== nothing

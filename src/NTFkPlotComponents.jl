@@ -350,7 +350,7 @@ function plotalltensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1,
 	mdfilter = ntuple(k->(k == 1 ? 1 : Colon()), length(csize))
 	for i = 1:length(X)
 		filename = prefix == "" ? "" : "$prefix-tensorslice$(lpad("$i", 4, "0")).png"
-		p = NMFk.plotmatrix(permutedims(X[order[i]], pt)[mdfilter...]; filename=filename, plot=true, kw...)
+		p = NMFk.plotmatrix(permutedims(X[order[i]], pt)[mdfilter...]; filename=filename, quiet=true, plot=true, kw...)
 		!quiet && (@info("Slice $i"); display(p); println();)
 	end
 	return nothing
