@@ -262,12 +262,12 @@ function getpredictions(t::TensorDecompositions.Tucker{T,N}, dim, v; sp=[Interpo
 	return tn
 end
 
-function getsignalorder(X::AbstractVector{Array{T,N}}; flipdim::Bool=true, rev=flipdim, functionname::AbstractString="NMFk.sumnan") where {T <: Number, N}
+function signalorder(X::AbstractVector{Array{T,N}}; flipdim::Bool=true, rev=flipdim, functionname::AbstractString="NMFk.sumnan") where {T <: Number, N}
 	vm = vec(map(i->Core.eval(NTFk, Meta.parse(functionname))(X[i]), 1:length(X)))
 	return sortperm(vm; rev=rev)
 end
 
-function getsignalorder(p::Array; firstpeak::Bool=true, flipdim::Bool=true, quiet::Bool=true)
+function signalorder(p::Array; firstpeak::Bool=true, flipdim::Bool=true, quiet::Bool=true)
 	crank = size(p, 2)
 	fmin = vec(NMFk.minimumnan(p, dims=1))
 	fmax = vec(NMFk.maximumnan(p, dims=1))
@@ -296,7 +296,7 @@ function getsignalorder(p::Array; firstpeak::Bool=true, flipdim::Bool=true, quie
 	return order
 end
 
-function getsignalorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core, firstpeak::Bool=true, flipdim::Bool=true, quiet::Bool=true)
+function signalorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::Symbol=:core, firstpeak::Bool=true, flipdim::Bool=true, quiet::Bool=true)
 	sc = size(t.core)
 	@assert dim > 0 && dim <= length(sc)
 	cs = sc[dim]
@@ -307,7 +307,7 @@ function getsignalorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::
 	@assert dim >= 1 && dim <= ndimensons
 	crank = cs
 	if method == :factormagnitude
-		order = getsignalorder(t.factors[dim]; firstpeak=firstpeak, flipdim=flipdim, quiet=quiet)
+		order = signalorder(t.factors[dim]; firstpeak=firstpeak, flipdim=flipdim, quiet=quiet)
 	else
 		maxXe = Vector{Float64}(undef, cs)
 		tt = deepcopy(t)
@@ -340,7 +340,7 @@ function getsignalorder(t::TensorDecompositions.Tucker, dim::Integer=1; method::
 	return order
 end
 
-function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::AbstractString="", mask=nothing, transform=nothing, filter=(), order=getsignalorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savetensorslices::Bool=false)
+function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::AbstractString="", mask=nothing, transform=nothing, filter=(), order=signalorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, savetensorslices::Bool=false)
 	cs = size(t.core)
 	ndimensons = length(cs)
 	@assert dim >= 1 && dim <= ndimensons
@@ -389,7 +389,7 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 	return X
 end
 
-function gettensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::AbstractString="", transform=nothing, mask=nothing, filter=(), order=getsignalorder(t, dim; method=:factormagnitude))
+function gettensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::AbstractString="", transform=nothing, mask=nothing, filter=(), order=signalorder(t, dim; method=:factormagnitude))
 	cs = size(t.core)
 	ndimensons = length(cs)
 	@assert dim >= 1 && dim <= ndimensons
@@ -405,7 +405,7 @@ function gettensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::U
 	return Xs
 end
 
-function savetensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::AbstractString="", transform=nothing, mask=nothing, filter=(), order=getsignalorder(t, dim; method=:factormagnitude))
+function savetensorslices(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; prefix::AbstractString="", transform=nothing, mask=nothing, filter=(), order=signalorder(t, dim; method=:factormagnitude))
 	cs = size(t.core)
 	ndimensons = length(cs)
 	@assert dim >= 1 && dim <= ndimensons
