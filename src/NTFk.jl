@@ -19,11 +19,11 @@ using SharedArrays
 import Printf
 import Distributed
 
-const ntfkdir = splitdir(splitdir(pathof(NTFk))[1])[1]
+const dir = splitdir(splitdir(pathof(NTFk))[1])[1]
 
 "Test NTFk functions"
 function test()
-	include(joinpath(ntfkdir, "test", "runtests.jl"))
+	include(joinpath(dir, "test", "runtests.jl"))
 end
 
 global imagedpi = 300
@@ -68,6 +68,8 @@ include("NTFkPlotMatrix.jl")
 include("NTFkPlotComponents.jl")
 include("NTFkPlotProgressBar.jl")
 include("NTFkPlotColors.jl")
+
+include("NTFkNotebooks.jl")
 
 include("NTFkTensorly.jl")
 
