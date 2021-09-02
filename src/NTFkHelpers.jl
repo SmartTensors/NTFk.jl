@@ -495,14 +495,14 @@ function gettensorminmax(t::TensorDecompositions.Tucker, dim::Integer=1; method:
 end
 
 function gettensorcomponentgroups(t::TensorDecompositions.Tucker, dim::Integer=1; cutvalue::Number=0.9)
-	g = zeros(t.factors[dim][:, 1])
+	g = zeros(length(t.factors[dim][:, 1]))
 	v = maximum(t.factors[dim]; dims=1) .> cutvalue
 	gi = 0
 	for i = 1:length(v)
 		if v[i]
 			m = t.factors[dim][:, i] .> cutvalue
 			gi += 1
-			g[m] = gi
+			g[m] .= gi
 		end
 	end
 	@info("Number of component groups in dimension $dim is $(gi)")

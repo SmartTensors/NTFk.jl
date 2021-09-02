@@ -1,4 +1,6 @@
 import NTFk
+import TensorDecompositions
+import Random
 
 function makesignal(s, t, v)
 	a = zeros(s, t)

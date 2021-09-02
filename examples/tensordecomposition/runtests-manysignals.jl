@@ -1,4 +1,5 @@
 import NTFk
+import Random
 
 function makesignal(s, t, v)
 	a = zeros(s, t)

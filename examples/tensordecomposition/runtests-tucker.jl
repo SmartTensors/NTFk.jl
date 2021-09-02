@@ -1,5 +1,6 @@
 import NTFk
 import TensorDecompositions
+import Random
 
 Random.seed!(1)
 csize = (2, 3, 4)

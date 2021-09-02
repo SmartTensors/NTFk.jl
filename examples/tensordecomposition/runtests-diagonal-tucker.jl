@@ -1,4 +1,5 @@
 import NTFk
+import Random
 
 Random.seed!(1)
 csize = (3, 3, 3)

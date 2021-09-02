@@ -1,5 +1,6 @@
 import NTFk
 import Statistics
+import Random
 
 Random.seed!(2015)
 a = rand(20)
