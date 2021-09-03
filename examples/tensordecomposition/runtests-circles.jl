@@ -2,6 +2,7 @@ import NTFk
 import TensorDecompositions
 import Images
 import ImageDraw
+import Mads
 
 function makesignalcicrle(sx, sy, x, y, r)
 	m = zeros(sx, sy)
@@ -67,4 +68,14 @@ NTFk.normalizefactors!(th)
 NTFk.normalizecore!(th)
 for i = 1:3
 	NTFk.plotfactor(th, i)
+end
+
+# NMFk analysis
+nmfkresult = NMFk.tensorfactorization(T, 2:10)
+for i = 1:3
+	kopt = NMFk.getk(2:10, nmfkresult[i][4])
+	@info "Dimension $i: Optimal signals: $(kopt)"
+	NMFk.plot_signal_selecton(2:10, nmfkresult[i][3], nmfkresult[i][4])
+	Mads.plotseries(nmfkresult[i][1][kopt])
+	NMFk.plotmatrix(nmfkresult[i][2][kopt])
 end
