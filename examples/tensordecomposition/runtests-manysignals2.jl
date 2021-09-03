@@ -2,6 +2,8 @@ import NTFk
 import TensorDecompositions
 import Random
 
+Random.seed!(10)
+
 function makesignal(s, t, v)
 	a = zeros(s, t)
 	for i = 1:t
@@ -14,8 +16,6 @@ function makesignal(s, t, v)
 	end
 	return a
 end
-
-Random.seed!(10)
 
 tsize = (50, 50, 50)
 v = [1.1,1.2,1.3,1.4,1.5,1.6]

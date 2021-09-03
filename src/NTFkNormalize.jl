@@ -118,7 +118,7 @@ function normalizefactors!(X::TensorDecompositions.CANDECOMP{T,N}, order=1:N; ch
 	for i = order
 		m = maximum(X.factors[i]; dims=1)
 		X.lambdas .*= vec(m)
-		m[m.==0] = 1.0
+		m[m.==0] .= 1.0
 		X.factors[i] ./= m
 	end
 	if check
