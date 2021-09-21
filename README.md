@@ -258,12 +258,14 @@ Presentations are also available at [slideshare.net](https://www.slideshare.net/
 
 ### Extra information
 
-For more information, visit [monty.gitlab.io](http://monty.gitlab.io), [tensordecompositions.github.io],(https://tensordecompositions.github.io), and [tensors.lanl.gov](http://tensors.lanl.gov)
+For more information, visit [monty.gitlab.io](http://monty.gitlab.io), [http://smarttensors.com](http://smarttensors.com) [smarttensors.github.io],(https://smarttensors.github.io), and [tensors.lanl.gov](http://tensors.lanl.gov).
 
 Installation behind a firewall
 ------------------------------
 
-Julia uses git for package management. Add in the `.gitconfig` file in your home directory:
+Julia uses git for package management.
+
+In some situations, you may need to add in the `.gitconfig` file in your home directory:
 
 ```
 [url "git@github.com:"]
