@@ -1,27 +1,32 @@
-NTFk: Nonnegative Tensor Factorization using k-means clustering and physics constraints
-================
+# NTFk: Nonnegative Tensor Factorization using k-means clustering and physics constraints
 
 <div style="text-align: left">
-    <img src="logo/ntfk-logo.png" alt="ntfk" width=25%  max-width=125px;/>
+    <img src="logo/ntfk-logo.jpg" alt="ntfk" width=25%  max-width=125px;/>
 </div>
 
-**NTFk** performs a novel unsupervised Machine Learning (ML) method based on Tensor Decomposition coupled with constraints (sparsity, nonnegativity, physical, mathematical).
+**NTFk** is one of the tools in the **SmartTensors** ML framework ([smarttensors.com](https://smarttensors.com)).
+
+<div style="text-align: left">
+    <img src="logo/SmartTensorsNewSmall.png" alt="SmartTensors" width=25%  max-width=125px;/>
+</div>
+
+**NTFk** performs a novel unsupervised Machine Learning (ML) method based on Tensor Decomposition (Factorization) coupled with constraints (sparsity, nonnegativity, physical, mathematical).
 
 **NTFk** methodology allows for automatic identification of the optimal number of features (signals) present in multi-dimensional data arrays (tensors).
 The number of features (tensor rank / multi-rank) along different dimensions can be estimated jointly and independently.
 
 **NMFk** can be applied to perform various types of analyses of multi-dimensional data:
-
 - Feature extraction (**FE**)
 - Blind source separation (**BSS**)
 - Detection of disruptions / anomalies
 - Image recognition
-- Separation of (physics) processes
+- Text mining
+- Data classification
+- Separation (deconstruction) of co-occurring (physics) processes
 - Discovery of unknown dependencies and phenomena
 - Development of reduced-order/surrogate models
 - Identification of dependencies between model inputs and outputs
-- Guiding development of physics models representing the ML analyzed data
-- Data classification
+- Guiding the development of physics models representing the ML analyzed data
 - Blind predictions
 - Optimization of data acquisition (optimal experimental design)
 - Labeling of datasets for supervised ML analyses
@@ -33,7 +38,11 @@ GPU and TPU accelerations are available through existing Julia packages.
 
 **NTFk** can be employed to perform tensor decomposition using CP (Candecomp/Parafac) and Tucker methods.
 
-**NTFk** provides options to access to tensor decomposition methods available in MATLAB modules (MATLAB installation required): Tamara Kolda's [TensorToolbox](https://www.tensortoolbox.org), Ivan Oseledets' [TT-Toolbox](https://www.mathworks.com/matlabcentral/fileexchange/46312-oseledets-tt-toolbox), Wotao Yin's [BCU](https://www.math.ucla.edu/~wotaoyin/papers/bcu/matlab.html), and [TensorLab](https://www.tensorlab.net).
+**NTFk** provides options to access to tensor decomposition methods available in MATLAB modules (MATLAB installation required):
+* Tamara Kolda's [TensorToolbox](https://www.tensortoolbox.org)
+* Ivan Oseledets' [TT-Toolbox](https://www.mathworks.com/matlabcentral/fileexchange/46312-oseledets-tt-toolbox)
+* Wotao Yin's [BCU](https://www.math.ucla.edu/~wotaoyin/papers/bcu/matlab.html)
+* [TensorLab](https://www.tensorlab.net)
 
 **NTFk** provides also interface to Jean Kossaifi's [Python TensorLy](http://tensorly.org/stable/index.html).
 
@@ -41,33 +50,38 @@ GPU and TPU accelerations are available through existing Julia packages.
 
 **NTFk** methodology and applications are discussed in the the papers and presentations listed below.
 
-**NTFk** is one of the tools in the **SmartTensors** ML framework ([smarttensors.github.io](https://smarttensors.github.io)).
+Tensor network decompositions can be be performed using SmartTensors' [**NTNk**](https://github.com/SmartTensors/NTNk.jl) package.
+
+Matrix factorization can be be performed using SmartTensors' [**NMFk**](https://github.com/SmartTensors/NMFk.jl) package.
+
+## Awards
+
+**SmartTensors** and **NTFk** were recently awarded:
+* 2021 R&D100 Award: [Information Technologies (IT)](https://www.rdworldonline.com/2021-rd-100-award-winners-announced-in-analytical-test-and-it-electrical-categories)
+* 2021 R&D100 Bronze Medal: [Market Disruptor in Services](https://www.rdworldonline.com/2021-rd-100-special-recognition-winners-announced)
 
 <div style="text-align: left">
-    <img src="logo/SmartTensorsNewSmall.png" alt="SmartTensors" width=25%  max-width=125px;/>
+    <img src="logo/RD100Awards-300x300.png" alt="R&D100" width=25%  max-width=125px;/>
 </div>
 
-Tensor network decompositions can be be performed using our [**NTNk**](https://github.com/SmartTensors/NTNk.jl) package.
-
-Matrix factorization can be be performed using our [**NMFk**](https://github.com/SmartTensors/NMFk.jl) package.
-
-### Installation
+## Installation
 
 After starting Julia, execute:
 
 ```julia
-import Pkg; Pkg.add("NTFk")
+import Pkg
+Pkg.add("NTFk")
 ```
 
 to access the latest released version.
 To utilize the latest updates (commits) use:
 
 ```julia
-import Pkg; Pkg.add(Pkg.PackageSpec(name="NTFk", rev="master"))
+import Pkg
+Pkg.add(Pkg.PackageSpec(name="NTFk", rev="master"))
 ```
 
-Docker
--------
+## Docker
 
 ```bash
 docker run --interactive --tty montyvesselinov/tensors
@@ -75,13 +89,14 @@ docker run --interactive --tty montyvesselinov/tensors
 
 The docker image provides access to all **SmartTensors** packages ([smarttensors.github.io](https://smarttensors.github.io)).
 
-### Testing
+## Testing
 
 ```julia
+import Pkg
 Pkg.test("NTFk")
 ```
 
-### Tensor Decomposition
+## Tensor Decomposition
 
 **NTFk** performs a novel unsupervised Machine Learning (ML) method based on Tensor Decomposition coupled with sparsity and nonnegativity constraints.
 
@@ -125,7 +140,7 @@ A popular approach is to add sparsity and nonnegative constraints.
 Sparsity constraints on the elements of G reduce the number of features and their mixing (by having as many zero entries as possible).
 Nonnegativity enforces parts-based representation of the original data which also allows the Tensor Decomposition results for <img src="https://latex.codecogs.com/svg.latex?\Large&space;G" /> and <img src="https://latex.codecogs.com/svg.latex?\Large&space;A_1,A_2,\ldots,A_n" /> to be easily interrelated [Cichocki et al, 2009](https://books.google.com/books?hl=en&lr=&id=KaxssMiWgswC&oi=fnd&pg=PR5&ots=Lta2adM6LV&sig=jNPDxjKlON1U3l46tZAYH92mvAE#v=onepage&q&f=false).
 
-### Examples
+## Examples
 
 A simple problem demonstrating **NTFk** can be executed as follows.
 First, generate a random Tucker tensor:
@@ -174,30 +189,34 @@ The final **NTFk** result is the estimated core size `(2,3,4)` which as expected
 
 **NTFk** also produces a Tucker deconstruction of this tensor with core size `(2,3,4)` which is stored as `tucker_estimated[ibest]`
 
-### Notebooks:
+## Notebooks:
 
 A series of Jupyter notebooks demonstrating **NMFk** have been developed:
 
 - [Simple Tucker tensor decomposition](https://github.com/TensorDecompositions/NTFk.jl/blob/master/notebooks/simple_tensor_decomposition.ipynb)
 - [Simple Candecomp/Parafac (CP) tensor decomposition](https://github.com/TensorDecompositions/NTFk.jl/blob/master/notebooks/simple_tensor_decomposition_cp.ipynb)
 
-### Applications:
+## Applications:
 
 **NTFk** has been applied in a wide range of real-world applications.
 The analyzed datasets include model outputs, laboratory experimental data, and field tests:
 
-- Climate modeling
-- Material characterization using X rays
+- Climate data and simulations
+- Watershed data and simulations
+- Aquifer simulations
+- Surface-water and Groundwater analyses
+- Material characterization
 - Reactive mixing
 - Molecular dynamics
 - Contaminant transport
 - Induced seismicity
 - Phase separation of co-polymers
 - Oil / Gas extraction from unconventional reservoirs
+- Geothermal exploration and produciton
+- Geologic carbon storages
+- Wildfires
 
-### Videos:
-
-(click on the images below to start the videos)
+## Videos:
 
 - Europe Climate Model: Water table fluctuations in 2003
 <div style="text-align: left">
@@ -236,60 +255,40 @@ The analyzed datasets include model outputs, laboratory experimental data, and f
 
 Videos are available on [YouTube](https://www.youtube.com/watch?v=xPOkeLMJywE&list=PLpVcrIWNlP22LfyIu5MSZ7WHp7q0MNjsj)
 
-### Publications:
+## Publications:
 
 - Vesselinov, V.V., Mudunuru, M., Karra, S., O'Malley, D., Alexandrov, B.S., Unsupervised Machine Learning Based on Non-Negative Tensor Factorization for Analyzing Reactive-Mixing, Journal of Computational Physics, 2018 (in review). [PDF](http://monty.gitlab.io/papers/Vesselinov%20et%20al%202018%20Unsupervised%20Machine%20Learning%20Based%20on%20Non-Negative%20Tensor%20Factorization%20for%20Analyzing%20Reactive-Mixing.pdf)
 - Vesselinov, V.V., Alexandrov, B.S., O'Malley, D., Nonnegative Tensor Factorization for Contaminant Source Identification, Journal of Contaminant Hydrology, 10.1016/j.jconhyd.2018.11.010, 2018. [PDF](http://monty.gitlab.io/papers/Vesselinov%20et%20al%202018%20Nonnegative%20Tensor%20Factorization%20for%20Contaminant%20Source%20Identification.pdf)
 
 Research papers are also available at [Google Scholar](http://scholar.google.com/citations?user=sIFHVvwAAAAJ&hl=en), [ResearchGate](https://www.researchgate.net/profile/Velimir_Vesselinov) and [Academia.edu](https://lanl.academia.edu/monty)
 
-### Presentations:
+## Presentations:
 
 - Vesselinov, V.V., Novel Machine Learning Methods for Extraction of Features Characterizing Datasets and Models, AGU Fall meeting, Washington D.C., 2018. [PDF](http://monty.gitlab.io/presentations/Vesselinov%202018%20Novel%20Machine%20Learning%20Methods%20for%20Extraction%20of%20Features%20Characterizing%20Datasets%20and%20Models%20LA-UR-18-31366.pdf)
 - Vesselinov, V.V., Novel Machine Learning Methods for Extraction of Features Characterizing Complex Datasets and Models, Recent Advances in Machine Learning and Computational Methods for Geoscience, Institute for Mathematics and its Applications, University of Minnesota, 2018. [PDF](http://monty.gitlab.io/presentations/Vesselinov%202018%20Novel%20Machine%20Learning%20Methods%20for%20Extraction%20of%20Features%20Characterizing%20Complex%20Datasets%20and%20Models%20LA-UR-18-30987.pdf)
 
 Presentations are also available at [slideshare.net](https://www.slideshare.net/VelimirmontyVesselin), [ResearchGate](https://www.researchgate.net/profile/Velimir_Vesselinov) and [Academia.edu](https://lanl.academia.edu/monty)
 
-### Lectures:
+## Lectures:
 
 - [Vesselinov, V.V., Novel Machine Learning Methods for Extraction of Features Characterizing Complex Datasets and Models, Recent Advances in Machine Learning and Computational Methods for Geoscience, Institute for Mathematics and its Applications, University of Minnesota, 2018.](https://youtu.be/xPOkeLMJywE)
 
 [![Watch the video](images/nma.png)](https://www.youtube.com/embed/xPOkeLMJywE)
 
-### Extra information
+## Extra information
 
 For more information, visit [monty.gitlab.io](http://monty.gitlab.io), [http://smarttensors.com](http://smarttensors.com) [smarttensors.github.io],(https://smarttensors.github.io), and [tensors.lanl.gov](http://tensors.lanl.gov).
 
-Installation behind a firewall
+## Installation behind a firewall
 ------------------------------
 
 Julia uses git for package management.
 
-In some situations, you may need to add in the `.gitconfig` file in your home directory:
+Julia uses git and curl to install the necessary packages.
 
-```
-[url "git@github.com:"]
-    insteadOf = https://github.com/
-[url "git@gitlab.com:"]
-    insteadOf = https://gitlab.com/
-[url "https://"]
-    insteadOf = git://
-[url "http://"]
-    insteadOf = git://
-```
+It is important to set proxies if needed:
 
-or execute:
-
-```
-git config --global url."https://".insteadOf git://
-git config --global url."http://".insteadOf git://
-git config --global url."git@gitlab.com:".insteadOf https://gitlab.com/
-git config --global url."git@github.com:".insteadOf https://github.com/
-```
-
-Set proxies:
-
-```
+```bash
 export ftp_proxy=http://proxyout.<your_site>:8080
 export rsync_proxy=http://proxyout.<your_site>:8080
 export http_proxy=http://proxyout.<your_site>:8080
@@ -300,7 +299,7 @@ export no_proxy=.<your_site>
 For example, if you are doing this at LANL, you will need to execute the
 following lines in your bash command-line environment:
 
-```
+```bash
 export ftp_proxy=http://proxyout.lanl.gov:8080
 export rsync_proxy=http://proxyout.lanl.gov:8080
 export http_proxy=http://proxyout.lanl.gov:8080
@@ -326,4 +325,26 @@ ENV["rsync_proxy"] = ""
 ENV["http_proxy"] = ""
 ENV["https_proxy"] = ""
 ENV["no_proxy"] = ""
+```
+
+In some situations, you may need to add in the `.gitconfig` file in your home directory:
+
+```
+[url "git@github.com:"]
+    insteadOf = https://github.com/
+[url "git@gitlab.com:"]
+    insteadOf = https://gitlab.com/
+[url "https://"]
+    insteadOf = git://
+[url "http://"]
+    insteadOf = git://
+```
+
+or execute:
+
+```
+git config --global url."https://".insteadOf git://
+git config --global url."http://".insteadOf git://
+git config --global url."git@gitlab.com:".insteadOf https://gitlab.com/
+git config --global url."git@github.com:".insteadOf https://github.com/
 ```
