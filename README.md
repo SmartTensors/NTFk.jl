@@ -38,7 +38,7 @@ GPU and TPU accelerations are available through existing Julia packages.
 
 **NTFk** can be employed to perform tensor decomposition using CP (Candecomp/Parafac) and Tucker methods.
 
-**NTFk** provides options to access to tensor decomposition methods available in MATLAB modules (MATLAB installation required):
+**NTFk** provides options to access existing tensor decomposition methods available in MATLAB (MATLAB installation required):
 * Tamara Kolda's [TensorToolbox](https://www.tensortoolbox.org)
 * Ivan Oseledets' [TT-Toolbox](https://www.mathworks.com/matlabcentral/fileexchange/46312-oseledets-tt-toolbox)
 * Wotao Yin's [BCU](https://www.math.ucla.edu/~wotaoyin/papers/bcu/matlab.html)
@@ -147,7 +147,6 @@ First, generate a random Tucker tensor:
 
 ```julia
 import NTFk
-import TensorDecompositions
 
 csize = (2, 3, 4)
 tsize = (5, 10, 15)
@@ -195,6 +194,12 @@ A series of Jupyter notebooks demonstrating **NMFk** have been developed:
 
 - [Simple Tucker tensor decomposition](https://github.com/TensorDecompositions/NTFk.jl/blob/master/notebooks/simple_tensor_decomposition.ipynb)
 - [Simple Candecomp/Parafac (CP) tensor decomposition](https://github.com/TensorDecompositions/NTFk.jl/blob/master/notebooks/simple_tensor_decomposition_cp.ipynb)
+
+The notebooks can also be accessed using:
+
+```julia
+NTFk.notebooks()
+```
 
 ## Applications:
 
