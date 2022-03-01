@@ -189,37 +189,16 @@ function getgridvalues(v::AbstractVector, r; logtransform=true)
 	return f
 end
 
-function remap(v::AbstractVector, vi::AbstractUnitRange, ve::AbstractUnitRange; nonneg::Bool=true, sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line(Interpolations.OnGrid())))], ep=[Interpolations.Line(Interpolations.OnGrid())])
+function remap(v::AbstractVector, vi::Union{AbstractVector,AbstractUnitRange}, ve::Union{AbstractVector,AbstractUnitRange}; nonneg::Bool=true, sp=[Interpolations.Gridded(Interpolations.Linear())], ep=[Interpolations.Line(Interpolations.OnGrid())])
 	lv = length(v)
 	li = length(vi)
 	@assert lv == li
 	f1 = Vector{Float64}(undef, length(vi))
 	isn = .!isnan.(v)
-	itp = Interpolations.interpolate((vi[isn],), v[isn], Interpolations.Gridded(Interpolations.Linear()))
-	etp = Interpolations.extrapolate(itp, ep...)
-	f1 = etp(ve)
-	nonneg && (f1[f1.<0] .= 0)
-	# f2 = Vector{Float64}(undef, length(ve))
-	# itp = Interpolations.interpolate(f1, sp...)
-	# etp = Interpolations.extrapolate(itp, ep...)
-	# f2 = etp(ve)
-	return f1
-end
-
-function remap(v::AbstractVector, vi::AbstractVector, ve::AbstractVector; nonneg::Bool=true, sp=[Interpolations.BSpline(Interpolations.Quadratic(Interpolations.Line(Interpolations.OnGrid())))], ep=[Interpolations.Line(Interpolations.OnGrid())])
-	lv = length(v)
-	li = length(vi)
-	@assert lv == li
-	f1 = Vector{Float64}(undef, length(vi))
-	isn = .!isnan.(v)
-	itp = Interpolations.interpolate((vi[isn],), v[isn], Interpolations.Gridded(Interpolations.Linear()))
+	itp = Interpolations.interpolate((vi[isn],), v[isn], sp...)
 	etp = Interpolations.extrapolate(itp, ep...)
 	f1 = etp.(ve)
 	nonneg && (f1[f1.<0] .= 0)
-	# f2 = Vector{Float64}(undef, length(ve))
-	# itp = Interpolations.interpolate(f1, sp...)
-	# etp = Interpolations.extrapolate(itp, ep...)
-	# f2 = etp.(ve)
 	return f1
 end
 
