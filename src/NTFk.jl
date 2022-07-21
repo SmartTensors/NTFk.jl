@@ -78,18 +78,18 @@ include("NTFkAnalysis-seismic.jl")
 include("NTFkAnalysis-wells.jl")
 include("NTFkAnalysis-mixing.jl")
 
-if haskey(ENV, "MATLAB_HOME")
-	@tryimport MATLAB
-else
-	@info("MATLAB_HOME environmental variable is not defined!")
-end
+# if haskey(ENV, "MATLAB_HOME")
+# 	@tryimport MATLAB
+# else
+# 	@info("MATLAB_HOME environmental variable is not defined!")
+# end
 
-if isdefined(NTFk, :MATLAB)
-	@info("MATLAB is available!")
-	include("NTFkTensorToolBox.jl")
-else
-	@info("MATLAB is not installed!")
-end
+# if isdefined(NTFk, :MATLAB)
+# 	@info("MATLAB is available!")
+# 	include("NTFkTensorToolBox.jl")
+# else
+# 	@info("MATLAB is not installed!")
+# end
 
 NTFk.welcome()
 
