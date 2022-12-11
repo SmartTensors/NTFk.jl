@@ -215,7 +215,7 @@ function plotallMslices_factors(X::AbstractVector{Array{T,N}}, F::AbstractMatrix
 		XP = X
 	else
 		XP = Vector{Array{T,N}}(undef, length(X))
-		for i = 1:length(X)
+		for i = eachindex(X)
 			XP[i] = Array{T}(undef, (size(X[i], 1), size(X[i], 2), size(F, 1)))
 			for j = 1:size(F, 1)
 				XP[i][:,:,j] .= X[i][:,:,1] .* F[j,i]
@@ -348,7 +348,7 @@ function plotalltensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1,
 	X = gettensorcomponents(t, dim, pdim; prefix=prefix, filter=filter, mask=mask, transform=transform, order=order, maxcomponent=true, savetensorslices=savetensorslices)
 	pt = getptdimensions(pdim, length(csize), transpose)
 	mdfilter = ntuple(k->(k == 1 ? 1 : Colon()), length(csize))
-	for i = 1:length(X)
+	for i = eachindex(X)
 		filename = prefix == "" ? "" : "$prefix-tensorslice$(lpad("$i", 4, "0")).png"
 		p = NMFk.plotmatrix(permutedims(X[order[i]], pt)[mdfilter...]; filename=filename, quiet=true, plot=true, kw...)
 		!quiet && (@info("Slice $i"); display(p); println();)

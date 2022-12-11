@@ -11,7 +11,7 @@ end
 
 function plotfactors(t::Union{TensorDecompositions.Tucker,TensorDecompositions.CANDECOMP}, cutoff::Number=0; prefix="", kw...)
 	recursivemkdir(prefix; filename=true)
-	for i = 1:length(t.factors)
+	for i = eachindex(t.factors)
 		display(plotfactor(t, i, cutoff; filename="$(prefix)_factor$(i).png", kw...))
 		println()
 	end

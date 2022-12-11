@@ -5,7 +5,7 @@ function seismicdensity(t, dim, cx, cy, x0, y0; nbin=20, xmatrix=nothing, ymatri
 	fieldy = y0
 	pr = ["T$i" for i=1:length(Xs)]
 	ll = []
-	for s = 1:length(Xs)
+	for s = eachindex(Xs)
 		display(NMFk.plotmatrix(Xs[s]; dots=[fieldx fieldy;], dotsize=10Gadfly.pt, xmatrix=xmatrix, ymatrix=ymatrix))
 		fielddst = Vector{Float64}(undef, 0)
 		fieldmag = Vector{Float64}(undef, 0)

@@ -84,7 +84,7 @@ function getsizes(csize::Tuple, tsize::Tuple=csize .+ 1)
 	for i = 1:ndimensons
 		nt = ntuple(k->(k == i ? min(tsize[i], csize[i] + 1) : csize[k]), ndimensons)
 		addsize = true
-		for j = 1:length(sizes)
+		for j = eachindex(sizes)
 			if sizes[j] == nt
 				addsize = false
 				break
@@ -93,7 +93,7 @@ function getsizes(csize::Tuple, tsize::Tuple=csize .+ 1)
 		addsize && push!(sizes, nt)
 		nt = ntuple(k->(k == i ? max(1, csize[i] - 1) : csize[k]), ndimensons)
 		addsize = true
-		for j = 1:length(sizes)
+		for j = eachindex(sizes)
 			if sizes[j] == nt
 				addsize = false
 				break
@@ -477,7 +477,7 @@ function gettensorcomponentgroups(t::TensorDecompositions.Tucker, dim::Integer=1
 	g = zeros(length(t.factors[dim][:, 1]))
 	v = maximum(t.factors[dim]; dims=1) .> cutvalue
 	gi = 0
-	for i = 1:length(v)
+	for i = eachindex(v)
 		if v[i]
 			m = t.factors[dim][:, i] .> cutvalue
 			gi += 1
@@ -557,7 +557,7 @@ function recursivermdir(s::AbstractString; filename=true)
 		end
 		push!(d, sc)
 	end
-	for i = 1:length(d)
+	for i = eachindex(d)
 		sc = d[i]
 		if isdir(sc)
 			rm(sc; force=true)

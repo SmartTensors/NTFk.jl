@@ -66,7 +66,7 @@ function normalizeslices!(X::TensorDecompositions.Tucker{T,N}, order=1:N; check:
 	NTFk.normalizecore!(X, order)
 	M = NTFk.compose(X, order[2:end])
 	m = maximum(M; dims=order[2:end])
-	for i = 1:length(m)
+	for i = eachindex(m)
 		t = ntuple(k->(k == order[1] ? i : Colon()), N)
 		X.core[t...] ./= m[i]
 		X.factors[order[1]][:,i] .*= m[i]
@@ -97,7 +97,7 @@ $(DocumentFunction.documentfunction(normalizecomponents!))
 function normalizecomponents!(X::TensorDecompositions.Tucker{T,N}, dim::Number, m::AbstractVector; check::Bool=false) where {T <: Number, N}
 	check && (Xi = TensorDecompositions.compose(X))
 	@assert length(m) == size(X.core, dim)
-	for i = 1:length(m)
+	for i = eachindex(m)
 		t = ntuple(k->(k == dim ? i : Colon()), N)
 		X.core[t...] ./= m[i]
 		X.factors[dim][:,i] .*= m[i]

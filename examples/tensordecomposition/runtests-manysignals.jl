@@ -19,7 +19,7 @@ Random.seed!(10)
 tsize = (50, 50, 50)
 v = [1.1,1.2,1.3,1.4,1.5,1.6]
 tt = Vector(udef, length(v))
-for i = 1:length(v)
+for i = eachindex(v)
 	tt[i] = makesignal(tsize[1], tsize[3], v[i])
 end
 m = rand(vec(collect(0:length(v))), tsize[2])

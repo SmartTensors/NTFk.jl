@@ -23,7 +23,7 @@ function ttanalysis(T::Array, crank::Number; seed::Number=1, functionname::Abstr
 		R["lambda"] = ones(crank)
 	end
 	if crank == 1
-		for i = 1:length(R["u"])
+		for i = eachindex(R["u"])
 			R["u"][i] = convert(Array{Float64,2}, R["u"][i]')'
 		end
 		TT = TensorDecompositions.CANDECOMP((R["u"][1:end]...,), vec(collect(R["lambda"])))
@@ -80,7 +80,7 @@ function bcuanalysis(T::Array, crank::Number; seed::Number=1, functionname::Abst
 		R["lambda"] = ones(crank)
 	end
 	if crank == 1
-		for i = 1:length(R["u"])
+		for i = eachindex(R["u"])
 			R["u"][i] = convert(Array{Float64,2}, R["u"][i]')'
 		end
 		TT = TensorDecompositions.CANDECOMP((R["u"][1:end]...,), vec(collect(R["lambda"])))
