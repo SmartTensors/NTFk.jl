@@ -212,7 +212,7 @@ function getinterpolatedtensor(t::TensorDecompositions.Tucker{T,N}, v; sp=[Inter
 	for j = 1:lv
 		if !isnan(v[j])
 			cv = size(t.factors[j], 2)
-			f = Array{T}(undef, 1,cv)
+			f = Array{T}(undef, 1, cv)
 			for i = 1:cv
 				f[1, i] = Interpolations.interpolate(t.factors[j][:, i], sp...)[v[j]]
 			end
