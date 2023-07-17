@@ -19,7 +19,7 @@ function ttanalysis(T::Array, crank::Number; seed::Number=1, functionname::Abstr
 	"""
 	MATLAB.eval_string(m)
 	@MATLAB.mget R
-	if R["lambda"] === nothing
+	if isnothing(R["lambda"]
 		R["lambda"] = ones(crank)
 	end
 	if crank == 1
@@ -76,7 +76,7 @@ function bcuanalysis(T::Array, crank::Number; seed::Number=1, functionname::Abst
 	"""
 	MATLAB.eval_string(m)
 	@MATLAB.mget R
-	if R["lambda"] === nothing
+	if isnothing(R["lambda"])
 		R["lambda"] = ones(crank)
 	end
 	if crank == 1

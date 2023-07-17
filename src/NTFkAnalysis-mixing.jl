@@ -37,7 +37,7 @@ function analysistime1(case::AbstractString; timeindex=1:5:1000, xindex=1:1:81, 
 	recursivemkdir(moviedir; filename=false)
 	recursivemkdir(figuredir; filename=false)
 	C = loadcase(case; datadir=datadir)
-	if C === nothing
+	if isnothing(C)
 		return (0,0,0)
 	end
 	csize = analysis("$(case)C" * suffix, C; timeindex=timeindex, xindex=xindex, yindex=yindex, trank=trank, datadir=datadir, resultdir=resultdir, moviedir=moviedir, figuredir=figuredir, skipmakemovies=true, problemname="sparse", seed=seed, max_iter=max_iter, tol=tol, ini_decomp=ini_decomp, lambda=lambda)
@@ -49,7 +49,7 @@ function analysistime(case::AbstractString; timeindex=1:5:1000, xindex=1:1:81, y
 	recursivemkdir(moviedir; filename=false)
 	recursivemkdir(figuredir; filename=false)
 	C = loadcase(case; datadir=datadir)
-	if C === nothing
+	if isnothing(C)
 		return (0,0,0)
 	end
 	csize = analysis("$(case)C" * suffix, C; timeindex=timeindex, xindex=xindex, yindex=yindex, trank=trank, datadir=datadir, resultdir=resultdir, moviedir=moviedir, figuredir=figuredir, lambda=0.1, problemname="sparse", seed=seed, max_iter=max_iter, tol=tol, ini_decomp=:hosvd, kw...)
@@ -61,7 +61,7 @@ function analysis(case::AbstractString; timeindex=1:5:1000, xindex=1:1:81, yinde
 	recursivemkdir(resultdir; filename=false)
 	recursivemkdir(moviedir; filename=false)
 	C = loadcase(case; datadir=datadir)
-	if C === nothing
+	if isnothing(C)
 		return (0,0,0)
 	end
 	csize = analysis("$(case)C" * suffix, C; timeindex=timeindex, xindex=xindex, yindex=yindex, trank=trank1, datadir=datadir, resultdir=resultdir, moviedir=moviedir, lambda=0.1, problemname="sparse", skipxymakemovies=true, seed=seed, max_iter=max_iter, tol=tol, ini_decomp=ini_decomp, kw...)
@@ -84,7 +84,7 @@ function analysis(case::AbstractString, X::Array, csize::Tuple=(); timeindex=1:5
 		t, csize = NTFk.analysis(X[timeindex, xindex, yindex], [(trank, xrank, yrank)]; resultdir=resultdir, prefix=case, seed=seed, tol=tol, ini_decomp=ini_decomp, core_nonneg=true, verbose=false, max_iter=max_iter, lambda=lambda, kw...)
 	else
 		t = loadresults(case, csize; resultdir=resultdir)
-		if t === nothing
+		if isnothing(t)
 			return csize
 		end
 	end

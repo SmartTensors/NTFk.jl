@@ -10,7 +10,7 @@ function loadtucker(f::AbstractString, arg...; kw...)
 	end
 	try
 		ans = LoadTensorDecompositions.loadtucker(f, arg...; kw...)
-		if ans !== nothing
+		if !isnothing(ans)
 			core, factors, props = ans
 			if typeof(core) <: AbstractVector
 				n = length(core)

@@ -114,7 +114,7 @@ function getcsize(case::AbstractString; resultdir::AbstractString=".", longname=
 		else
 			m = match(Regex(string("$(case)(.*)-([0-9]+)_([0-9]+)_([0-9]+).$extension\$")), f)
 		end
-		if m !== nothing
+		if !isnothing(m)
 			push!(kwa, m.captures[1])
 			c = parse.(Int64, m.captures[2:end])
 			push!(csize, c)
@@ -352,7 +352,7 @@ function gettensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdi
 		else
 			X[i] = TensorDecompositions.compose(tt)[filter...]
 		end
-		if transform !== nothing
+		if !isnothing(transform)
 			X[i] = transform.(X[i])
 		end
 		nanmask!(X[i], mask)

@@ -65,7 +65,7 @@ else
 		T_orig = TensorDecompositions.compose(tucker_orig)
 		for backend = ["pytorch", "mxnet", "numpy"]
 			a = NTFk.analysis(T_orig, [csize], 1; seed=1, method="tensorly_", eigmethod=[false,false,false], progressbar=false, tol=1e-12, maxiter=100, backend=backend, verbose=true)
-			if a === nothing
+			if isnothing(a)
 				continue
 			end
 			tucker_est, csize_est, ibest = a

@@ -76,7 +76,7 @@ function plot2tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, p
 			X[i] = TensorDecompositions.compose(tt)[filter...]
 		end
 		nanmask!(X[i], mask)
-		if transform !== nothing
+		if !isnothing(transform)
 			X[i] = transform.(X[i])
 		end
 		tt.core .= t.core
@@ -108,7 +108,7 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 		else
 			X2[i] = TensorDecompositions.compose(tt)[filter...]
 		end
-		if transform !== nothing
+		if !isnothing(transform)
 			X2[i] = transform.(X2[i])
 		end
 		nanmask!(X2[i], mask)
@@ -117,7 +117,7 @@ function plot2tensorcomponents(X1::Array, t2::TensorDecompositions.Tucker, dim::
 	plot3tensors(permutedims(X1, pt), permutedims(X2[order[1]], pt), permutedims(X2[order[2]], pt), 1; prefix=prefix, kw...)
 end
 
-function plottensorandsomething(X::Array, something, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; minvalue=NMFk.minimumnan(X), maxvalue=NMFk.maximumnan(X), sizes=size(X), xtitle::AbstractString="Time", ytitle::AbstractString="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::AbstractString="Dates.Day", dateend=(datestart !== nothing) ? datestart + Core.eval(Main, Meta.parse(dateincrement))(sizes[dim]) : nothing, cleanup::Bool=true, movie::Bool=false, moviedir=".", prefix::AbstractString="", vspeed=1.0, keyword="frame", quiet::Bool=false, hsize::Measures.AbsoluteLength=6Compose.inch, vsize::Measures.AbsoluteLength=6Compose.inch, dpi::Integer=imagedpi, movieformat="mp4", movieopacity::Bool=false, barratio=2/3, kw...)
+function plottensorandsomething(X::Array, something, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; minvalue=NMFk.minimumnan(X), maxvalue=NMFk.maximumnan(X), sizes=size(X), xtitle::AbstractString="Time", ytitle::AbstractString="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::AbstractString="Dates.Day", dateend=(!isnothing(datestart)) ? datestart + Core.eval(Main, Meta.parse(dateincrement))(sizes[dim]) : nothing, cleanup::Bool=true, movie::Bool=false, moviedir=".", prefix::AbstractString="", vspeed=1.0, keyword="frame", quiet::Bool=false, hsize::Measures.AbsoluteLength=6Compose.inch, vsize::Measures.AbsoluteLength=6Compose.inch, dpi::Integer=imagedpi, movieformat="mp4", movieopacity::Bool=false, barratio=2/3, kw...)
 	ndimensons = length(sizes)
 	recursivemkdir(moviedir; filename=false)
 	recursivemkdir(prefix; filename=true)
@@ -139,7 +139,7 @@ function plottensorandsomething(X::Array, something, dim::Integer=1, pdim::Union
 	end
 end
 
-function plottensorandcomponents(X::AbstractArray, m::AbstractMatrix, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; sizes=size(X), xtitle::AbstractString="Time", ytitle::AbstractString="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::AbstractString="Dates.Day", dateend=(datestart !== nothing) ? datestart + Core.eval(Main, Meta.parse(dateincrement))(sizes[dim]) : nothing, quiet::Bool=false, functionname="Statistics.mean", transform2d=nothing, totals::Bool=false, kw...)
+function plottensorandcomponents(X::AbstractArray, m::AbstractMatrix, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; sizes=size(X), xtitle::AbstractString="Time", ytitle::AbstractString="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::AbstractString="Dates.Day", dateend=(!isnothing(datestart)) ? datestart + Core.eval(Main, Meta.parse(dateincrement))(sizes[dim]) : nothing, quiet::Bool=false, functionname="Statistics.mean", transform2d=nothing, totals::Bool=false, kw...)
 	if totals
 		s2 = plot2dmodtensorcomponents(X, dim, functionname; xtitle=xtitle, ytitle=ytitle, datestart=datestart, dateend=dateend, dateincrement=dateincrement, timescale=timescale, quiet=true, code=true, transform=transform2d)
 	else
@@ -148,7 +148,7 @@ function plottensorandcomponents(X::AbstractArray, m::AbstractMatrix, dim::Integ
 	plottensorandsomething(X, s2, dim, pdim; datestart=datestart, dateend=dateend, dateincrement=dateincrement, timescale=timescale, quiet=quiet, kw...)
 end
 
-function plottensorandcomponents(X::AbstractArray, t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; sizes=size(X),xtitle::AbstractString="Time", ytitle::AbstractString="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::AbstractString="Dates.Day", dateend=(datestart !== nothing) ? datestart + Core.eval(Main, Meta.parse(dateincrement))(sizes[dim]) : nothing, quiet::Bool=false, functionname="Statistics.mean", transform2d=nothing, totals::Bool=true, kw...)
+function plottensorandcomponents(X::AbstractArray, t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; sizes=size(X),xtitle::AbstractString="Time", ytitle::AbstractString="Magnitude", timescale::Bool=true, timestep=1/sizes[dim], datestart=nothing, dateincrement::AbstractString="Dates.Day", dateend=(!isnothing(datestart)) ? datestart + Core.eval(Main, Meta.parse(dateincrement))(sizes[dim]) : nothing, quiet::Bool=false, functionname="Statistics.mean", transform2d=nothing, totals::Bool=true, kw...)
 	if totals
 		s2 = plot2dmodtensorcomponents(X, t, dim, functionname; xtitle=xtitle, ytitle=ytitle, datestart=datestart, dateend=dateend, dateincrement=dateincrement, timescale=timescale, quiet=true, code=true, transform=transform2d)
 	else
@@ -190,7 +190,7 @@ function plotallMtensors(t::TensorDecompositions.Tucker, M::Integer, dim::Intege
 		prefixnew = prefix == "" ? "" : prefix * "-$(join(filter, "_"))"
 		moviefiles[i] = plotMtensorslices(t, length(filter), dim, pdim; csize=csize, transpose=transpose, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=nothing, hsize=hsize, vsize=vsize, order=order[filter], prefix=prefixnew, X=X, maxcomponent=maxcomponent, savetensorslices=savetensorslices, mask=mask, signalnames=["T$i" for i = filter], gla=gla, kw...)
 	end
-	if moviefiles[1] !== nothing
+	if isnothing(moviefiles[1])
 		return convert(Vector{String}, moviefiles)
 	else
 		return nothing
@@ -226,7 +226,7 @@ function plotallMslices_factors(X::AbstractVector{Array{T,N}}, F::AbstractMatrix
 	for filter in v
 		s2 = plottensorfactors(F; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, code=true, order=order, filter=filter, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, transform=transform2d, gm=gm)
 		progressbar_2d = NMFk.make_progressbar_2d(s2)
-		prefixnew = (prefix == "") || prefix === nothing ? "" : prefix * "-$(length(X))-$(join(filter, "_"))"
+		prefixnew = (prefix == "") || isnothing(prefix) ? "" : prefix * "-$(length(X))-$(join(filter, "_"))"
 		plotMtensorslices(XP, length(filter), dim, pdim; csize=csize, transpose=transpose, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], prefix=prefixnew, maxcomponent=maxcomponent, mask=mask, signalnames=["T$i" for i = filter], key_label_font_size=key_label_font_size, kw...)
 	end
 	if normalizeslices
@@ -249,7 +249,7 @@ function plotallMslices_factors(t::TensorDecompositions.Tucker, M::Integer, dim:
 	for filter in v
 		s2 = plottensorfactors(t, dim; xtitle=xtitle, ytitle=ytitle, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, code=true, order=order, filter=filter, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, transform=transform2d, gm=gm)
 		progressbar_2d = NMFk.make_progressbar_2d(s2)
-		prefixnew = (prefix == "") || prefix === nothing ? "" : prefix * "-$(length(X))-$(join(filter, "_"))"
+		prefixnew = (prefix == "") || isnothing(prefix) ? "" : prefix * "-$(length(X))-$(join(filter, "_"))"
 		plotMtensorslices(t, length(filter), dim, pdim; csize=csize, transpose=transpose, timescale=timescale, datestart=datestart, dateend=dateend, dateincrement=dateincrement, quiet=false, progressbar=progressbar_2d, hsize=12Compose.inch, vsize=6Compose.inch, order=order[filter], prefix=prefixnew, X=X, maxcomponent=maxcomponent, savetensorslices=savetensorslices, mask=mask, signalnames=["T$i" for i = filter], key_label_font_size=key_label_font_size, kw...)
 	end
 	if normalizeslices
@@ -262,7 +262,7 @@ function plot3maxtensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1
 end
 
 function plot3tensorcomponents(t::TensorDecompositions.Tucker, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::AbstractString="", filter=(), mask=nothing, transform=nothing, order=signalorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, barratio=(maxcomponent) ? 1/2 : 1/3, savetensorslices::Bool=false, X=nothing, gla=[], kw...)
-	if X === nothing
+	if isnothing(X)
 		X = gettensorcomponents(t, dim, pdim; prefix=prefix, filter=filter, mask=mask, transform=transform, order=order, maxcomponent=maxcomponent, savetensorslices=savetensorslices)
 	end
 	nc = length(X)
@@ -314,7 +314,7 @@ function plotMtensorslices(X::AbstractVector{Array{T,N}}, M::Integer, dim::Integ
 end
 
 function plotMtensorslices(t::TensorDecompositions.Tucker, M::Integer, dim::Integer=1, pdim::Union{Integer,Tuple}=dim; transpose::Bool=false, csize::Tuple=TensorToolbox.mrank(t.core), prefix::AbstractString="", filter=(), mask=nothing, transform=nothing, order=signalorder(t, dim; method=:factormagnitude), maxcomponent::Bool=false, barratio=(maxcomponent) ? 1/2 : 1/3, savetensorslices::Bool=false, X=nothing, gla=[], kw...)
-	if X === nothing
+	if isnothing(X)
 		X = gettensorcomponents(t, dim, pdim; prefix=prefix, filter=filter, mask=mask, transform=transform, order=order, maxcomponent=maxcomponent, savetensorslices=savetensorslices)
 	end
 	minvalue = NMFk.minimumnan(map(i->NMFk.minimumnan(X[i]), 1:M))

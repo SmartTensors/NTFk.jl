@@ -2,7 +2,7 @@ import Statistics
 
 function computestats(X, Xe, volumeindex=1:size(Xe,1), wellindex=1:size(Xe,3), timeindex=:, c=""; plot::Bool=false, quiet::Bool=true, wellnames=nothing, xaxis=1:size(Xe,2))
 	m = "%-85s"
-	if Xe === nothing
+	if isnothing(Xe)
 		@info("$(NMFk.sprintf(m, c)): fails")
 		return
 	end
