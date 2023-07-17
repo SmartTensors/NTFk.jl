@@ -15,7 +15,7 @@ $(DocumentFunction.documentfunction(compose))
 	quote
 		@TensorDecompositions.nloops $N i dest begin
 			elm = zero(T)
-			for j in 1:length(lambdas)
+			for j = eachindex(lambdas)
 				elm += lambdas[j] * (*(@TensorDecompositions.ntuple($N, k -> factors[k][i_k, j])...))
 			end
 			@TensorDecompositions.nref($N, dest, i) = elm
@@ -38,7 +38,7 @@ composeshared!(dest::SharedArrays.SharedArray{T,N}, decomp::TensorDecompositions
 	quote
 		@TensorDecompositions.nloops $N i dest begin
 			elm = zero(T)
-			for j in 1:length(lambdas)
+			for j = eachindex(lambdas)
 				elm += lambdas[j] * (*(@TensorDecompositions.ntuple($N, k -> factors[k][i_k, j])...))
 			end
 			@show elm
