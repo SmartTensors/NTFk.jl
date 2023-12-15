@@ -4,7 +4,7 @@
     <img src="logo/ntfk-logo.jpg" alt="ntfk" width=25%  max-width=125px;/>
 </div>
 
-**NTFk** is one of the tools in the **SmartTensors** ML framework ([smarttensors.com](https://smarttensors.com)).
+**NTFk** is a module of the **SmartTensors** ML framework ([smarttensors.com](https://smarttensors.com)).
 
 <div style="text-align: left">
     <img src="logo/SmartTensorsNewSmall.png" alt="SmartTensors" width=25%  max-width=125px;/>
@@ -15,10 +15,10 @@
 **NTFk** methodology allows for automatic identification of the optimal number of features (signals) present in multi-dimensional data arrays (tensors).
 The number of features (tensor rank / multi-rank) along different dimensions can be estimated jointly and independently.
 
-**NMFk** can be applied to perform various types of analyses of multi-dimensional data:
+**SmartTensors** can be applied to perform various types of analyses of multi-dimensional data:
 - Feature extraction (**FE**)
 - Blind source separation (**BSS**)
-- Detection of disruptions / anomalies
+- Detection of disruptions/anomalies
 - Image recognition
 - Text mining
 - Data classification
@@ -26,14 +26,14 @@ The number of features (tensor rank / multi-rank) along different dimensions can
 - Discovery of unknown dependencies and phenomena
 - Development of reduced-order/surrogate models
 - Identification of dependencies between model inputs and outputs
-- Guiding the development of physics models representing the ML analyzed data
+- Guiding the development of physics models representing the ML-analyzed data
 - Blind predictions
 - Optimization of data acquisition (optimal experimental design)
 - Labeling of datasets for supervised ML analyses
 
 
 **NTFk** provides high-performance computing capabilities to solve problems with Shared and Distributed Arrays in parallel.
-The parallelization allows for utilization of multi-core / multi-processor environments.
+The parallelization allows for the utilization of multi-core / multi-processor environments.
 GPU and TPU accelerations are available through existing Julia packages.
 
 **NTFk** can be employed to perform tensor decomposition using CP (Candecomp/Parafac) and Tucker methods.
@@ -44,15 +44,15 @@ GPU and TPU accelerations are available through existing Julia packages.
 * Wotao Yin's [BCU](https://www.math.ucla.edu/~wotaoyin/papers/bcu/matlab.html)
 * [TensorLab](https://www.tensorlab.net)
 
-**NTFk** provides also interface to Jean Kossaifi's [Python TensorLy](http://tensorly.org/stable/index.html).
+**NTFk** provides also an interface to Jean Kossaifi's [Python TensorLy](http://tensorly.org/stable/index.html).
 
-**NTFk** can perform high-performance computing tensor decomposition analyses using TensorFlow, PyTorch and MXNET.
+**NTFk** can perform high-performance computing tensor decomposition analyses using TensorFlow, PyTorch, and MXNET.
 
-**NTFk** methodology and applications are discussed in the the papers and presentations listed below.
+**NTFk** methodology and applications are discussed in the papers and presentations listed below.
 
-Tensor network decompositions can be be performed using SmartTensors' [**NTNk**](https://github.com/SmartTensors/NTNk.jl) package.
+Tensor network decompositions can be performed using SmartTensors' [**NTNk**](https://github.com/SmartTensors/NTNk.jl) package.
 
-Matrix factorization can be be performed using SmartTensors' [**NMFk**](https://github.com/SmartTensors/NMFk.jl) package.
+Matrix factorization can be performed using SmartTensors' [**NMFk**](https://github.com/SmartTensors/NMFk.jl) package.
 
 ## Awards
 
@@ -74,7 +74,7 @@ Pkg.add("NTFk")
 ```
 
 to access the latest released version.
-To utilize the latest updates (commits) use:
+To utilize the latest updates (commits), use:
 
 ```julia
 import Pkg
@@ -138,7 +138,7 @@ Some of the decomposition models can theoretically lead to unique solutions unde
 When these conditions are not satisfied, additional minimization constraints can assist the factorization.
 A popular approach is to add sparsity and nonnegative constraints.
 Sparsity constraints on the elements of G reduce the number of features and their mixing (by having as many zero entries as possible).
-Nonnegativity enforces parts-based representation of the original data which also allows the Tensor Decomposition results for <img src="https://latex.codecogs.com/svg.latex?\Large&space;G" /> and <img src="https://latex.codecogs.com/svg.latex?\Large&space;A_1,A_2,\ldots,A_n" /> to be easily interrelated [Cichocki et al, 2009](https://books.google.com/books?hl=en&lr=&id=KaxssMiWgswC&oi=fnd&pg=PR5&ots=Lta2adM6LV&sig=jNPDxjKlON1U3l46tZAYH92mvAE#v=onepage&q&f=false).
+Nonnegativity enforces parts-based representation of the original data, which also allows the Tensor Decomposition results for <img src="https://latex.codecogs.com/svg.latex?\Large&space;G" /> and <img src="https://latex.codecogs.com/svg.latex?\Large&space;A_1,A_2,\ldots,A_n" /> to be easily interrelated [Cichocki et al, 2009](https://books.google.com/books?hl=en&lr=&id=KaxssMiWgswC&oi=fnd&pg=PR5&ots=Lta2adM6LV&sig=jNPDxjKlON1U3l46tZAYH92mvAE#v=onepage&q&f=false).
 
 ## Examples
 
@@ -153,7 +153,7 @@ tsize = (5, 10, 15)
 tucker_orig = NTFk.rand_tucker(csize, tsize; factors_nonneg=true, core_nonneg=true)
 ```
 
-After that, we can compose a tensor based on this Tucker decomposition:
+After that, we can compose a tensor-based on this Tucker decomposition:
 
 ```julia
 import TensorDecompositions
@@ -163,7 +163,7 @@ T_orig .*= 1000
 ```
 
 Applying **NTFk**, we can find the unknown core size of the tensor using the tensor by itself as an input only.
-To do this, we explore a series of core sizes and we identify the optimal one:
+To do this, we explore a series of core sizes and identify the optimal one:
 
 ```julia
 sizes = [csize, (1,3,4), (3,3,4), (2,2,4), (2,4,4), (2,3,3), (2,3,5)]
@@ -184,9 +184,9 @@ tucker_estimated, csize_estimated = NTFk.analysis(T_orig, sizes, 3; eigmethod=[f
 [ Info: Estimated true core size based on the reconstruction: (2, 3, 4)
 ```
 
-The final **NTFk** result is the estimated core size `(2,3,4)` which as expected matches the original unknown core size.
+The final **NTFk** result is the estimated core size `(2,3,4)`, which, as expected, matches the original unknown core size.
 
-**NTFk** also produces a Tucker deconstruction of this tensor with core size `(2,3,4)` which is stored as `tucker_estimated[ibest]`
+**NTFk** also produces a Tucker deconstruction of this tensor with core size `(2,3,4)`, which is stored as `tucker_estimated[ibest]`
 
 ## Notebooks:
 
@@ -217,8 +217,8 @@ The analyzed datasets include model outputs, laboratory experimental data, and f
 - Induced seismicity
 - Phase separation of co-polymers
 - Oil / Gas extraction from unconventional reservoirs
-- Geothermal exploration and produciton
-- Geologic carbon storages
+- Geothermal exploration and production
+- Geologic carbon storage
 - Wildfires
 
 ## Videos:
@@ -291,7 +291,7 @@ Julia uses git for package management.
 
 Julia uses git and curl to install the necessary packages.
 
-It is important to set proxies if needed:
+It is important to set proxies, if needed:
 
 ```bash
 export ftp_proxy=http://proxyout.<your_site>:8080
@@ -312,7 +312,7 @@ export https_proxy=http://proxyout.lanl.gov:8080
 export no_proxy=.lanl.gov
 ```
 
-Proxies can be also set up directly in the Julia REPL as well:
+Proxies can also be set up directly in the Julia REPL:
 
 ```julia
 ENV["ftp_proxy"] =  "http://proxyout.lanl.gov:8080"
@@ -332,7 +332,7 @@ ENV["https_proxy"] = ""
 ENV["no_proxy"] = ""
 ```
 
-In some situations, you may need to add in the `.gitconfig` file in your home directory:
+In some situations, you may need to add the `.gitconfig` file in your home directory:
 
 ```
 [url "git@github.com:"]
