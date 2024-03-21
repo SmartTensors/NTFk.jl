@@ -1,5 +1,3 @@
-__precompile__()
-
 """
 NTFk.jl: Non-negative Tensor Factorization + k-means clustering
 ---
@@ -91,6 +89,6 @@ include("NTFkAnalysis-mixing.jl")
 # 	@info("MATLAB is not installed!")
 # end
 
-NTFk.welcome()
+# NTFk.welcome()
 
 end
