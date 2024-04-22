@@ -230,7 +230,7 @@ function getpredictions(t::TensorDecompositions.Tucker{T,N}, dim, v; sp=[Interpo
 	end
 	for j = dim
 		f = Array{T}(undef, length(v), size(factors[j], 2))
-		for i = 1:size(factors[j], 2)
+		for i in axes(factors[j], 2)
 			itp = Interpolations.interpolate(t.factors[j][:, i], sp...)
 			etp = Interpolations.extrapolate(itp, ep...)
 			f[:, i] = etp.(collect(v))
@@ -251,7 +251,7 @@ function signalorder(p::Array; firstpeak::Bool=true, flipdim::Bool=true, quiet::
 	fmin = vec(NMFk.minimumnan(p, dims=1))
 	fmax = vec(NMFk.maximumnan(p, dims=1))
 	fdx = fmax .- fmin
-	for i = 1:size(p, 2)
+	for i in axes(p, 2)
 		if fmax[i] == 0
 			@warn("Maximum of signal $i is equal to zero!")
 		end

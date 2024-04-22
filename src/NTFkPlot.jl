@@ -41,7 +41,7 @@ function plottensor(X::AbstractArray{T,N}, dim::Integer=1; permute::Bool=false, 
 	recursivemkdir(moviedir; filename=false)
 	recursivemkdir(prefix; filename=true)
 	dimname = namedimension(N; char="D", names=("Row", "Column", "Layer"))
-	for i = 1:sizes[dim]
+	for i in axess[dim]
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
 		M = permute ? permutedims(X[nt...]) : X[nt...]
@@ -88,7 +88,7 @@ function plot2tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, dim::Integ
 	recursivemkdir(moviedir; filename=false)
 	@assert sizes == size(X2)
 	dimname = namedimension(N; char="D", names=("Row", "Column", "Layer"))
-	for i = 1:sizes[dim]
+	for i in axess[dim]
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
 		g1 = NMFk.plotmatrix(X1[nt...]; minvalue=minvalue, maxvalue=maxvalue, title=ltitle, colormap=colormap, quiet=true, plot=true, kw...)
@@ -163,7 +163,7 @@ function plot3tensors(X1::AbstractArray{T,N}, X2::AbstractArray{T,N}, X3::Abstra
 			gla[i] = []
 		end
 	end
-	for i = 1:sizes[dim]
+	for i in axess[dim]
 		framename = "$(dimname[dim]) $i / $(sizes[dim])"
 		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
 		if overlap
@@ -239,7 +239,7 @@ function plotMtensors(X::AbstractVector{Array{T,N}}, dim::Integer=1; sizes=size(
 			gla[i] = []
 		end
 	end
-	for i = 1:sizes[dim]
+	for i in axess[dim]
 		framename = "$(dimname[dim]) $i / $(sizes[dim])"
 		nt = ntuple(k->(k == dim ? i : mdfilter[k]), N)
 		gv = Vector{Any}(undef, M)

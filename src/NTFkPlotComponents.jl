@@ -123,7 +123,7 @@ function plottensorandsomething(X::Array, something, dim::Integer=1, pdim::Union
 	recursivemkdir(prefix; filename=true)
 	dimname = namedimension(ndimensons; char="D", names=("Row", "Column", "Layer"))
 	progressbar_2d = NMFk.make_progressbar_2d(something)
-	for i = 1:sizes[dim]
+	for i in axess[dim]
 		framename = "$(dimname[dim]) $i"
 		nt = ntuple(k->(k == dim ? i : Colon()), ndimensons)
 		p1 = NMFk.plotmatrix(X[nt...]; minvalue=minvalue, maxvalue=maxvalue, quiet=true, plot=true, kw...)
@@ -217,7 +217,7 @@ function plotallMslices_factors(X::AbstractVector{Array{T,N}}, F::AbstractMatrix
 		XP = Vector{Array{T,N}}(undef, length(X))
 		for i = eachindex(X)
 			XP[i] = Array{T}(undef, (size(X[i], 1), size(X[i], 2), size(F, 1)))
-			for j = 1:size(F, 1)
+			for j in axes(F, 1)
 				XP[i][:,:,j] .= X[i][:,:,1] .* F[j,i]
 			end
 		end
