@@ -1,80 +1,72 @@
-# NTFk: Nonnegative Tensor Factorization using k-means clustering and physics constraints
+# NTFk.jl: Nonnegative Tensor Factorization with Rank Estimation
 
-<div style="text-align: left">
-    <img src="logo/ntfk-logo.jpg" alt="ntfk" width=25%  max-width=125px;/>
+<div align="left">
+    <img src="logo/ntfk-logo.jpg" alt="NTFk logo" width="125">
 </div>
 
-**NTFk** is a module of the **SmartTensors** ML framework ([smarttensors.com](https://smarttensors.com)).
+**NTFk.jl** is a Julia package for extracting latent structure from multidimensional
+data. It combines nonnegative tensor factorization, optional sparsity and
+physics-informed constraints, repeated decompositions, and k-means clustering to
+estimate both the latent factors and their number.
 
-<div style="text-align: left">
-    <img src="logo/SmartTensorsNewSmall.png" alt="SmartTensors" width=25%  max-width=125px;/>
-</div>
+NTFk is part of the [SmartTensors](https://smarttensors.com) machine-learning
+framework. For matrix factorization, see [NMFk.jl](https://github.com/SmartTensors/NMFk.jl);
+for tensor-network decomposition, see [NTNk.jl](https://github.com/SmartTensors/NTNk.jl).
 
-**NTFk** performs a novel unsupervised Machine Learning (ML) method based on Tensor Decomposition (Factorization) coupled with constraints (sparsity, nonnegativity, physical, mathematical).
+## Why NTFk?
 
-**NTFk** methodology allows for automatic identification of the optimal number of features (signals) present in multi-dimensional data arrays (tensors).
-The number of features (tensor rank / multi-rank) along different dimensions can be estimated jointly and independently.
+Tensor rank is usually unknown, and a single factorization can be sensitive to
+initialization. NTFk explores candidate ranks, compares repeated solutions, and
+uses reconstruction quality and clustering stability to identify robust latent
+features. For Tucker models, it can estimate a separate rank along each tensor
+dimension.
 
-**SmartTensors** can be applied to perform various types of analyses of multi-dimensional data:
-- Feature extraction (**FE**)
-- Blind source separation (**BSS**)
-- Detection of disruptions/anomalies
+NTFk supports CP (CANDECOMP/PARAFAC) and Tucker decomposition models and can be
+used for:
+
+- Feature extraction and blind source separation
+- Anomaly and disruption detection
 - Image recognition
 - Text mining
 - Data classification
-- Separation (deconstruction) of co-occurring (physics) processes
-- Discovery of unknown dependencies and phenomena
-- Development of reduced-order/surrogate models
-- Identification of dependencies between model inputs and outputs
-- Guiding the development of physics models representing the ML-analyzed data
-- Blind predictions
-- Optimization of data acquisition (optimal experimental design)
-- Labeling of datasets for supervised ML analyses
+- Separation of co-occurring physical processes
+- Reduced-order and surrogate modeling
+- Discovery of dependencies between model inputs and outputs
+- Prediction, experimental design, and dataset labeling
 
+Parallel execution can use Julia shared and distributed arrays on multicore and
+multiprocessor systems. NTFk can also connect to decomposition implementations in
+[TensorLy](http://tensorly.org/stable/index.html) and, when MATLAB is installed,
+[Tensor Toolbox](https://www.tensortoolbox.org),
+[TT-Toolbox](https://www.mathworks.com/matlabcentral/fileexchange/46312-oseledets-tt-toolbox),
+[BCU](https://www.math.ucla.edu/~wotaoyin/papers/bcu/matlab.html), and
+[Tensorlab](https://www.tensorlab.net).
 
-**NTFk** provides high-performance computing capabilities to solve problems with Shared and Distributed Arrays in parallel.
-The parallelization allows for the utilization of multi-core / multi-processor environments.
-GPU and TPU accelerations are available through existing Julia packages.
-
-**NTFk** can be employed to perform tensor decomposition using CP (Candecomp/Parafac) and Tucker methods.
-
-**NTFk** provides options to access existing tensor decomposition methods available in MATLAB (MATLAB installation required):
-* Tamara Kolda's [TensorToolbox](https://www.tensortoolbox.org)
-* Ivan Oseledets' [TT-Toolbox](https://www.mathworks.com/matlabcentral/fileexchange/46312-oseledets-tt-toolbox)
-* Wotao Yin's [BCU](https://www.math.ucla.edu/~wotaoyin/papers/bcu/matlab.html)
-* [TensorLab](https://www.tensorlab.net)
-
-**NTFk** provides also an interface to Jean Kossaifi's [Python TensorLy](http://tensorly.org/stable/index.html).
-
-**NTFk** can perform high-performance computing tensor decomposition analyses using TensorFlow, PyTorch, and MXNET.
-
-**NTFk** methodology and applications are discussed in the papers and presentations listed below.
-
-Tensor network decompositions can be performed using SmartTensors' [**NTNk**](https://github.com/SmartTensors/NTNk.jl) package.
-
-Matrix factorization can be performed using SmartTensors' [**NMFk**](https://github.com/SmartTensors/NMFk.jl) package.
+<div align="left">
+    <img src="logo/SmartTensorsNewSmall.png" alt="SmartTensors logo" width="125">
+</div>
 
 ## Awards
 
-**SmartTensors** and **NTFk** were recently awarded:
-* 2021 R&D100 Award: [Information Technologies (IT)](https://www.rdworldonline.com/2021-rd-100-award-winners-announced-in-analytical-test-and-it-electrical-categories)
-* 2021 R&D100 Bronze Medal: [Market Disruptor in Services](https://www.rdworldonline.com/2021-rd-100-special-recognition-winners-announced)
+SmartTensors and NTFk received two 2021 R&D 100 honors:
 
-<div style="text-align: left">
-    <img src="logo/RD100Awards-300x300.png" alt="R&D100" width=25%  max-width=125px;/>
+- R&D 100 Award: [Information Technologies](https://www.rdworldonline.com/2021-rd-100-award-winners-announced-in-analytical-test-and-it-electrical-categories)
+- R&D 100 Bronze Medal: [Market Disruptor in Services](https://www.rdworldonline.com/2021-rd-100-special-recognition-winners-announced)
+
+<div align="left">
+    <img src="logo/RD100Awards-300x300.png" alt="R&amp;D 100 Awards logo" width="125">
 </div>
 
 ## Installation
 
-After starting Julia, execute:
+Install the latest release from the Julia package registry:
 
 ```julia
 import Pkg
 Pkg.add("NTFk")
 ```
 
-to access the latest released version.
-To utilize the latest updates (commits), use:
+To install the latest development version from the `master` branch:
 
 ```julia
 import Pkg
@@ -87,7 +79,8 @@ Pkg.add(Pkg.PackageSpec(name="NTFk", rev="master"))
 docker run --interactive --tty montyvesselinov/tensors
 ```
 
-The docker image provides access to all **SmartTensors** packages ([smarttensors.github.io](https://smarttensors.github.io)).
+The Docker image includes the SmartTensors packages. See the
+[SmartTensors documentation](https://smarttensors.github.io) for details.
 
 ## Testing
 
@@ -96,78 +89,95 @@ import Pkg
 Pkg.test("NTFk")
 ```
 
-## Tensor Decomposition
+## Tensor decomposition
 
-**NTFk** performs a novel unsupervised Machine Learning (ML) method based on Tensor Decomposition coupled with sparsity and nonnegativity constraints.
+NTFk decomposes a data tensor into a compact set of interpretable factors. It
+supports sparsity, nonnegativity, and problem-specific physical or mathematical
+constraints.
 
-**NTFk** has been applied to extract the temporal and spatial footprints of the features in multi-dimensional datasets in the form of multi-way arrays or tensors.
+For a Tucker model, NTFk approximates an $n$-dimensional tensor $X$ by minimizing
+the squared Frobenius reconstruction error:
 
-**NTFk** executes the decomposition (factorization) of a given tensor <img src="https://latex.codecogs.com/svg.latex?\Large&space;X" /> by minimization of the Frobenius norm:
+$$
+\frac{1}{2}\left\|X-G\times_1 A_1\times_2 A_2\cdots\times_n A_n\right\|_F^2.
+$$
 
-<img src="https://latex.codecogs.com/svg.latex?\Large&space;\frac{1}{2}%7C%7C%20X-G\otimes_1A_1\otimes_2A_2\ldots\otimes_nA_n%7C%7C_F^2" />
+Here:
 
-<!-- X-G\otimes_1 A_1\otimes_2A_2\dots\otimes_nA_n_F^2 -->
+- $n$ is the number of dimensions (modes) in $X$.
+- $G$ is the core tensor that describes how the features interact.
+- $A_1,A_2,\ldots,A_n$ are factor matrices whose columns represent the features
+  along each mode.
+- $\times_i$ is the mode-$i$ tensor-matrix product.
 
-where:
-
-* <img src="https://latex.codecogs.com/svg.latex?\Large&space;n" /> is the dimensionality of the tensor <img src="https://latex.codecogs.com/svg.latex?\Large&space;X" />
-* <img src="https://latex.codecogs.com/svg.latex?\Large&space;G" /> is a "mixing" core tensor
-* <img src="https://latex.codecogs.com/svg.latex?\Large&space;A_1,A_2,\ldots,A_n" /> are "feature” factors (in the form of vectors or matrices)
-* <img src="https://latex.codecogs.com/svg.latex?\Large&space;\otimes" /> is a tensor product applied to fold-in factors <img src="https://latex.codecogs.com/svg.latex?\Large&space;A_1,A_2,\ldots,A_n" />  in each of the tensor dimensions
-
-<div style="text-align: center">
-    <img src="figures/tucker-paper.png" alt="tucker" width=auto/>
+<div align="center">
+    <img src="figures/tucker-paper.png" alt="Diagram of a Tucker tensor decomposition">
 </div>
 
-The product <img src="https://latex.codecogs.com/svg.latex?\Large&space;G\otimes_1A_1\otimes_2A_2\ldots\otimes_nA_n" /> is an estimate of <img src="https://latex.codecogs.com/svg.latex?\Large&space;X" /> (<img src="https://latex.codecogs.com/svg.latex?\Large&space;X_{est}" />).
+The product $G\times_1A_1\times_2A_2\cdots\times_nA_n$ is the reconstructed
+tensor $X_{\mathrm{est}}$. Ideally, the residual $X-X_{\mathrm{est}}$ contains
+only uncorrelated noise.
 
-The reconstruction error <img src="https://latex.codecogs.com/svg.latex?\Large&space;X-X_{est}" /> is expected to be random uncorrelated noise.
+The size of $G$ determines how many features are extracted along each mode. Each
+factor matrix $A_i$ has one row for every entry along mode $i$ of $X$ and one
+column for every extracted feature along that mode. The elements of $G$ describe
+how those features combine to reconstruct $X$.
 
-<img src="https://latex.codecogs.com/svg.latex?\Large&space;G" /> is a <img src="https://latex.codecogs.com/svg.latex?\Large&space;n" />-dimensional tensor with a size and a rank lower than the size and the rank of <img src="https://latex.codecogs.com/svg.latex?\Large&space;X" />.
-The size of tensor <img src="https://latex.codecogs.com/svg.latex?\Large&space;G" /> defines the number of extracted features (signals) in each of the tensor dimensions.
-
-The factor matrices <img src="https://latex.codecogs.com/svg.latex?\Large&space;A_1,A_2,\ldots,A_n" /> represent the extracted features (signals) in each of the tensor dimensions.
-The number of matrix columns equals the number of features in the respective tensor dimensions (if there is only 1 column, the particular factor is a vector).
-The number of matrix rows in each factor (matrix) <img src="https://latex.codecogs.com/svg.latex?\Large&space;A_i" /> equals the size of tensor X in the respective dimensions.
-
-The elements of tensor <img src="https://latex.codecogs.com/svg.latex?\Large&space;G" /> define how the features along each dimension (<img src="https://latex.codecogs.com/svg.latex?\Large&space;A_1,A_2,\ldots,A_n" />) are mixed to represent the original tensor <img src="https://latex.codecogs.com/svg.latex?\Large&space;X" />.
-
-**NTFk** can perform Tensor Decomposition using [Candecomp/Parafac (CP)](https://en.wikipedia.org/wiki/Tensor_rank_decomposition) or [Tucker](https://en.wikipedia.org/wiki/Tucker_decomposition) decomposition models.
-
-Some of the decomposition models can theoretically lead to unique solutions under specific, albeit rarely satisfied, noiseless conditions.
-When these conditions are not satisfied, additional minimization constraints can assist the factorization.
-A popular approach is to add sparsity and nonnegative constraints.
-Sparsity constraints on the elements of G reduce the number of features and their mixing (by having as many zero entries as possible).
-Nonnegativity enforces parts-based representation of the original data, which also allows the Tensor Decomposition results for <img src="https://latex.codecogs.com/svg.latex?\Large&space;G" /> and <img src="https://latex.codecogs.com/svg.latex?\Large&space;A_1,A_2,\ldots,A_n" /> to be easily interrelated [Cichocki et al, 2009](https://books.google.com/books?hl=en&lr=&id=KaxssMiWgswC&oi=fnd&pg=PR5&ots=Lta2adM6LV&sig=jNPDxjKlON1U3l46tZAYH92mvAE#v=onepage&q&f=false).
+NTFk supports [CANDECOMP/PARAFAC (CP)](https://en.wikipedia.org/wiki/Tensor_rank_decomposition)
+and [Tucker](https://en.wikipedia.org/wiki/Tucker_decomposition) models. Because
+tensor decompositions are not always unique, constraints can make their solutions
+more stable and interpretable. Sparsity limits the number of active features and
+their interactions; nonnegativity produces a parts-based representation in which
+$G$ and $A_1,A_2,\ldots,A_n$ are easier to relate to the original data
+([Cichocki et al., 2009](https://books.google.com/books?id=KaxssMiWgswC&pg=PR5)).
 
 ## Examples
 
-A simple problem demonstrating **NTFk** can be executed as follows.
-First, generate a random Tucker tensor:
+This example generates a random Tucker tensor and asks NTFk to recover its
+unknown core size:
 
 ```julia
 import NTFk
-
-csize = (2, 3, 4)
-tsize = (5, 10, 15)
-tucker_orig = NTFk.rand_tucker(csize, tsize; factors_nonneg=true, core_nonneg=true)
-```
-
-After that, we can compose a tensor-based on this Tucker decomposition:
-
-```julia
 import TensorDecompositions
 
-T_orig = TensorDecompositions.compose(tucker_orig)
+csize::NTuple{3, Int} = (2, 3, 4)
+tsize::NTuple{3, Int} = (5, 10, 15)
+tucker_orig::TensorDecompositions.Tucker{Float64, 3} =
+    NTFk.rand_tucker(csize, tsize; factors_nonneg=true, core_nonneg=true)
+```
+
+Compose the full tensor represented by the Tucker model:
+
+```julia
+T_orig::Array{Float64, 3} = TensorDecompositions.compose(tucker_orig)
 T_orig .*= 1000
 ```
 
-Applying **NTFk**, we can find the unknown core size of the tensor using the tensor by itself as an input only.
-To do this, we explore a series of core sizes and identify the optimal one:
+Explore several candidate core sizes. NTFk runs three factorizations for each
+candidate and selects the best-supported model:
 
 ```julia
-sizes = [csize, (1,3,4), (3,3,4), (2,2,4), (2,4,4), (2,3,3), (2,3,5)]
-tucker_estimated, csize_estimated = NTFk.analysis(T_orig, sizes, 3; eigmethod=[false,false,false], progressbar=false, tol=1e-16, max_iter=100000, lambda=0.);
+sizes::Vector{NTuple{3, Int}} =
+    [csize, (1, 3, 4), (3, 3, 4), (2, 2, 4), (2, 4, 4), (2, 3, 3), (2, 3, 5)]
+
+analysis_result::Tuple{
+    Vector{TensorDecompositions.Tucker{Float64, 3}},
+    NTuple{3, Int},
+    Int,
+} = NTFk.analysis(
+    T_orig,
+    sizes,
+    3;
+    eigmethod=[false, false, false],
+    progressbar=false,
+    tol=1e-16,
+    maxiter=100_000,
+    lambda=0.0,
+)
+
+tucker_estimated::Vector{TensorDecompositions.Tucker{Float64, 3}} = analysis_result[1]
+csize_estimated::NTuple{3, Int} = analysis_result[2]
+ibest::Int = analysis_result[3]
 ```
 
 **NTFk** execution will produce something like this:
@@ -184,102 +194,99 @@ tucker_estimated, csize_estimated = NTFk.analysis(T_orig, sizes, 3; eigmethod=[f
 [ Info: Estimated true core size based on the reconstruction: (2, 3, 4)
 ```
 
-The final **NTFk** result is the estimated core size `(2,3,4)`, which, as expected, matches the original unknown core size.
+The estimated core size is `(2, 3, 4)`, matching the core size used to generate
+the synthetic tensor.
 
-**NTFk** also produces a Tucker deconstruction of this tensor with core size `(2,3,4)`, which is stored as `tucker_estimated[ibest]`
+The selected Tucker decomposition is available as `tucker_estimated[ibest]`.
 
-## Notebooks:
+## Notebook
 
-A series of Jupyter notebooks demonstrating **NMFk** have been developed:
+A [Jupyter notebook](notebooks/simple_tensor_decomposition.ipynb) demonstrates a
+simple Tucker tensor decomposition.
 
-- [Simple Tucker tensor decomposition](https://github.com/TensorDecompositions/NTFk.jl/blob/master/notebooks/simple_tensor_decomposition.ipynb)
-- [Simple Candecomp/Parafac (CP) tensor decomposition](https://github.com/TensorDecompositions/NTFk.jl/blob/master/notebooks/simple_tensor_decomposition_cp.ipynb)
-
-The notebooks can also be accessed using:
+The notebook can also be opened using:
 
 ```julia
 NTFk.notebooks()
 ```
 
-## Applications:
+## Applications
 
-**NTFk** has been applied in a wide range of real-world applications.
-The analyzed datasets include model outputs, laboratory experimental data, and field tests:
+NTFk has been applied to model outputs, laboratory experiments, and field data
+in areas including:
 
 - Climate data and simulations
 - Watershed data and simulations
 - Aquifer simulations
-- Surface-water and Groundwater analyses
+- Surface-water and groundwater analysis
 - Material characterization
 - Reactive mixing
 - Molecular dynamics
 - Contaminant transport
 - Induced seismicity
 - Phase separation of co-polymers
-- Oil / Gas extraction from unconventional reservoirs
+- Oil and gas extraction from unconventional reservoirs
 - Geothermal exploration and production
 - Geologic carbon storage
 - Wildfires
 
-## Videos:
+## Videos
 
 - Europe Climate Model: Water table fluctuations in 2003
-<div style="text-align: left">
-    <a href="https://www.youtube.com/embed/18EHkbDt5-0"><img src="https://img.youtube.com/vi/18EHkbDt5-0/0.jpg" width=25%  max-width=125px;/></a>
+<div align="left">
+    <a href="https://www.youtube.com/watch?v=18EHkbDt5-0"><img src="https://img.youtube.com/vi/18EHkbDt5-0/0.jpg" alt="Europe climate model: water-table fluctuations in 2003" width="240"></a>
 </div>
 
 - Europe Climate Model: Deconstruction of water table fluctuations in 2003
-<div style="text-align: left">
-    <a href="https://www.youtube.com/embed/s8socihoqTo"><img src="https://img.youtube.com/vi/s8socihoqTo/0.jpg" width=25%  max-width=125px;/></a>
+<div align="left">
+    <a href="https://www.youtube.com/watch?v=s8socihoqTo"><img src="https://img.youtube.com/vi/s8socihoqTo/0.jpg" alt="Deconstruction of Europe water-table fluctuations in 2003" width="240"></a>
 </div>
 
 - Europe Climate Model: Air temperature fluctuations in 2003
-<div style="text-align: left">
-    <a href="https://www.youtube.com/embed/ZAWBn3OsCCw"><img src="https://img.youtube.com/vi/ZAWBn3OsCCw/0.jpg" width=25%  max-width=125px;/></a>
+<div align="left">
+    <a href="https://www.youtube.com/watch?v=ZAWBn3OsCCw"><img src="https://img.youtube.com/vi/ZAWBn3OsCCw/0.jpg" alt="Europe climate model: air-temperature fluctuations in 2003" width="240"></a>
 </div>
 
 - Europe Climate Model: Deconstruction of Air temperature fluctuations in 2003
-<div style="text-align: left">
-    <a href="https://www.youtube.com/embed/qUQvChqE8_4"><img src="https://img.youtube.com/vi/qUQvChqE8_4/0.jpg" width=25%  max-width=125px;/></a>
+<div align="left">
+    <a href="https://www.youtube.com/watch?v=qUQvChqE8_4"><img src="https://img.youtube.com/vi/qUQvChqE8_4/0.jpg" alt="Deconstruction of Europe air-temperature fluctuations in 2003" width="240"></a>
 </div>
 
 - Oklahoma seismic events
-<div style="text-align: left">
-    <a href="https://www.youtube.com/embed/prP_OZFA3tE"><img src="https://img.youtube.com/vi/prP_OZFA3tE/0.jpg" width=25%  max-width=125px;/></a>
+<div align="left">
+    <a href="https://www.youtube.com/watch?v=prP_OZFA3tE"><img src="https://img.youtube.com/vi/prP_OZFA3tE/0.jpg" alt="Oklahoma seismic events" width="240"></a>
 </div>
 
 - Deconstruction of Oklahoma seismic events
-<div style="text-align: left">
-    <a href="https://www.youtube.com/embed/xIoWi0WjeoQ"><img src="https://img.youtube.com/vi/xIoWi0WjeoQ/0.jpg" width=25%  max-width=125px;/></a>
+<div align="left">
+    <a href="https://www.youtube.com/watch?v=xIoWi0WjeoQ"><img src="https://img.youtube.com/vi/xIoWi0WjeoQ/0.jpg" alt="Deconstruction of Oklahoma seismic events" width="240"></a>
 </div>
 
-- Deconstruction of Oklahoma seismic events
-<div style="text-align: left">
-    <a href="https://www.youtube.com/embed/xIoWi0WjeoQ"><img src="https://img.youtube.com/vi/xIoWi0WjeoQ/0.jpg" width=25%  max-width=125px;/></a>
-</div>
+More videos are available in the
+[SmartTensors YouTube playlist](https://www.youtube.com/playlist?list=PLpVcrIWNlP22LfyIu5MSZ7WHp7q0MNjsj).
 
-Videos are available on [YouTube](https://www.youtube.com/watch?v=xPOkeLMJywE&list=PLpVcrIWNlP22LfyIu5MSZ7WHp7q0MNjsj)
-
-## Publications:
+## Publications
 
 - Vesselinov, V.V., Mudunuru, M., Karra, S., O'Malley, D., Alexandrov, B.S., Unsupervised Machine Learning Based on Non-Negative Tensor Factorization for Analyzing Reactive-Mixing, Journal of Computational Physics, 2018 (in review). [PDF](http://monty.gitlab.io/papers/Vesselinov%20et%20al%202018%20Unsupervised%20Machine%20Learning%20Based%20on%20Non-Negative%20Tensor%20Factorization%20for%20Analyzing%20Reactive-Mixing.pdf)
 - Vesselinov, V.V., Alexandrov, B.S., O'Malley, D., Nonnegative Tensor Factorization for Contaminant Source Identification, Journal of Contaminant Hydrology, 10.1016/j.jconhyd.2018.11.010, 2018. [PDF](http://monty.gitlab.io/papers/Vesselinov%20et%20al%202018%20Nonnegative%20Tensor%20Factorization%20for%20Contaminant%20Source%20Identification.pdf)
 
 Research papers are also available at [Google Scholar](http://scholar.google.com/citations?user=sIFHVvwAAAAJ&hl=en), [ResearchGate](https://www.researchgate.net/profile/Velimir_Vesselinov) and [Academia.edu](https://lanl.academia.edu/monty)
 
-## Presentations:
+## Presentations
 
 - Vesselinov, V.V., Novel Machine Learning Methods for Extraction of Features Characterizing Datasets and Models, AGU Fall meeting, Washington D.C., 2018. [PDF](http://monty.gitlab.io/presentations/Vesselinov%202018%20Novel%20Machine%20Learning%20Methods%20for%20Extraction%20of%20Features%20Characterizing%20Datasets%20and%20Models%20LA-UR-18-31366.pdf)
 - Vesselinov, V.V., Novel Machine Learning Methods for Extraction of Features Characterizing Complex Datasets and Models, Recent Advances in Machine Learning and Computational Methods for Geoscience, Institute for Mathematics and its Applications, University of Minnesota, 2018. [PDF](http://monty.gitlab.io/presentations/Vesselinov%202018%20Novel%20Machine%20Learning%20Methods%20for%20Extraction%20of%20Features%20Characterizing%20Complex%20Datasets%20and%20Models%20LA-UR-18-30987.pdf)
 
 Presentations are also available at [slideshare.net](https://www.slideshare.net/VelimirmontyVesselin), [ResearchGate](https://www.researchgate.net/profile/Velimir_Vesselinov) and [Academia.edu](https://lanl.academia.edu/monty)
 
-## Lectures:
+## Lectures
 
 - [Vesselinov, V.V., Novel Machine Learning Methods for Extraction of Features Characterizing Complex Datasets and Models, Recent Advances in Machine Learning and Computational Methods for Geoscience, Institute for Mathematics and its Applications, University of Minnesota, 2018.](https://youtu.be/xPOkeLMJywE)
 
-[![Watch the video](images/nma.png)](https://www.youtube.com/embed/xPOkeLMJywE)
+[![Watch the lecture](images/nma.png)](https://www.youtube.com/watch?v=xPOkeLMJywE)
 
 ## Extra information
 
-For more information, visit [monty.gitlab.io](http://monty.gitlab.io), [http://smarttensors.com](http://smarttensors.com) [smarttensors.github.io],(https://smarttensors.github.io), and [tensors.lanl.gov](http://tensors.lanl.gov).
+For more information, visit [SmartTensors](https://smarttensors.com), the
+[SmartTensors documentation](https://smarttensors.github.io), or
+[monty.gitlab.io](https://monty.gitlab.io).
