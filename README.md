@@ -59,6 +59,8 @@ SmartTensors and NTFk received two 2021 R&D 100 honors:
 
 ## Installation
 
+NTFk requires Julia 1.12 or later.
+
 Install the latest release from the Julia package registry:
 
 ```julia

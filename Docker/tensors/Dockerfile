@@ -1,4 +1,4 @@
-FROM julia
+FROM julia:1.12
 COPY . /app
 COPY . /src
 
