@@ -10,6 +10,9 @@ on:
 permissions:
   contents: read
 
+env:
+  PYTHON: ""
+
 jobs:
   test:
     name: Julia 1.12 - ${{ matrix.os }}

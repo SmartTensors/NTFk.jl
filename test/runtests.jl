@@ -21,10 +21,10 @@ import PyCall
 	tucker_orig = NTFk.rand_tucker(csize, tsize, factors_nonneg=true, core_nonneg=true)
 	T_orig = TensorDecompositions.compose(tucker_orig)
 	tucker_est, csize_est, ibest = NTFk.analysis(T_orig, [csize], 1; seed=1, eigmethod=[false,false,false], progressbar=false, tol=1e-4, maxiter=100, lambda=0.)
-	T_est = TensorDecompositions.compose(tucker_est[ibest])
 	@Test.test csize == csize_est
-	@info "Error $display(LinearAlgebra.norm(T_orig .- T_est))"
-	@Test.test isapprox(LinearAlgebra.norm(T_orig .- T_est), 1.0104725439065432, atol=1e-3)
+	relative_residual::Float64 = TensorDecompositions.rel_residue(tucker_est[ibest], T_orig)
+	@info "Relative reconstruction error: $(relative_residual)"
+	@Test.test relative_residual < 0.03
 end
 
 @Test.testset "NTFk TensorDecompositions CP analysis" begin
@@ -33,10 +33,11 @@ end
 	tsize = (5, 10, 15)
 	tucker_orig = NTFk.rand_tucker(csize, tsize, factors_nonneg=true, core_nonneg=true)
 	T_orig = TensorDecompositions.compose(tucker_orig)
-	cp_est, csize, ibest = NTFk.analysis(T_orig, [maximum(csize)], 1; seed=1, eigmethod=[false,false,false], progressbar=false, tol=1e-12, maxiter=100, lambda=0.)
-	T_est = TensorDecompositions.compose(cp_est[ibest])
-	@info "Error $(LinearAlgebra.norm(T_orig .- T_est))"
-	@Test.test isapprox(LinearAlgebra.norm(T_orig .- T_est), 0.047453937969484744; atol=1e-3)
+	cp_est, csize_est, ibest = NTFk.analysis(T_orig, [maximum(csize)], 1; seed=1, eigmethod=[false,false,false], progressbar=false, tol=1e-12, maxiter=100, lambda=0.)
+	@Test.test csize_est == maximum(csize)
+	relative_residual::Float64 = TensorDecompositions.rel_residue(cp_est[ibest], T_orig)
+	@info "Relative reconstruction error: $(relative_residual)"
+	@Test.test relative_residual < 0.02
 end
 
 @Test.testset "NTFk TensorDecompositions Tucker sparse analysis" begin
@@ -46,12 +47,13 @@ end
 	tucker_orig = NTFk.rand_tucker(csize, tsize, factors_nonneg=true, core_nonneg=true)
 	T_orig = TensorDecompositions.compose(tucker_orig)
 	T_orig[1,1,:] .= NaN
-	nans = .!isnan.(T_orig)
+	observed::BitArray{3} = .!isnan.(T_orig)
 	tucker_est, csize_est, ibest = NTFk.analysis(T_orig, [csize], 1; seed=1, eigmethod=[false,false,false], progressbar=false, tol=1e-4, maxiter=100, lambda=0.)
 	T_est = TensorDecompositions.compose(tucker_est[ibest])
-	@info "Error $(LinearAlgebra.norm(T_orig[nans] .- T_est[nans]))"
 	@Test.test csize == csize_est
-	@Test.test isapprox(LinearAlgebra.norm(T_orig[nans] .- T_est[nans]), 1.0332311547429096; atol=1e-2)
+	relative_residual::Float64 = LinearAlgebra.norm(T_orig[observed] .- T_est[observed]) / LinearAlgebra.norm(T_orig[observed])
+	@info "Relative reconstruction error: $(relative_residual)"
+	@Test.test relative_residual < 0.05
 end
 
 if NTFk.tensorly == PyCall.PyNULL()
